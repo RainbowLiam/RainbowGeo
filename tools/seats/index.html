@@ -1,0 +1,2658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>超级座位管理器 v2.0 · 在线试用版 | RainbowGeo（文波地理）</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8E%93</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f1f5f9; --surface:#fff; --ink:#0f172a; --ink2:#64748b; --line:#e2e8f0;
+  --primary:#2563eb; --primary-soft:#eff6ff;
+  --pink-bg:#fce7f3; --pink-line:#f9a8d4; --pink-ink:#9d174d;
+  --blue-bg:#dbeafe; --blue-line:#93c5fd; --blue-ink:#1e40af;
+  --danger:#dc2626;
+  --radius:12px;
+  --shadow:0 1px 2px rgba(15,23,42,.05),0 6px 20px rgba(15,23,42,.06);
+}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55}
+.hidden{display:none!important}
+button{font-family:inherit}
+
+/* ===== 顶栏 ===== */
+.topbar{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:10px 16px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.brand-ico{line-height:1}
+.cls-input{flex:0 1 100px;min-width:76px;max-width:190px;padding:7px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:#fff;color:var(--ink);outline:none;transition:border .15s,box-shadow .15s}
+.cls-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid transparent;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s;white-space:nowrap}
+.btn:hover{background:#1d4ed8}
+.btn.ghost{background:#fff;border-color:var(--line);color:var(--ink);font-weight:500}
+.btn.ghost:hover{background:#f8fafc;border-color:#cbd5e1}
+.btn.ghost.active{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
+.btn.danger{color:var(--danger);border-color:#fecaca}
+.btn.danger:hover{background:#fef2f2;border-color:#fca5a5}
+.btn.w100{width:100%}
+.icon-btn{border:none;background:transparent;cursor:pointer;color:var(--ink2);font-size:16px;width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+.icon-btn:hover{background:#f1f5f9;color:var(--ink)}
+.grp{display:flex;flex-wrap:wrap;gap:6px;padding:4px;background:#f8fafc;border:1px solid var(--line);border-radius:12px;align-items:center}
+.grp .btn{padding:7px 11px;font-size:12.5px}
+.grp-data{margin-left:auto}
+.grp-view{margin:10px auto 0;justify-content:center;width:max-content}
+
+/* ===== 主区 ===== */
+.stage{max-width:1160px;margin:0 auto;padding:0 12px 40px}
+.statusbar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:10px 6px 4px;color:var(--ink2);font-size:12.5px}
+.statusbar b{color:var(--ink);font-weight:600}
+.statusbar .bar-on{color:var(--primary);font-weight:700}
+.mini{padding:2px 11px;border:1px solid var(--line);background:#fff;border-radius:999px;font-size:12px;cursor:pointer;color:var(--ink2)}
+.mini.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
+
+/* ===== 教室 ===== */
+.classroom{position:relative;width:min(1080px,100%);height:clamp(540px,72vh,720px);margin:8px auto 0;background:linear-gradient(180deg,#f8fafc 0%,#eef2f7 100%);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;user-select:none;-webkit-user-select:none;transition:transform .25s ease}
+.classroom.student-view{transform:rotate(180deg)}
+.classroom.student-view .seat .g,
+.classroom.student-view .seat .nm,
+.classroom.student-view .gutter{transform:rotate(180deg)}
+.classroom.student-view .blackboard,
+.classroom.student-view .podium{transform:translateX(-50%) rotate(180deg)}
+.classroom.student-view .door,
+.classroom.student-view .win-strip::after,
+.classroom.student-view .door-strip::after{transform:rotate(180deg)}
+.blackboard{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:54%;height:30px;background:#1e293b;color:#94a3b8;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;letter-spacing:8px;box-shadow:inset 0 0 12px rgba(0,0,0,.5)}
+.podium{position:absolute;top:62px;left:50%;transform:translateX(-50%);width:42%;height:52px;background:#f5f5f4;border:1px solid #d6d3d1;border-top:4px solid #a8a29e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;letter-spacing:12px;color:#57534e;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+/* 窗户 */
+.win-strip{position:absolute;left:16px;top:150px;bottom:26px;width:36px;display:flex;flex-direction:column;gap:10px}
+.win{flex:1;background:linear-gradient(160deg,#e0f2fe,#bae6fd);border:2px solid #cbd5e1;border-radius:6px;position:relative;box-shadow:inset 0 0 8px rgba(125,211,252,.6)}
+.win::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:#cbd5e1;transform:translateX(-50%)}
+.win::after{content:'';position:absolute;top:50%;left:0;right:0;height:2px;background:#cbd5e1;transform:translateY(-50%)}
+.win-strip::after,.door-strip::after{content:'门';position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;color:#94a3b8;letter-spacing:2px}
+.win-strip::after{content:'窗'}
+/* 前后门 */
+.door-strip{position:absolute;right:16px;top:150px;bottom:26px;width:42px;display:flex;flex-direction:column;justify-content:space-between}
+.door{height:104px;background:#f5f5f4;border:1px solid #d6d3d1;border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center;color:#78716c;font-size:11px;letter-spacing:3px;writing-mode:vertical-rl;box-shadow:inset 2px 0 0 rgba(255,255,255,.6)}
+.door::before{content:'';position:absolute;top:50%;right:6px;width:5px;height:5px;border-radius:50%;background:#a8a29e}
+
+/* ===== 座位网格 ===== */
+.seats-grid{position:absolute;left:72px;right:72px;top:150px;bottom:26px;display:grid;gap:8px;--fs:13px}
+.cell{position:relative;border:1.5px dashed #cbd5e1;border-radius:8px;background:rgba(255,255,255,.45);transition:transform .35s cubic-bezier(.22,.61,.36,1)}
+.cell.empty.add-mode{cursor:copy;touch-action:none}
+.cell.add-mode:hover{background:#fff;border-color:#94a3b8}
+.cell.empty.add-mode:hover::after{content:'+';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#94a3b8;pointer-events:none}
+.cell.drop{border-color:var(--primary);background:var(--primary-soft)}
+.cell.drop-swap{border-color:#f59e0b;background:#fffbeb}
+.cell.aisle{background:#eef2f7;border-style:dashed;border-color:#e2e8f0}
+.cell.aisle.add-mode:hover{background:#fff;border-color:#94a3b8}
+.grow-r,.gcol-c{cursor:grab;border-radius:6px;transition:background .12s,color .12s;touch-action:none}
+.grow-r:hover,.gcol-c:hover,.grow-r.dragging,.gcol-c.dragging{color:var(--primary);background:var(--primary-soft)}
+.grow-r.dragging,.gcol-c.dragging{box-shadow:0 0 0 2px var(--primary)}
+.cell.row-hl,.cell.col-hl{border-color:var(--primary);background:rgba(37,99,235,.12)}
+.axis-ghost{position:absolute;z-index:30;background:rgba(37,99,235,.16);border:2px solid var(--primary);border-radius:10px;pointer-events:none;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:13px;box-shadow:0 8px 24px rgba(37,99,235,.28);white-space:nowrap}
+.axis-insert{position:absolute;z-index:29;pointer-events:none;display:block;border-radius:3px}
+.axis-insert.row-l{background:var(--primary);height:3px}
+.axis-insert.col-l{background:var(--primary);width:3px}
+.group-bar{display:flex;align-items:center;justify-content:center;background:var(--primary-soft);border:1px solid var(--primary);border-bottom:2px solid var(--primary);color:var(--primary);border-radius:6px;font-size:10px;font-weight:600;letter-spacing:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px}
+.group-bar{display:flex;align-items:center;justify-content:center;background:var(--primary-soft);border:1px solid var(--primary);border-bottom:2px solid var(--primary);color:var(--primary);border-radius:6px;font-size:10px;font-weight:600;letter-spacing:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px}
+.classroom.student-view .group-bar{transform:rotate(180deg)}
+.gchips{display:flex;flex-wrap:wrap;gap:6px}
+.gchip{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:var(--ink2)}
+.gchip.aisle{border-style:dashed;color:#94a3b8}
+.gchip.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
+.grow{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-top:8px;font-size:13px}
+.grow .gdel{border:none;background:none;color:var(--danger);cursor:pointer;font-size:12px}
+.grow .gdel:hover{text-decoration:underline}
+.glst{margin-top:4px}
+.gutter{display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;user-select:none;white-space:nowrap}
+.seat{position:absolute;inset:3px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:3px;border-radius:8px;cursor:grab;touch-action:none;box-shadow:0 1px 2px rgba(15,23,42,.08);font-size:var(--fs);transition:box-shadow .12s;background:#fff;border:1px solid #e2e8f0;color:#334155}
+.seat.female{background:var(--pink-bg);border:1.5px solid var(--pink-line);color:var(--pink-ink)}
+.seat.male{background:var(--blue-bg);border:1.5px solid var(--blue-line);color:var(--blue-ink)}
+.seat .g{flex:none;font-size:calc(var(--fs)*0.8);opacity:.9;line-height:1}
+.seat .nm{max-width:86%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.seat.selected{box-shadow:0 0 0 3px var(--primary)}
+.seat.multi-sel{box-shadow:0 0 0 3px #f59e0b;background:#fef3c7!important}
+.seat.dragging{opacity:.92;box-shadow:0 10px 26px rgba(15,23,42,.28);cursor:grabbing;pointer-events:none;transition:none}
+
+/* 空状态 */
+.empty-state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.72);z-index:5}
+.empty-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:26px 30px;text-align:center;max-width:380px}
+.empty-card h3{font-size:17px;margin-bottom:8px}
+.empty-card p{color:var(--ink2);font-size:13px;margin-bottom:18px}
+.empty-card .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* 图例 */
+.legend{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:14px;color:var(--ink2);font-size:12.5px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;border:1.5px solid;font-weight:600}
+.chip.female{background:var(--pink-bg);border-color:var(--pink-line);color:var(--pink-ink)}
+.chip.male{background:var(--blue-bg);border-color:var(--blue-line);color:var(--blue-ink)}
+.legend b{color:var(--ink)}
+.legend .tip{color:#94a3b8}
+
+/* ===== 编辑面板 ===== */
+.editor{position:fixed;top:66px;right:12px;bottom:12px;width:300px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px rgba(15,23,42,.16);padding:18px;z-index:50;transform:translateX(130%);transition:transform .22s ease;display:flex;flex-direction:column;gap:14px;overflow:auto}
+.editor.open{transform:none}
+.ed-head{display:flex;align-items:center;justify-content:space-between}
+.ed-head h3{font-size:15px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label{font-size:12px;color:var(--ink2);font-weight:600}
+.field input,.field-row input[type=number],.col-row select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;outline:none;background:#fff;color:var(--ink)}
+.field input{font-size:14px}
+.field input:focus,.field-row input:focus,.col-row select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.field-row input[type=number]{font-size:14px}
+.seg{display:flex;gap:4px;background:#f1f5f9;padding:4px;border-radius:11px}
+.seg button{flex:1;padding:7px 6px;border-radius:8px;border:1px solid transparent;background:transparent;cursor:pointer;font-size:13px;color:#475569;transition:.15s}
+.seg button.on{background:#fff;border-color:var(--line);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(15,23,42,.08)}
+.pos{font-size:13px;color:var(--ink2);background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.ed-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+
+/* ===== 弹窗 ===== */
+.modal-root{position:fixed;inset:0;z-index:80;display:none}
+.modal-root.show{display:block}
+.overlay{position:absolute;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px}
+.card{background:#fff;border-radius:16px;padding:22px;width:min(480px,94vw);max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(15,23,42,.25);animation:pop .18s ease}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.m-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.m-head h3{font-size:16px}
+.m-msg{font-size:14px;color:var(--ink);line-height:1.7;margin-bottom:8px}
+.m-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.m-hint{font-size:12px;color:var(--ink2);line-height:1.6;margin-top:6px}
+.drop{display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;padding:22px 16px;border:1.5px dashed #cbd5e1;border-radius:12px;background:#f8fafc;font-size:13px;color:var(--ink2);cursor:pointer;margin-bottom:14px;transition:.15s}
+.drop:hover{border-color:var(--primary);background:var(--primary-soft)}
+.drop input[type=file]{display:none}
+.drop.has-file{border-style:solid;border-color:var(--primary);color:var(--primary);background:var(--primary-soft);font-weight:600}
+.field-row{display:flex;gap:12px;flex-wrap:wrap}
+.field-row label{flex:1;min-width:110px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink2);font-weight:600}.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer}
+.col-row{display:flex;gap:10px;flex-wrap:wrap}
+.col-row label{flex:1;min-width:130px;display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink2);font-weight:600}
+.col-row select{padding:8px 8px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:#fff;outline:none;color:var(--ink)}
+.col-row select:focus{border-color:var(--primary)}
+.export-list{display:flex;flex-direction:column;gap:10px}
+.export-item,.mirror-item{display:flex;flex-direction:column;gap:4px;text-align:left;padding:13px 16px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;font-size:14px;font-weight:600;transition:.15s}
+.export-item{gap:3px}
+.export-item div,.mirror-item div{font-size:12px;font-weight:400;color:var(--ink2)}
+.mirror-item{align-items:center;text-align:center;padding:16px 10px}
+.mirror-item div{font-size:11px;line-height:1.5}
+.export-item:hover,.mirror-item:hover{border-color:var(--primary);background:var(--primary-soft)}
+.mirror-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+/* 导入预览确认表 */
+.import-tools{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--ink2);margin:10px 0 6px}
+.import-tools b{color:var(--ink)}
+.import-preview{max-height:42vh;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.import-preview table{width:100%;border-collapse:collapse;table-layout:fixed}
+.import-preview th{position:sticky;top:0;background:#f8fafc;font-size:12px;color:var(--ink2);font-weight:600;padding:8px 4px;border-bottom:1px solid var(--line);text-align:center;z-index:1}
+.import-preview td{padding:6px 4px;border-bottom:1px solid #f1f5f9;text-align:center;font-size:13px;vertical-align:middle}
+.import-preview td.nm{text-align:left;padding-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.import-preview tr.row-off td{opacity:.4}
+.import-preview .mini-seg{display:inline-flex;gap:2px;background:#f1f5f9;padding:2px;border-radius:8px}
+.import-preview .mini-seg button{font-size:12px;padding:2px 9px;border:none;background:transparent;border-radius:6px;cursor:pointer;color:var(--ink2)}
+.import-preview .mini-seg button.on{background:var(--ink);color:#fff;font-weight:600}
+.import-preview .mini-seg button.on.f{background:var(--pink-bg);color:var(--pink-ink);font-weight:600}
+.import-preview .mini-seg button.on.m{background:var(--blue-bg);color:var(--blue-ink);font-weight:600}
+
+/* ===== 点名 ===== */
+.roll-dock{position:fixed;left:14px;bottom:64px;display:flex;gap:3px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);z-index:45}
+.page-footer{position:fixed;left:0;right:0;bottom:0;text-align:center;padding:6px 0 8px;font-size:12px;color:#94a3b8;z-index:40;pointer-events:none}
+.roll-dock .btn{padding:6px 16px;border-radius:999px;font-size:13px}
+.roll-dock .btn.running{background:#dc2626}
+.roll-hi{box-shadow:0 0 0 3px #fff,0 0 16px 7px rgba(250,204,21,.95),inset 0 0 8px rgba(250,204,21,.35);z-index:22;transition:box-shadow .03s}
+.roll-pick{box-shadow:0 0 0 3px #fff,0 0 20px 10px rgba(250,204,21,1),inset 0 0 10px rgba(250,204,21,.5);z-index:23}
+body.ui-bw .seat.roll-hi{box-shadow:0 0 0 3px #fff,0 0 0 6px #111,inset 0 0 6px rgba(0,0,0,.25)}
+body.ui-bw .seat.roll-pick{box-shadow:0 0 0 3px #fff,0 0 0 7px #000,inset 0 0 8px rgba(0,0,0,.4)}
+.roll-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.3);padding:30px 48px;text-align:center;z-index:200;animation:popIn .25s ease;transition:opacity .25s,transform .25s}
+.roll-modal.closing{opacity:0;transform:translate(-50%,-50%) scale(.94)}
+.roll-modal .rm-title{font-size:12px;letter-spacing:4px;color:var(--ink2);margin-bottom:12px}
+.roll-modal .rm-name{font-size:34px;font-weight:800;color:var(--ink);letter-spacing:2px}
+.roll-modal .rm-sub{font-size:12px;color:var(--ink2);margin-top:14px}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+/* ===== 提示 ===== */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:86vw;text-align:center;box-shadow:0 8px 24px rgba(15,23,42,.3)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== 主题切换 ===== */
+.theme-dock{position:fixed;right:14px;bottom:64px;display:flex;gap:3px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);z-index:45}
+.theme-dock button{border:none;background:transparent;font-size:12px;color:var(--ink2);padding:5px 11px;border-radius:999px;cursor:pointer;transition:.15s}
+.theme-dock button:hover{color:var(--ink)}
+.theme-dock button.on{background:var(--primary);color:#fff;font-weight:600}
+
+/* ===== 主题：黑白（模拟A4纸，适合黑白打印，女生下划线+粗框区分） ===== */
+body.ui-bw{--bg:#e9e9e9;--ink:#111;--ink2:#666;--line:#bbb;--surface:#fff;--primary:#111;--primary-soft:#eee}
+body.ui-bw .topbar{background:#fff;border-color:#bbb}
+body.ui-bw .grp{background:#fafafa;border-color:#ccc}
+body.ui-bw .btn.ghost{background:#fff;border-color:#999;color:#111}
+body.ui-bw .btn.ghost:hover{background:#f0f0f0;border-color:#666;color:#000}
+body.ui-bw .btn.ghost.active{background:#e5e5e5;border-color:#111;color:#000}
+body.ui-bw .cls-input{background:#fff;border-color:#bbb;color:#111}
+body.ui-bw .classroom{background:#fff;border:1px solid #333;box-shadow:0 1px 3px rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.12)}
+body.ui-bw .cell{background:#fff;border-color:#999}
+body.ui-bw .cell.add-mode:hover{background:#f0f0f0;border-color:#333}
+body.ui-bw .cell.aisle{background:#f4f4f4;border-color:#aaa}
+body.ui-bw .cell.aisle.add-mode:hover{background:#ebebeb}
+body.ui-bw .gutter{color:#555}
+body.ui-bw .seat{background:#fff;border-radius:0;box-shadow:none;border:1px solid #666}
+body.ui-bw .seat .g{display:none}
+body.ui-bw .seat.female{background:#fff;border:2px solid #111;color:#111}
+body.ui-bw .seat.female .nm{text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px;text-decoration-color:#111}
+body.ui-bw .seat.male{background:#fff;border:1px solid #666;color:#111}
+body.ui-bw .blackboard{background:#fff;color:#333;border:1px solid #333}
+body.ui-bw .podium{background:#f2f2f2;border-color:#333;color:#111;box-shadow:none}
+body.ui-bw .win{background:#fff;border-color:#999}
+body.ui-bw .door{background:#f2f2f2;border-color:#333;color:#111}
+body.ui-bw .win-strip::after,body.ui-bw .door-strip::after{color:#666}
+body.ui-bw .statusbar,body.ui-bw .legend{color:#555}
+body.ui-bw .legend b{color:#111}
+body.ui-bw .legend .tip{color:#777}
+body.ui-bw .mini{background:#fff;border-color:#bbb;color:#555}
+body.ui-bw .mini.on{background:#d9d9d9;border-color:#111;color:#000}
+body.ui-bw .empty-card{background:#fff;border-color:#bbb;color:#111}
+body.ui-bw .empty-card p{color:#555}
+body.ui-bw .theme-dock{background:#fff;border-color:#bbb}
+body.ui-bw .theme-dock button{color:#555}
+body.ui-bw .theme-dock button.on{background:#111;color:#fff}
+
+/* ===== 主题：纸质（米白暖色，适合打印） ===== */
+body.ui-paper{--bg:#f2ecdf;--ink:#3f3a30;--ink2:#8a8272;--line:#e0d6c0;--surface:#fdfaf3;--primary:#8a5a2b;--primary-soft:#f6efe0}
+body.ui-paper .topbar{background:rgba(253,250,243,.94);border-color:#e0d6c0}
+body.ui-paper .grp{background:rgba(255,255,255,.55);border-color:#e0d6c0}
+body.ui-paper .cls-input{background:#fdfaf3;border-color:#e0d6c0;color:#3f3a30}
+body.ui-paper .classroom{background:linear-gradient(180deg,#fdfaf3 0%,#f5efdf 100%);border-color:#ddd1b7;box-shadow:0 1px 2px rgba(120,100,60,.08),0 8px 24px rgba(120,100,60,.12)}
+body.ui-paper .cell{background:rgba(255,255,255,.55);border-color:#d8cbb0}
+body.ui-paper .cell.aisle{background:#f1ead9;border-color:#e3d9c2}
+body.ui-paper .gutter{color:#a39374}
+body.ui-paper .mini{background:#fdfaf3;border-color:#e0d6c0;color:#8a8272}
+body.ui-paper .mini.on{background:#f6efe0;border-color:#8a5a2b;color:#8a5a2b}
+body.ui-paper .theme-dock{background:#fdfaf3;border-color:#e0d6c0}
+body.ui-paper .theme-dock button.on{background:#8a5a2b}
+
+/* ===== 主题：深色（护眼） ===== */
+body.ui-dark{--bg:#0f172a;--ink:#e2e8f0;--ink2:#94a3b8;--line:#334155;--surface:#1e293b;--primary-soft:#1e293b}
+body.ui-dark .topbar{background:rgba(15,23,42,.94);border-color:#334155}
+body.ui-dark .grp{background:rgba(255,255,255,.05);border-color:#334155}
+body.ui-dark .btn.ghost{background:rgba(255,255,255,.05);border-color:#475569;color:#cbd5e1}
+body.ui-dark .btn.ghost:hover{background:rgba(255,255,255,.1);color:#fff}
+body.ui-dark .btn.ghost.active{background:rgba(37,99,235,.25);border-color:#3b82f6;color:#bfdbfe}
+body.ui-dark .cls-input{background:#1e293b;border-color:#334155;color:#e2e8f0}
+body.ui-dark .classroom{background:linear-gradient(180deg,#1e293b 0%,#172032 100%);border-color:#334155;box-shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45)}
+body.ui-dark .cell{background:rgba(255,255,255,.04);border-color:rgba(148,163,184,.3)}
+body.ui-dark .cell.aisle{background:rgba(255,255,255,.025);border-color:rgba(148,163,184,.08)}
+body.ui-dark .gutter{color:#64748b}
+body.ui-dark .seat{background:rgba(255,255,255,.06);border:1px solid #555;color:#d7dde8}
+body.ui-dark .seat.female{background:rgba(251,207,232,.12);border-color:#f9a8d4;color:#fbcfe8}
+body.ui-dark .seat.male{background:rgba(191,219,254,.12);border-color:#93c5fd;color:#bfdbfe}
+body.ui-dark .blackboard{background:#0b1220;color:#5b6b84;border:1px solid #334155}
+body.ui-dark .podium{background:#1a2438;border-color:#334155;color:#cbd5e1}
+body.ui-dark .win{background:rgba(186,230,253,.08);border-color:#334155}
+body.ui-dark .door{background:#1a2438;border-color:#334155;color:#94a3b8}
+body.ui-dark .win-strip::after,body.ui-dark .door-strip::after{color:#5b6b84}
+body.ui-dark .statusbar,body.ui-dark .legend{color:#94a3b8}
+body.ui-dark .legend b{color:#e2e8f0}
+body.ui-dark .legend .tip{color:#64748b}
+body.ui-dark .mini{background:#1e293b;border-color:#334155;color:#94a3b8}
+body.ui-dark .mini.on{background:rgba(37,99,235,.25);border-color:#3b82f6;color:#bfdbfe}
+body.ui-dark .empty-card{background:#1e293b;border-color:#334155;color:#e2e8f0}
+body.ui-dark .empty-card p{color:#94a3b8}
+body.ui-dark .theme-dock{background:#1e293b;border-color:#334155}
+body.ui-dark .theme-dock button{color:#94a3b8}
+body.ui-dark .theme-dock button.on{background:#3b82f6}
+
+/* 打印头 */
+.print-head{display:none}
+
+/* ===== 响应式 ===== */
+@media (max-width:720px){
+  /* 底部悬浮 dock 预留区 */
+  .stage{padding-bottom:92px}
+  /* 移动端图例并入统计栏，避免与悬浮 dock 重叠 */
+  .legend{display:none}
+  /* 顶栏紧凑 */
+  .topbar{padding:8px 10px;gap:6px 8px}
+  .brand{font-size:14px;gap:6px}
+  .brand-ico{font-size:17px}
+  .topbar .btn{padding:7px 10px;font-size:12px;border-radius:9px}
+  .grp{padding:3px;gap:4px}
+  .grp .btn{padding:6px 9px;font-size:12px}
+  .grp-data{margin-left:auto}
+  .cls-input{flex:0 1 92px;min-width:0;max-width:52%;padding:6px 10px;font-size:13px}
+  /* 视图按钮组：换行完整显示 */
+  .grp-view{max-width:100%;flex-wrap:wrap;justify-content:center;overflow:visible;margin-top:8px}
+  .grp-view .btn{flex:none}
+  /* 教室 */
+  .classroom{height:520px;border-radius:14px}
+  .seats-grid{left:48px;right:48px;gap:5px}
+  .blackboard{width:58%}
+  .podium{width:46%}
+  .win-strip{left:8px;width:26px;top:140px}
+  .door-strip{right:8px;width:32px;top:140px}
+  .door{height:82px;font-size:10px}
+  .win-strip::after,.door-strip::after{font-size:9px}
+  .gutter{font-size:9px}
+  /* 底部控件：safe-area + 紧凑 */
+  .roll-dock,.theme-dock{bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+  .roll-dock .btn{padding:7px 18px;font-size:14px}
+  .theme-dock button{padding:6px 11px;font-size:12px}
+  .page-footer{position:static;padding:10px 0 16px}
+  /* 状态栏与图例 */
+  .statusbar{font-size:12px;padding:8px 6px 2px}
+  .legend{gap:10px;font-size:12px;margin-top:12px}
+  .legend .tip{display:none}
+  .mini{padding:2px 9px;font-size:11.5px}
+  /* 弹窗紧凑 */
+  .card{padding:16px}
+  .m-foot .btn{flex:1}
+  .m-foot{gap:8px}
+  .export-item,.mirror-item{padding:12px 12px;font-size:13px}
+  .import-preview th,.import-preview td{font-size:11.5px;padding:6px 3px}
+  .import-preview .mini-seg button{font-size:11px;padding:2px 7px}
+  .field-row label,.col-row label{min-width:100%}
+  /* 编辑面板：底部抽屉 */
+  .editor{top:auto;right:0;left:0;bottom:0;width:100%;max-height:54vh;border-radius:16px 16px 0 0;transform:translateY(120%);box-shadow:0 -8px 30px rgba(15,23,42,.18)}
+  .editor .btn{width:100%}
+}
+@media (max-width:420px){
+  .classroom{height:500px}
+  .seats-grid{left:44px;right:44px}
+  .win-strip{width:22px}.door-strip{width:28px}
+  .door{height:72px}
+}
+@media (max-width:640px){
+  body{font-size:15px}
+  .cls-input,.field input,.field-row input[type=number]{font-size:16px}
+}
+/* 门窗左右对调 */
+.classroom.swap-sides .win-strip{left:auto;right:16px}
+.classroom.swap-sides .door-strip{right:auto;left:16px}
+@media (max-width:720px){
+  .classroom.swap-sides .win-strip{left:auto;right:8px}
+  .classroom.swap-sides .door-strip{right:auto;left:8px}
+}
+
+/* ===== 打印 ===== */
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  body{background:#fff}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body *{visibility:hidden}
+  .print-area,.print-area *{visibility:visible}
+  .no-print{display:none!important}
+  .print-area{position:absolute;left:0;top:0;width:100%;max-width:none}
+  .print-head{display:block;text-align:center;margin-bottom:6px}
+  .print-head .ph-title{font-size:20px;font-weight:700;letter-spacing:2px}
+  .print-head .ph-meta{font-size:11px;color:#555;margin-top:2px}
+  .classroom{width:100%;max-width:1050px;height:640px;margin:4px auto 0;box-shadow:none;border-radius:6px}
+  .gutter{color:#999}
+}
+</style>
+<link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+
+<header class="topbar no-print">
+  <div class="brand">
+    <span class="brand-ico">🎓</span>
+    超级座位管理器 v2.0
+  </div>
+  <input id="clsName" class="cls-input" maxlength="30" placeholder="班级名称" autocomplete="off">
+  <div class="grp">
+    <button id="btnEdit" class="btn ghost">编辑模式</button>
+    <button id="btnAdd" class="btn">＋ 添加座位</button>
+    <button id="btnGrid" class="btn ghost">教室设置</button>
+  </div>
+  <div class="grp grp-data">
+    <button id="btnImport" class="btn ghost">导入名单</button>
+    <button id="btnExport" class="btn ghost">导出</button>
+    <button id="btnPrint" class="btn ghost">打印</button>
+  </div>
+  <button id="btnClear" class="btn ghost danger">清空</button>
+</header>
+
+<main class="stage print-area">
+  <div class="print-head">
+    <div class="ph-title"><span id="phCls">班级</span>座位表</div>
+    <div class="ph-meta"><span id="phView">讲台视角</span> · 粉色＝女生（♀）　蓝色＝男生（♂）　白色＝未设性别　空白＝空位　浅灰＝过道　· 打印时间：<span id="phDate"></span></div>
+  </div>
+
+  <div id="classroom" class="classroom">
+    <div class="blackboard">黑　板</div>
+    <div class="podium">讲　台</div>
+    <div class="win-strip"><div class="win"></div><div class="win"></div><div class="win"></div></div>
+    <div class="door-strip"><div class="door">前门</div><div class="door">后门</div></div>
+    <div id="grid" class="seats-grid"></div>
+    <div id="emptyState" class="empty-state">
+      <div class="empty-card">
+        <h3>教室里还没有座位</h3>
+        <p>点击「添加座位」或直接导入名单排座。</p>
+        <div class="btns">
+          <button id="esAdd" class="btn">添加座位</button>
+          <button id="esImport" class="btn ghost">导入名单</button>
+          <button id="esDemo" class="btn ghost">填入示例</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar no-print">
+    <span id="viewStatus">讲台视角</span>
+    <span id="addBar" class="hidden">
+      添加：点击/拖动空白格 · 默认
+      <button class="mini on" id="addF">女生</button>
+      <button class="mini" id="addM">男生</button>
+      <button class="mini" id="addN">不设</button>
+      <button class="mini" id="addRow">＋1排</button>
+      <button class="mini" id="addCol">＋1列</button>
+      · Esc 退出
+    </span>
+  </div>
+
+  <div class="grp grp-view no-print">
+    <button id="btnSwap" class="btn ghost">门窗对调</button>
+    <button id="btnGroup" class="btn ghost">分组</button>
+    <button id="btnMirror" class="btn ghost">调位·镜像</button>
+    <button id="btnRotate" class="btn ghost">自动换座</button>
+    <button id="btnGender" class="btn ghost">不区分性别</button>
+    <button id="btnView" class="btn ghost">学生视角</button>
+  </div>
+
+  <div class="legend no-print">
+    <span class="chip female" id="chF">女生 ♀</span>
+    <span class="chip male" id="chM">男生 ♂</span>
+    <span>共 <b id="stTotal">0</b> 人</span>
+    <span>男生 <b id="stMale">0</b></span>
+    <span>女生 <b id="stFemale">0</b></span>
+    <span>空位 <b id="stEmpty">0</b></span>
+    <span class="tip">拖动座位或排/列标签调整 · 空列自动变过道 · 数据自动保存</span>
+  </div>
+</main>
+
+<aside id="editor" class="editor no-print"></aside>
+<div id="toast" class="toast no-print"></div>
+<div id="modal" class="modal-root no-print"></div>
+<div id="uiTheme" class="theme-dock no-print">
+  <button data-t="default" class="on">默认</button>
+  <button data-t="bw" title="黑白A4风格，适合黑白打印">黑白</button>
+  <button data-t="paper">纸质</button>
+  <button data-t="dark">深色</button>
+</div>
+<div id="rollDock" class="roll-dock no-print">
+  <button id="btnRoll" class="btn">点名</button>
+</div>
+
+<footer class="page-footer no-print">RainbowGeo · 班级超级座位管理器 v2.0 · 2026-09-21</footer>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s);};
+var gridEl=$('#grid'), roomEl=$('#classroom');
+var els={};
+['btnEdit','btnAdd','btnView','btnSwap','btnGender','chF','chM','viewStatus','addBar','addF','addM','addN','clsName','emptyState','phCls','phView','phDate','btnRoll','toast','modal','editor'].forEach(function(id){els[id]=document.getElementById(id);});
+
+// ===== 状态 =====
+var KEY='classroom_seats_v1';
+var state={className:'',rows:7,cols:11,seats:[],studentView:true,swapSides:false,groupCols:2,aisleCols:1,groups:[],theme:'default',editMode:false,showGender:true};
+var addMode=false, addGender='', selectedId=null, multiSel=[], lastSeatRef=null, drag=null, paint=null, axisDrag=null, suppressClick=false, toastTimer=null, confirmCb=null, impFileName='';
+var impMode='list', impReplace=true, impHeader=true, impFile=null, colNameSel='auto', colGenderSel='auto', impColNames=null;
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function tc(x){return String(x==null?'':x).replace(/[\u00a0\u200b\u200c\u200d\ufeff]/g,'').trim();}
+function seatAt(r,c){for(var i=0;i<state.seats.length;i++){var s=state.seats[i];if(s.row===r&&s.col===c)return s;}return null;}
+function gCls(s){return s.gender==='male'?'male':(s.gender==='female'?'female':'');}
+function gSym(s){return s.gender==='male'?'♂':(s.gender==='female'?'♀':'');}
+function gWord(s){return s.gender==='male'?'男':(s.gender==='female'?'女':'');}
+function seatById(id){for(var i=0;i<state.seats.length;i++){if(state.seats[i].id===id)return state.seats[i];}return null;}
+function patternAisle(c){
+  if(state.aisleCols<=0||state.groupCols<=0)return false;
+  var k=state.groupCols+state.aisleCols;
+  return ((c-1)%k)>=state.groupCols;
+}
+function colHasSeats(c){for(var i=0;i<state.seats.length;i++)if(state.seats[i].col===c)return true;return false;}
+function isAisle(c){
+  if(state.seats.length===0)return patternAisle(c);
+  return !colHasSeats(c);
+}
+function seatColsCount(){var n=0;for(var c=1;c<=state.cols;c++)if(!patternAisle(c))n++;return n;}
+function expandGrid(need){
+  var occupied=impReplace?0:state.seats.length;
+  var want=occupied+need;
+  var r0=state.rows,c0=state.cols;
+  while(want>seatColsCount()*state.rows){
+    if(state.rows<10)state.rows++;
+    else if(state.cols<12)state.cols++;
+    else break;
+  }
+  var msg='';
+  if(state.rows>r0)msg+=(state.rows-r0)+' 排';
+  if(state.cols>c0)msg+=(msg?'、':'')+(state.cols-c0)+' 列';
+  return msg?'座位不足，已自动在末尾增加 '+msg+'。':'';
+}
+function migrateAisleSeats(){
+  for(var i=0;i<state.seats.length;i++){
+    var s=state.seats[i];
+    if(!isAisle(s.col))continue;
+    for(var c=1;c<=state.cols;c++){
+      if(isAisle(c))continue;
+      if(!seatAt(s.row,c)){s.col=c;break;}
+    }
+  }
+}
+function fmtDate(d){var p=function(n){return n<10?'0'+n:''+n;};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+
+// ===== 存储 =====
+function save(){try{localStorage.setItem(KEY,JSON.stringify({className:state.className,rows:state.rows,cols:state.cols,seats:state.seats,swapSides:state.swapSides,groupCols:state.groupCols,aisleCols:state.aisleCols,groups:state.groups,theme:state.theme,editMode:state.editMode,showGender:state.showGender}));}catch(e){}}
+function load(){
+  try{
+    var d=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(d&&d.seats){
+      state.className=d.className||'';
+      state.rows=Math.min(10,Math.max(2,d.rows||7));
+      state.cols=Math.min(12,Math.max(3,d.cols||11));
+      state.seats=d.seats.filter(function(s){return s&&s.id&&s.row&&s.col;});
+      state.swapSides=!!d.swapSides;
+      state.groupCols=Math.min(4,Math.max(1,d.groupCols||2));
+      state.aisleCols=Math.min(2,Math.max(0,d.aisleCols||1));
+      state.groups=(d.groups||[]).filter(function(g){return g&&g.id&&g.name&&g.c1&&g.c2;});
+      state.editMode=!!d.editMode;
+      state.showGender=d.showGender!==false;
+      var th=d.theme==='chalk'?'bw':d.theme;
+      state.theme=(th==='bw'||th==='paper'||th==='dark')?th:'default';
+      migrateAisleSeats();
+    }
+  }catch(e){}
+}
+
+// ===== 渲染 =====
+function gutterCell(r,c,text,cls){
+  var d=document.createElement('div');
+  d.className='gutter'+(cls?' '+cls:'');
+  d.style.gridRow=r;d.style.gridColumn=c;d.textContent=text;
+  return d;
+}
+function renderGrid(){
+  var hasG=state.groups&&state.groups.length;
+  var numRow=hasG?2:1;
+  var colsTpl=['30px'];
+  for(var ci=1;ci<=state.cols;ci++)colsTpl.push(isAisle(ci)?'minmax(0,0.52fr)':'minmax(0,1fr)');
+  gridEl.style.gridTemplateColumns=colsTpl.join(' ');
+  gridEl.style.gridTemplateRows=(hasG?'24px ':'')+'26px repeat('+state.rows+', minmax(0,1fr))';
+  gridEl.innerHTML='';
+  gridEl.appendChild(gutterCell(numRow,1,'排\\列'));
+  if(hasG){
+    state.groups.forEach(function(g){
+      var bar=document.createElement('div');
+      bar.className='group-bar';
+      bar.style.gridRow=1;
+      bar.style.gridColumn=(g.c1+1)+' / '+(g.c2+2);
+      bar.textContent=g.name;
+      bar.title=g.name+'（第'+g.c1+'-'+g.c2+'列）';
+      gridEl.appendChild(bar);
+    });
+  }
+  for(var c=1;c<=state.cols;c++){
+    var gl=gutterCell(numRow,c+1,isAisle(c)?'过道':c+'列');
+    gl.classList.add('gcol-c');gl.dataset.c=c;gl.title='拖动可整体移动该列（含过道）';
+    gridEl.appendChild(gl);
+  }
+  for(var r=1;r<=state.rows;r++){
+    var grt=gutterCell(numRow+r,1,r+'排');
+    grt.classList.add('grow-r');grt.dataset.r=r;grt.title='拖动可整体移动该排';
+    gridEl.appendChild(grt);
+    for(var c2=1;c2<=state.cols;c2++){
+      var s=seatAt(r,c2);
+      var isA=isAisle(c2);
+      var cell=document.createElement('div');
+      cell.className='cell'+(addMode?' add-mode':'')+(isA?' aisle':'')+(s?'':' empty');
+      cell.style.gridRow=numRow+r;cell.style.gridColumn=c2+1;
+      cell.dataset.r=r;cell.dataset.c=c2;
+      if(s){
+        var seat=document.createElement('div');
+        var gc=state.showGender?gCls(s):'';
+        seat.className='seat'+(gc?' '+gc:'')+(s.id===selectedId?' selected':'')+(multiSel.indexOf(s.id)>=0?' multi-sel':'');
+        seat.dataset.id=s.id;
+        seat.innerHTML='<span class="g">'+(state.showGender?gSym(s):'')+'</span><span class="nm"></span>';
+        seat.querySelector('.nm').textContent=s.name||'未命名';
+        cell.appendChild(seat);
+      }
+      gridEl.appendChild(cell);
+    }
+  }
+  requestAnimationFrame(function(){
+    var rect=gridEl.getBoundingClientRect();
+    var probeW=gridEl.querySelector('.cell[data-r="1"][data-c="1"]');
+    var cellW=probeW?probeW.getBoundingClientRect().width:(rect.width-30-state.cols*8)/state.cols;
+    var fs=Math.max(10,Math.min(19,Math.round(cellW*0.21)));
+    gridEl.style.setProperty('--fs',fs+'px');
+  });
+}
+function renderStats(){
+  var male=0,female=0;
+  state.seats.forEach(function(s){if(s.gender==='male')male++;else if(s.gender==='female')female++;});
+  $('#stTotal').textContent=state.seats.length;
+  $('#stMale').textContent=male;
+  $('#stFemale').textContent=female;
+  $('#stEmpty').textContent=state.rows*state.cols-state.seats.length;
+}
+function applyTheme(){
+  document.body.classList.remove('ui-bw','ui-paper','ui-dark');
+  if(state.theme!=='default')document.body.classList.add('ui-'+state.theme);
+  var btns=document.querySelectorAll('#uiTheme button');
+  for(var i=0;i<btns.length;i++)btns[i].classList.toggle('on',btns[i].dataset.t===state.theme);
+}
+function needEdit(msg){
+  if(state.editMode)return true;
+  toast(msg||'请先开启「编辑模式」再进行调整');
+  return false;
+}
+function toggleEditMode(){
+  state.editMode=!state.editMode;
+  if(state.editMode)addMode=false;
+  render();
+  toast(state.editMode?'编辑模式已开启：可拖动座位、调整行列、编辑信息':'编辑模式已关闭');
+}
+function renderToolbar(){
+  els.btnEdit.classList.toggle('active',state.editMode);
+  els.btnEdit.textContent=state.editMode?'编辑模式 · 开':'编辑模式';
+  els.btnAdd.classList.toggle('active',addMode);
+  els.btnAdd.textContent=addMode?'退出添加':'＋ 添加座位';
+  els.btnView.classList.toggle('active',state.studentView);
+  els.btnView.textContent=state.studentView?'讲台视角':'学生视角';
+  els.btnSwap.classList.toggle('active',!!state.swapSides);
+  els.btnGender.classList.toggle('active',!state.showGender);
+  els.btnGender.textContent=state.showGender?'不区分性别':'区分性别';
+  els.chF.style.display=state.showGender?'':'none';
+  els.chM.style.display=state.showGender?'':'none';
+  els.viewStatus.innerHTML=state.studentView?'学生视角 · 编辑已锁定':'讲台视角';
+  els.addBar.classList.toggle('hidden',!addMode);
+  els.addF.classList.toggle('on',addGender==='female');
+  els.addM.classList.toggle('on',addGender==='male');
+  els.addN.classList.toggle('on',addGender==='');
+  els.clsName.value=state.className;
+  els.emptyState.classList.toggle('hidden',state.seats.length>0||addMode||state.studentView);
+  els.phCls.textContent=state.className||'班级';
+  els.phView.textContent=state.studentView?'学生视角（镜像）':'讲台视角';
+  els.phDate.textContent=fmtDate(new Date());
+  applyTheme();
+}
+function render(){roomEl.classList.toggle('swap-sides',!!state.swapSides);roomEl.classList.toggle('student-view',!!state.studentView);renderGrid();renderStats();renderToolbar();save();}
+
+// ===== 提示 =====
+function toast(msg){
+  var t=els.toast;
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
+}
+
+// ===== 弹窗 =====
+function openModal(html){els.modal.innerHTML='<div class="overlay"><div class="card">'+html+'</div></div>';els.modal.classList.add('show');}
+function closeModal(){els.modal.classList.remove('show');}
+function confirmDialog(msg,onOk){
+  confirmCb=onOk;
+  openModal('<div class="m-head"><h3>请确认</h3></div><p class="m-msg">'+esc(msg)+'</p><div class="m-foot"><button class="btn ghost" id="cfNo">取消</button><button class="btn" id="cfYes">确认</button></div>');
+  $('#cfNo').addEventListener('click',closeModal);
+  $('#cfYes').addEventListener('click',function(){var cb=confirmCb;closeModal();confirmCb=null;if(cb)cb();});
+}
+function bindSeg(rootSel,onPick){
+  var root=document.getElementById(rootSel);
+  root.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;
+    var all=root.querySelectorAll('button');
+    for(var i=0;i<all.length;i++)all[i].classList.toggle('on',all[i]===b);
+    onPick(b.dataset.g||b.dataset.v);
+  });
+}
+
+// ===== 座位编辑 =====
+function openEditor(id){
+  var s=seatById(id);
+  if(!s){closeEditor();return;}
+  selectedId=id;
+  var ed=els.editor;
+  ed.innerHTML=
+   '<div class="ed-head"><h3>座位编辑</h3><button class="icon-btn" id="edClose" title="关闭">✕</button></div>'+
+   '<div class="field"><label>姓名</label><input id="edName" maxlength="8" placeholder="输入学生姓名" autocomplete="off"></div>'+
+   '<div class="field"><label>性别</label><div class="seg" id="edGender">'+
+     '<button data-g="female" class="'+(s.gender==='female'?'on':'')+'">女生 ♀</button>'+
+     '<button data-g="male" class="'+(s.gender==='male'?'on':'')+'">男生 ♂</button>'+
+     '<button data-g="" class="'+(s.gender?'':'on')+'">不设</button>'+
+   '</div></div>'+
+   '<div class="field"><div class="pos" id="edPos">第'+s.row+'排 · 第'+s.col+'列</div></div>'+
+   '<p class="m-hint">提示：可拖动此座位自由移动；拖到已有座位时两者互换位置。</p>'+
+   '<div class="ed-foot"><button class="btn danger w100" id="edDel">删除此座位</button></div>';
+  ed.classList.add('open');
+  $('#edName').value=s.name||'';
+  $('#edName').addEventListener('input',function(e){
+    s.name=e.target.value.trim();
+    var nm=gridEl.querySelector('.seat[data-id="'+CSS.escape(s.id)+'"] .nm');
+    if(nm)nm.textContent=s.name||'未命名';
+    save();
+  });
+  bindSeg('edGender',function(g){
+    s.gender=g;save();
+    var sel=gridEl.querySelector('.seat[data-id="'+CSS.escape(s.id)+'"]');
+    if(sel){
+      var gc=state.showGender?gCls(s):'';
+      sel.className='seat'+(gc?' '+gc:'')+' selected';
+      sel.querySelector('.g').textContent=state.showGender?gSym(s):'';
+    }
+  });
+  $('#edClose').addEventListener('click',closeEditor);
+  $('#edDel').addEventListener('click',function(){deleteSeat(s.id);});
+}
+function closeEditor(){selectedId=null;els.editor.classList.remove('open');renderGrid();}
+function selectSeat(id){selectedId=id;openEditor(id);renderGrid();}
+function deleteSeat(id){state.seats=state.seats.filter(function(x){return x.id!==id;});closeEditor();render();toast('已删除该座位');}
+function quietAdd(r,c){
+  state.seats.push({id:uid(),name:'同学'+(state.seats.length+1),gender:addGender,row:r,col:c});
+  render();
+}
+function toggleAddMode(force){
+  if(!needEdit())return;
+  addMode=(typeof force==='boolean')?force:!addMode;
+  if(addMode)toast('添加模式已开启：点击或拖动空白格批量加座，Esc 退出');
+  render();
+}
+function toggleView(){
+  state.studentView=!state.studentView;
+  if(state.studentView){addMode=false;closeEditor();}
+  render();
+}
+
+// ===== 示例数据 =====
+function fillDemo(){
+  var demo=[['陈雨欣','female'],['林一诺','female'],['张子轩','male'],['李思琪','female'],['王浩然','male'],['刘芷晴','female'],['赵俊杰','male'],['孙婉婷','female'],['周宇航','male'],['吴若曦','female'],['郑凯文','male'],['钱思颖','female'],['冯子昂','male'],['何佳琪','female'],['郭明宇','male'],['高语桐','female'],['罗志强','male'],['梁静怡','female'],['宋俊豪','male'],['唐可欣','female'],['许博文','male'],['韩诗琪','female'],['曹宇航','male'],['谢婉如','female'],['邓子涵','male'],['沈佳怡','female'],['廖志远','male'],['苏雨桐','female']];
+  state.seats=[];
+  var i=0;
+  outer:
+  for(var r=1;r<=state.rows;r++)for(var c=1;c<=state.cols;c++){
+    if(i>=demo.length)break outer;
+    if(patternAisle(c))continue;
+    state.seats.push({id:uid(),name:demo[i][0],gender:demo[i][1],row:r,col:c});i++;
+  }
+  render();toast('已填入示例座位，可拖动调整');
+}
+
+// ===== 拖动 =====
+function isFlipped(){
+  var t=getComputedStyle(roomEl).transform;
+  return t!=='none'&&/matrix\(-1, 0, 0, -1/.test(t);
+}
+// 把视口坐标转换到 base 元素的局部（未旋转）坐标系，供拖动跟随使用
+function flipPoint(x,y,base){
+  var b=base.getBoundingClientRect();
+  return isFlipped()?{x:b.right-x,y:b.bottom-y}:{x:x-b.left,y:y-b.top};
+}
+function highlightTarget(x,y){
+  var t=document.elementFromPoint(x,y);
+  var cell=t?t.closest('.cell[data-r]'):null;
+  gridEl.querySelectorAll('.cell.drop,.cell.drop-swap').forEach(function(c){c.classList.remove('drop','drop-swap');});
+  if(cell){
+    var nc=parseInt(cell.dataset.c,10);
+    var s=seatAt(parseInt(cell.dataset.r,10),nc);
+    cell.classList.add(s?'drop-swap':'drop');
+  }
+}
+gridEl.addEventListener('pointerdown',function(e){
+  if(!state.editMode)return;
+  if(e.button!==undefined&&e.button!==0)return;
+  var gr=e.target.closest('.grow-r');
+  var gc=e.target.closest('.gcol-c');
+  if(gr||gc){
+    e.preventDefault();
+    var el=gr||gc;
+    el.classList.add('dragging');
+    var probe=gridEl.querySelector('.cell[data-r="1"][data-c="1"]')||gridEl.querySelector('.cell');
+    var pr=probe?probe.getBoundingClientRect():{height:40,width:60};
+    axisDrag={kind:gr?'row':'col',from:gr?parseInt(gr.dataset.r,10):parseInt(gc.dataset.c,10),el:el,x0:e.clientX,y0:e.clientY,moved:false,cellH:pr.height,cellW:pr.width,insertTarget:null,insertBefore:true};
+    axisDrag.ghostEl=document.createElement('div');
+    axisDrag.ghostEl.className='axis-ghost';
+    axisDrag.ghostEl.style.display='none';
+    axisDrag.ghostEl.textContent=axisDrag.kind==='row'?('第'+axisDrag.from+'排'):('第'+axisDrag.from+'列');
+    axisDrag.insertEl=document.createElement('div');
+    axisDrag.insertEl.className='axis-insert';
+    axisDrag.insertEl.style.display='none';
+    gridEl.appendChild(axisDrag.ghostEl);
+    gridEl.appendChild(axisDrag.insertEl);
+    return;
+  }
+  if(addMode){
+    var c0=e.target.closest('.cell[data-r]');
+    if(c0&&!c0.querySelector('.seat')){
+      e.preventDefault();
+      paint={last:''};
+      paintAddAt(parseInt(c0.dataset.r,10),parseInt(c0.dataset.c,10));
+      return;
+    }
+  }
+  var seatEl=e.target.closest('.seat');
+  if(!seatEl)return;
+  e.preventDefault();
+  var rect=seatEl.getBoundingClientRect();
+  var sid=seatEl.dataset.id;
+  var s0=seatById(sid);
+  // 如果该座位在多选集合中，记录多选信息
+  var multiDrag=null;
+  if(s0&&multiSel.indexOf(sid)>=0&&multiSel.length>1){
+    multiSel.forEach(function(mid){
+      var ms=seatById(mid);
+      if(ms){
+        if(!multiDrag)multiDrag=[];
+        multiDrag.push({id:mid,row:ms.row,col:ms.col,dr:ms.row-s0.row,dc:ms.col-s0.col,el:ms===s0?seatEl:document.querySelector('.seat[data-id="'+mid+'"]')});
+      }
+    });
+  }
+  drag={id:sid,startX:e.clientX,startY:e.clientY,el:seatEl,rect:rect,moved:false,multi:multiDrag};
+});
+function paintAddAt(r,c){
+  quietAdd(r,c);
+  if(paint)paint.last=r+','+c;
+}
+window.addEventListener('pointermove',function(e){
+  if(axisDrag){
+    if(!axisDrag.moved&&(Math.abs(e.clientX-axisDrag.x0)>5||Math.abs(e.clientY-axisDrag.y0)>5))axisDrag.moved=true;
+    clearAxisHl();
+    if(axisDrag.moved){
+      axisDrag.ghostEl.style.display='flex';
+      updateAxisGhost(axisDrag.kind,e);
+      updateAxisInsert(axisDrag.kind,e);
+    }else{
+      axisDrag.ghostEl.style.display='none';
+      axisDrag.insertEl.style.display='none';
+    }
+    return;
+  }
+  if(paint){
+    var t=document.elementFromPoint(e.clientX,e.clientY);
+    var cell=t?t.closest('.cell[data-r]'):null;
+    if(cell){
+      var rr=parseInt(cell.dataset.r,10),cc=parseInt(cell.dataset.c,10);
+      var key=rr+','+cc;
+      if(key!==paint.last&&!cell.querySelector('.seat')){
+        paint.last=key;
+        paintAddAt(rr,cc);
+      }
+    }
+    return;
+  }
+  if(!drag)return;
+  var dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;
+  if(!drag.moved&&(Math.abs(dx)>5||Math.abs(dy)>5)){
+    drag.moved=true;suppressClick=true;
+    var r=drag.el.getBoundingClientRect();
+    drag.el.style.position='fixed';
+    drag.el.style.width=r.width+'px';drag.el.style.height=r.height+'px';
+    drag.el.style.zIndex='60';drag.el.style.transition='none';
+    drag.el.classList.add('dragging');
+    // 多选拖动：其他选中座位也设为 fixed 定位
+    if(drag.multi){
+      drag.multi.forEach(function(m){
+        if(m.el&&m.el!==drag.el){
+          var mr=m.el.getBoundingClientRect();
+          m.el.style.position='fixed';
+          m.el.style.width=mr.width+'px';m.el.style.height=mr.height+'px';
+          m.el.style.zIndex='59';m.el.style.transition='none';
+          m.el.classList.add('dragging');
+          m.origLeft=mr.left;m.origTop=mr.top;
+        }
+      });
+    }
+  }
+  if(drag.moved){
+    var rr=roomEl.getBoundingClientRect();
+    var left,top;
+    if(isFlipped()){
+      left=rr.right-e.clientX-drag.rect.width/2;
+      top=rr.bottom-e.clientY-drag.rect.height/2;
+    }else{
+      left=e.clientX-drag.rect.width/2;
+      top=e.clientY-drag.rect.height/2;
+    }
+    drag.el.style.left=left+'px';
+    drag.el.style.top=top+'px';
+    // 多选拖动：其他座位跟随偏移
+    if(drag.multi){
+      var ddx=left-drag.rect.width/2-(isFlipped()?rr.right-drag.startX-drag.rect.width/2:e.clientX-drag.rect.width/2);
+      var ddy=top-drag.rect.height/2-(isFlipped()?rr.bottom-drag.startY-drag.rect.height/2:e.clientY-drag.rect.height/2);
+      drag.multi.forEach(function(m){
+        if(m.el&&m.el!==drag.el){
+          m.el.style.left=(m.origLeft+ddx)+'px';
+          m.el.style.top=(m.origTop+ddy)+'px';
+        }
+      });
+    }
+    highlightTarget(e.clientX,e.clientY);
+  }
+});
+window.addEventListener('pointerup',function(e){
+  if(axisDrag){
+    var ad=axisDrag;axisDrag=null;
+    if(ad.el)ad.el.classList.remove('dragging');
+    if(ad.ghostEl)ad.ghostEl.remove();
+    if(ad.insertEl)ad.insertEl.remove();
+    clearAxisHl();
+    if(ad.moved&&ad.insertTarget&&ad.insertTarget!==ad.from){
+      captureFlip();
+      moveAxisInsert(ad.kind,ad.from,ad.insertTarget,ad.insertBefore);
+      render();
+      applyFlip();
+      toast('已将第'+ad.from+(ad.kind==='row'?'排':'列')+'移到第'+ad.insertTarget+(ad.kind==='row'?'排':'列')+(ad.insertBefore?'之前':'之后'));
+    }
+    setTimeout(function(){suppressClick=false;},50);
+    return;
+  }
+  if(paint){paint=null;setTimeout(function(){suppressClick=false;},50);return;}
+  if(!drag)return;
+  var d=drag;drag=null;
+  var el=d.el;
+  el.classList.remove('dragging');
+  el.style.position='';el.style.left='';el.style.top='';el.style.width='';el.style.height='';el.style.zIndex='';el.style.transition='';
+  // 多选拖动：清除其他选中座位的 fixed 定位
+  if(d.multi){
+    d.multi.forEach(function(m){
+      if(m.el&&m.el!==el){
+        m.el.classList.remove('dragging');
+        m.el.style.position='';m.el.style.left='';m.el.style.top='';m.el.style.width='';m.el.style.height='';m.el.style.zIndex='';m.el.style.transition='';
+      }
+    });
+  }
+  if(d.moved){
+    gridEl.querySelectorAll('.cell.drop,.cell.drop-swap').forEach(function(x){x.classList.remove('drop','drop-swap');});
+    var t=document.elementFromPoint(e.clientX,e.clientY);
+    var cell=t?t.closest('.cell[data-r]'):null;
+    if(cell){
+      var nr=parseInt(cell.dataset.r,10),nc=parseInt(cell.dataset.c,10);
+      var s=seatById(d.id);
+      if(s){
+        // 多选拖动：计算偏移，移动所有选中座位
+        if(d.multi){
+          var dr=nr-s.row,dc=nc-s.col;
+          // 计算所有新位置
+          var moves=[];
+          var ok=true;
+          d.multi.forEach(function(m){
+            var ns=seatById(m.id);
+            if(!ns){ok=false;return;}
+            var nRow=ns.row+dr,nCol=ns.col+dc;
+            if(nRow<1||nRow>state.rows||nCol<1||nCol>state.cols){ok=false;return;}
+            moves.push({id:m.id,row:ns.row,col:ns.col,nRow:nRow,nCol:nCol});
+          });
+          // 检查新位置是否可用（空位，或也是多选范围内的座位）
+          if(ok){
+            var multiIds={};d.multi.forEach(function(m){multiIds[m.id]=1;});
+            moves.forEach(function(mv){
+              var targetSeat=seatAt(mv.nRow,mv.nCol);
+              if(targetSeat&&!multiIds[targetSeat.id]){ok=false;return;}
+            });
+          }
+          if(ok&&dr!==0||dc!==0){
+            // 先清除原位置，再设置新位置（避免冲突）
+            moves.forEach(function(mv){
+              var ns=seatById(mv.id);
+              if(ns){ns.row=0;ns.col=0;}
+            });
+            moves.forEach(function(mv){
+              var ns=seatById(mv.id);
+              if(ns){ns.row=mv.nRow;ns.col=mv.nCol;}
+            });
+            multiSel=[];
+            toast('已移动 '+moves.length+' 个座位');
+          }else{
+            toast('目标位置不可用（需有空位）');
+          }
+        }else{
+          var other=seatAt(nr,nc);
+          if(nr!==s.row||nc!==s.col){
+            if(other&&other.id!==s.id){
+              other.row=s.row;other.col=s.col;
+              s.row=nr;s.col=nc;
+              toast('已与「'+other.name+'」互换座位');
+            }else{
+              s.row=nr;s.col=nc;
+              toast('已移动到第'+nr+'排 · 第'+nc+'列');
+            }
+          }
+        }
+      }
+    }
+    render();
+    setTimeout(function(){suppressClick=false;},50);
+  }else{
+    suppressClick=false;
+  }
+});
+gridEl.addEventListener('click',function(e){
+  if(suppressClick){suppressClick=false;return;}
+  if(!needEdit())return;
+  var seatEl=e.target.closest('.seat');
+  if(seatEl){
+    var s=seatById(seatEl.dataset.id);
+    if(s&&e.shiftKey&&lastSeatRef){
+      // Shift 多选：从上次点击到当前座位之间的所有座位
+      var r1=Math.min(lastSeatRef.r,s.row),r2=Math.max(lastSeatRef.r,s.row);
+      var c1=Math.min(lastSeatRef.c,s.col),c2=Math.max(lastSeatRef.c,s.col);
+      multiSel=[];
+      for(var rr=r1;rr<=r2;rr++)for(var cc=c1;cc<=c2;cc++){
+        var st=seatAt(rr,cc);
+        if(st)multiSel.push(st.id);
+      }
+      selectedId=null;
+      closeEditor();
+      renderGrid();
+      toast('已选中 '+multiSel.length+' 个座位');
+      return;
+    }
+    multiSel=[];
+    lastSeatRef={r:s.row,c:s.col};
+    selectSeat(seatEl.dataset.id);return;
+  }
+  var cell=e.target.closest('.cell[data-r]');
+  if(cell){
+    var cr=parseInt(cell.dataset.r,10),cc=parseInt(cell.dataset.c,10);
+    if(addMode){quietAdd(cr,cc);}
+    else{toast('先点击「添加座位」，再点击空位放置');}
+  }
+});
+gridEl.addEventListener('contextmenu',function(e){e.preventDefault();});
+
+// ===== 调位镜像 =====
+function openMirrorModal(){
+  openModal(
+   '<div class="m-head"><h3>调位 · 镜像对调</h3></div>'+
+   '<p class="m-hint">把当前座位按行列镜像整体对调，适用于定期轮换座位。对调后原排列被替换，可先「导出」备份。</p>'+
+   '<div class="mirror-grid">'+
+     '<button class="mirror-item" data-k="fb">前后对调<div>第1排 ↔ 最后排<br>各列不变</div></button>'+
+     '<button class="mirror-item" data-k="lr">左右对调<div>第1列 ↔ 最后一列<br>各排不变</div></button>'+
+     '<button class="mirror-item" data-k="both">180° 旋转<div>前后 + 左右<br>同时镜像</div></button>'+
+   '</div>'+
+   '<div class="m-foot"><button class="btn ghost" id="mirClose">关闭</button></div>'
+  );
+  $('#mirClose').addEventListener('click',closeModal);
+  var items=$('#modal').querySelectorAll('.mirror-item');
+  for(var i=0;i<items.length;i++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        var k=btn.dataset.k;
+        var label={'fb':'前后对调','lr':'左右对调','both':'180° 旋转'}[k];
+        confirmDialog('确认将座位整体进行「'+label+'」？原有排列将被替换。',function(){applyMirror(k);});
+      });
+    })(items[i]);
+  }
+}
+function applyMirror(k){
+  var rows=state.rows,cols=state.cols;
+  captureFlip();
+  state.seats.forEach(function(s){
+    if(k==='fb'){s.row=rows+1-s.row;}
+    else if(k==='lr'){s.col=cols+1-s.col;}
+    else{s.row=rows+1-s.row;s.col=cols+1-s.col;}
+  });
+  render();applyFlip();toast('已完成镜像对调，可打印或导出新座位表');
+}
+
+// ===== 行列设置 =====
+function openGridModal(){
+  openModal(
+   '<div class="m-head"><h3>教室设置</h3><button class="icon-btn" id="gClose">✕</button></div>'+
+   '<div class="field-row">'+
+     '<label>排数（2-10）<input id="gRows" type="number" min="2" max="10" value="'+state.rows+'"></label>'+
+     '<label>列数（3-12）<input id="gCols" type="number" min="3" max="12" value="'+state.cols+'"></label>'+
+   '</div>'+
+   '<div class="field-row">'+
+     '<label>每组列数（1-4）<input id="gGroup" type="number" min="1" max="4" value="'+state.groupCols+'"></label>'+
+     '<label>过道列数（0-2）<input id="gAisle" type="number" min="0" max="2" value="'+state.aisleCols+'"></label>'+
+   '</div>'+
+   '<div class="field"><label class="check"><input type="checkbox" id="swpSides"'+(state.swapSides?' checked':'')+'> 门窗左右对调（窗户在左、门在右 ↔ 互换）</label></div>'+
+   '<p class="m-hint">每组若干列座位为一组，组间预留过道列。整列无人时自动显示为过道（可拖动列标签上的「过道」整体移动）；向任意列添加座位即可恢复普通列。超出新范围的座位将被移除。</p>'+
+   '<div class="m-foot"><button class="btn ghost" id="gCancel">取消</button><button class="btn" id="gOk">应用</button></div>'
+  );
+  ['gClose','gCancel'].forEach(function(id){document.getElementById(id).addEventListener('click',closeModal);});
+  $('#swpSides').addEventListener('change',function(e){
+    state.swapSides=e.target.checked;
+    roomEl.classList.toggle('swap-sides',state.swapSides);
+    save();
+  });
+  $('#gOk').addEventListener('click',function(){
+    var nr=parseInt($('#gRows').value,10),nc=parseInt($('#gCols').value,10);
+    var ng=parseInt($('#gGroup').value,10),na=parseInt($('#gAisle').value,10);
+    if(isNaN(nr)||isNaN(nc)||isNaN(ng)||isNaN(na)){toast('请输入有效数字');return;}
+    nr=Math.min(10,Math.max(2,nr));nc=Math.min(12,Math.max(3,nc));
+    ng=Math.min(4,Math.max(1,ng));na=Math.min(2,Math.max(0,na));
+    if(nr===state.rows&&nc===state.cols&&ng===state.groupCols&&na===state.aisleCols){closeModal();return;}
+    var lost=state.seats.filter(function(s){return s.row>nr||s.col>nc;}).length;
+    var apply=function(){
+      state.rows=nr;state.cols=nc;state.groupCols=ng;state.aisleCols=na;
+      state.groups=state.groups.filter(function(g){return g.c1<=state.cols;});
+      state.groups.forEach(function(g){if(g.c2>state.cols)g.c2=state.cols;});
+      if(lost){state.seats=state.seats.filter(function(s){return s.row<=nr&&s.col<=nc;});toast('已应用，移除超出范围的 '+lost+' 个座位');}
+      else{toast('已应用教室设置');}
+      migrateAisleSeats();
+      closeModal();render();
+    };
+    if(lost){confirmDialog('有 '+lost+' 个座位在新范围之外，应用后将被删除。继续？',apply);}
+    else apply();
+  });
+}
+
+// ===== 大组设置 =====
+function openGroupModal(){
+  var chips='';
+  for(var c=1;c<=state.cols;c++){
+    chips+='<button class="gchip'+(isAisle(c)?' aisle':'')+'" data-c="'+c+'">'+c+(isAisle(c)?'·过道':'列')+'</button>';
+  }
+  function groupListHtml(){
+    var lst='';
+    (state.groups||[]).forEach(function(g){
+      lst+='<div class="grow"><span>'+esc(g.name)+'：第'+g.c1+'-'+g.c2+'列</span><button class="gdel" data-id="'+g.id+'">删除</button></div>';
+    });
+    return lst||'<p class="m-hint">尚未创建大组</p>';
+  }
+  openModal(
+   '<div class="m-head"><h3>大组设置</h3><button class="icon-btn" id="grClose">✕</button></div>'+
+   '<p class="m-hint">点击选择若干列组成一个「大组」（取所选列的最小至最大范围），用于整组标注，如值日、调座。</p>'+
+   '<div class="gchips" id="gchips">'+chips+'</div>'+
+   '<div class="field-row" style="margin-top:10px">'+
+     '<label>大组名称<input id="gName" maxlength="12" placeholder="如：第一大组"></label>'+
+   '</div>'+
+   '<div class="m-foot"><button class="btn ghost" id="gAdd">添加大组</button><button class="btn ghost" id="gClearSel">清空选择</button></div>'+
+   '<div class="glst" id="glst">'+groupListHtml()+'</div>'+
+   '<div class="m-foot"><button class="btn" id="gDone">完成</button></div>'
+  );
+  var sel={};
+  $('#grClose').addEventListener('click',closeModal);
+  $('#gchips').addEventListener('click',function(e){
+    var b=e.target.closest('.gchip');if(!b)return;
+    var c=parseInt(b.dataset.c,10);
+    if(sel[c]){delete sel[c];b.classList.remove('on');}
+    else{sel[c]=true;b.classList.add('on');}
+  });
+  $('#gAdd').addEventListener('click',function(){
+    var cs=Object.keys(sel).map(Number);
+    if(!cs.length){toast('请先选择列');return;}
+    var c1=Math.min.apply(null,cs),c2=Math.max.apply(null,cs);
+    var nm=$('#gName').value.trim()||('大组'+((state.groups||[]).length+1));
+    state.groups=state.groups||[];
+    state.groups.push({id:uid(),name:nm,c1:c1,c2:c2});
+    sel={};render();
+    $('#glst').innerHTML=groupListHtml();
+    $('#gchips').querySelectorAll('.gchip').forEach(function(x){x.classList.remove('on');});
+    $('#gName').value='';
+    toast('已添加大组「'+nm+'」（第'+c1+'-'+c2+'列）');
+  });
+  $('#gClearSel').addEventListener('click',function(){
+    sel={};
+    $('#gchips').querySelectorAll('.gchip').forEach(function(x){x.classList.remove('on');});
+  });
+  $('#glst').addEventListener('click',function(e){
+    var b=e.target.closest('.gdel');if(!b)return;
+    state.groups=state.groups.filter(function(g){return g.id!==b.dataset.id;});
+    render();
+    $('#glst').innerHTML=groupListHtml();
+    toast('已删除大组');
+  });
+  $('#gDone').addEventListener('click',closeModal);
+}
+
+// ===== 导入 =====
+function detectGender(nm){if(/[♂]|男/.test(nm))return 'male';if(/[♀]|女/.test(nm))return 'female';return null;}
+function stripMarker(nm){return nm.replace(/[（(]\s*(男|女|♂|♀)\s*[）)]/g,'').replace(/[♂♀]/g,'').trim();}
+function parseCSV(text){
+  text=text.replace(/^\uFEFF/,'');
+  var rows=[],row=[],cur='',inQ=false;
+  for(var i=0;i<text.length;i++){
+    var ch=text[i];
+    if(inQ){
+      if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++;}else inQ=false;}
+      else cur+=ch;
+    }else if(ch==='"'){inQ=true;}
+    else if(ch===','){row.push(cur);cur='';}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cur);cur='';rows.push(row);row=[];}
+    else cur+=ch;
+  }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+function openImportModal(){
+  openModal(
+   '<div class="m-head"><h3>导入名单</h3><button class="icon-btn" id="impClose">✕</button></div>'+
+   '<label class="drop" id="dropZone"><span id="dropText">点击选择文件（.xlsx / .xls / .csv / .doc / .docx）</span><input type="file" id="impFile" accept=".xlsx,.xls,.csv,.doc,.docx"></label>'+
+   '<div class="field"><label>文件格式</label><div class="seg" id="impMode">'+
+     '<button data-v="list" class="on">名单列表</button><button data-v="matrix">座位矩阵</button>'+
+   '</div><p class="m-hint">名单列表：姓名、性别两列按行依次入座；座位矩阵：表格行列与教室座位一一对应。解析后弹出预览，可逐行确认、调整性别或跳过某生。</p></div>'+
+   '<div class="field" id="colSelWrap"><label>性别识别（选择姓名列与性别列）</label><div class="col-row">'+
+     '<label>姓名列<select id="colName"><option value="auto">自动识别</option></select></label>'+
+     '<label>性别列<select id="colGender"><option value="auto">自动识别</option><option value="none">无性别列</option></select></label>'+
+   '</div><p class="m-hint">选择文件后自动列出各列，并显示每列第一行的项名（如：第2列（姓名）），按「姓名 / 性别」自动选中对应列；性别按所选列中的「男 / 女」文字识别，无性别列时按姓名中的男/女判断。</p></div>'+
+   '<div class="field"><label class="check"><input type="checkbox" id="impHeader" checked> 首行为表头（矩阵模式为首行、首列）</label></div>'+
+   '<div class="field"><label>导入方式</label><div class="seg" id="impReplace">'+
+     '<button data-v="1" class="on">替换现有座位</button><button data-v="0">追加到空位</button>'+
+   '</div></div>'+
+   '<div class="m-foot"><button class="btn ghost" id="impTpl">下载示例模板</button><button class="btn" id="impStart">开始导入</button></div>'
+  );
+  $('#impClose').addEventListener('click',closeModal);
+  bindSeg('impMode',function(v){impMode=v;document.getElementById('colSelWrap').classList.toggle('hidden',v!=='list');});
+  bindSeg('impReplace',function(v){impReplace=v==='1';});
+  $('#impHeader').addEventListener('change',function(e){impHeader=e.target.checked;});
+  $('#impFile').addEventListener('change',function(e){
+    impFile=e.target.files[0]||null;
+    var dz=$('#dropZone');
+    if(impFile){
+      dz.classList.add('has-file');
+      $('#dropText').textContent='已选择：'+impFile.name;
+      populateCols(impFile);
+    }else{
+      dz.classList.remove('has-file');
+      $('#dropText').textContent='点击选择文件（.xlsx / .xls / .csv / .doc / .docx）';
+    }
+  });
+  $('#colName').addEventListener('change',function(e){colNameSel=e.target.value;});
+  $('#colGender').addEventListener('change',function(e){colGenderSel=e.target.value;});
+  $('#impTpl').addEventListener('click',downloadTemplate);
+  $('#impStart').addEventListener('click',function(){if(!impFile){toast('请先选择文件');return;}handleImportFile(impFile);});
+}
+function populateCols(file){
+  if(/\.doc$/i.test(file.name)){impColNames=null;colNameSel='auto';colGenderSel='auto';return;}
+  var isCsv=/\.csv$/i.test(file.name);
+  if(!window.XLSX&&!isCsv)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var rows2d;
+    try{
+      if(window.XLSX&&!isCsv){
+        var wb=XLSX.read(ev.target.result,{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        rows2d=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      }else{rows2d=parseCSV(ev.target.result);}
+    }catch(e){return;}
+    var data=rows2d.map(function(r){return (r||[]).map(tc);}).filter(function(r){return r.some(function(x){return x!=='';});});
+    if(!data.length)return;
+    var maxCols=0;
+    data.forEach(function(r){if(r.length>maxCols)maxCols=r.length;});
+    maxCols=Math.min(maxCols,20);
+    var firstRow=data[0]||[];
+    // 首行为空（全空或仅空白字符）时自动取下一个非空行作为列名行
+    for(var fi=0;fi<data.length&&!firstRow.some(function(x){return x!=='';});fi++)firstRow=data[fi];
+    impColNames=firstRow.slice();
+    var head=firstRow.map(function(h){return String(h==null?'':h).toLowerCase();});
+    var ni=head.findIndex(function(h){return /姓名|名字|学生|学员|name/i.test(h);});
+    var gi=head.findIndex(function(h){return /性别|gender|sex/i.test(h);});
+    var nameSel=document.getElementById('colName');
+    var genderSel=document.getElementById('colGender');
+    nameSel.innerHTML='<option value="auto">自动识别</option>';
+    genderSel.innerHTML='<option value="auto">自动识别</option><option value="none">无性别列（按姓名识别）</option>';
+    for(var i=0;i<maxCols;i++){
+      var hc=tc(firstRow[i]);
+      var label='第'+(i+1)+'列'+(hc!==''?'（'+hc+'）':'（首行为空）');
+      var o1=document.createElement('option');o1.value=i;o1.textContent=label;nameSel.appendChild(o1);
+      var o2=document.createElement('option');o2.value=i;o2.textContent=label;genderSel.appendChild(o2);
+    }
+    nameSel.value=ni>=0?String(ni):(maxCols>=1?'0':'auto');
+    genderSel.value=gi>=0?String(gi):(maxCols>=2?'1':(maxCols>=1?'none':'auto'));
+    colNameSel=nameSel.value;colGenderSel=genderSel.value;
+  };
+  if(window.XLSX&&!isCsv)reader.readAsArrayBuffer(file);else reader.readAsText(file);
+}
+/* ===== .doc 座位表自动识别（HTML / Word2003XML / RTF / 二进制OLE .doc / .docx / 纯文本） ===== */
+function rd16(u,a){return (u[a]|(u[a+1]<<8))>>>0;}
+function rd32(u,a){return (u[a]|(u[a+1]<<8)|(u[a+2]<<16)|((u[a+3]<<24)>>>0))>>>0;}
+function decode16(u){var s='';for(var i=0;i+1<u.length;i+=2)s+=String.fromCharCode(u[i]|(u[i+1]<<8));return s;}
+function decode8(u){var s='';for(var i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return s;}
+function printableRatio(s){
+  var bad=0;
+  for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c===0xFFFD||c===0||(c>13&&c<32))bad++;}
+  return 1-bad/Math.max(1,s.length);
+}
+function textToGrid(text){
+  text=String(text);
+  // 超长行（无 \x0d 行结束，WPS 等把多排合并在一行）按固定列数周期切分
+  function splitLongRow(cells){
+    if(cells.length<=16)return[cells];
+    // 1) 连续空 cell >=4 视为排间大空隙（空排/组间），先断开
+    var blocks=[],cur=[];
+    for(var i=0;i<cells.length;i++){
+      if(cells[i]===''){
+        var run=0;
+        while(i+run<cells.length&&cells[i+run]==='')run++;
+        if(run>=4){
+          // 保留前 1 个空 cell 作为上一排排尾，只跳过多余空 cell（空排/大间隙）
+          cur.push('');
+          blocks.push(cur);cur=[];
+          i+=run-1;continue;
+        }
+      }
+      cur.push(cells[i]);
+    }
+    if(cur.length)blocks.push(cur);
+    // 2) 每块按固定列数切分
+    var out=[];
+    for(var b=0;b<blocks.length;b++){
+      var blk=blocks[b];
+      if(blk.length<=16){out.push(blk);continue;}
+      var bestC=0,bestScore=-1,bestTail=0;
+      for(var c=5;c<=20;c++){
+        // 允许尾部 1-2 个零散非空 cell（如"前门口"）
+        var tail=0;
+        for(tail=0;tail<2&&blk.length-1-tail>=0&&blk[blk.length-1-tail]!=='';tail++){}
+        var bodyLen=blk.length-tail;
+        if(bodyLen%c!==0)continue;
+        var rows=bodyLen/c,ok=true,score=0;
+        for(var r=0;r<rows;r++){
+          if(blk[r*c+c-1]!==''&&blk[r*c+c-2]!==''){ok=false;break;}
+          for(var k=0;k<c;k++)if(blk[r*c+k]!=='')score++;
+        }
+      if(ok){
+        var rowDensity=score/rows; // 每排平均名字数
+        // 每排 4-10 人最合理；超出范围大幅扣分
+        var scoreV=rowDensity-(rowDensity<4?50:0)-(rowDensity>10?50:0);
+        if(scoreV>bestScore||(scoreV===bestScore&&c>bestC)){bestScore=scoreV;bestC=c;bestTail=tail;}
+      }
+      }
+      if(!bestC){out.push(blk);continue;}
+      var tail=bestTail||0;
+      var bodyLen=blk.length-tail;
+      for(var r2=0;r2<bodyLen/bestC;r2++)out.push(blk.slice(r2*bestC,(r2+1)*bestC));
+      if(tail>0)out.push(blk.slice(bodyLen));
+    }
+    return out;
+  }
+  function splitByEod(src){
+    var lines=src.split(/\x0d|\x0c|\n/),g=[];
+    for(var i=0;i<lines.length;i++){
+      var cells=lines[i].split('\x07');
+      for(var j=0;j<cells.length;j++)cells[j]=cells[j].trim();
+      var ne=0;
+      for(var k=0;k<cells.length;k++)if(cells[k]!=='')ne++;
+      if(ne===0)continue;
+      var pieces=splitLongRow(cells);
+      for(var p=0;p<pieces.length;p++)g.push(pieces[p]);
+    }
+    return g;
+  }
+  var g=splitByEod(text);
+  var multi=0;
+  for(var gi=0;gi<g.length;gi++)if(g[gi].length>=3)multi++;
+  if(g.length>=3&&multi>=2)return g;
+  // fallback A：行结束符缺失 → 连续空 cell 当行分隔（soffice 等导出）
+  var t2=text.replace(/\x07{2,}/g,'\x0d');
+  var lines=t2.split(/\x0d|\x0c|\n/),grid=[];
+  for(var i=0;i<lines.length;i++){
+    var cells=lines[i].split('\x07');
+    if(cells.length>1){
+      for(var j=0;j<cells.length;j++)cells[j]=cells[j].trim();
+      while(cells.length&&cells[cells.length-1]==='')cells.pop();
+      grid.push(cells);
+    }else if(cells[0].trim())grid.push([cells[0].trim()]);
+  }
+  if(grid.length&&!(grid.length===1&&grid[0].length>40))return grid;
+  // fallback B：行末也用 \x07（无行结束符）：按 (列数+1) 周期重组，行末 cell 必须为空
+  var all=String(text).replace(/[\x0d\x0c\n]+$/,'').split('\x07');
+  if(all.length&&all[all.length-1]==='')all.pop();
+  var best=null;
+  if(all.length>2){
+    for(var c2=2;c2<=30;c2++){
+      var per=c2+1;
+      if(all.length%per)continue;
+      var rows=all.length/per;
+      if(rows<1||rows>40)continue;
+      var ok=true,maxN=0,rowStarts=0,gr=[];
+      for(var r=0;r<rows;r++){
+        var row=[];
+        for(var j2=0;j2<c2;j2++)row.push(all[r*per+j2].trim());
+        if(all[r*per+per-1].trim()!==''){ok=false;break;}
+        var nn=0;
+        for(var j3=0;j3<row.length;j3++)if(row[j3]!=='')nn++;
+        if(nn>maxN)maxN=nn;
+        if(row[0]!=='')rowStarts++;
+        gr.push(row);
+      }
+      if(!ok||maxN<1)continue;
+      var score=rowStarts/rows*100+(c2>=4&&c2<=16?10:0)+(rows>=2&&rows<=12?10:0);
+      if(!best||score>best.s||(score===best.s&&c2>best.c)){best=gr;best.s=score;best.c=c2;}
+    }
+  }
+  return best||null;
+}
+function looksHeader(row){
+  return (row||[]).some(function(x){return /排\\列|过道|第\d+列|^列$|姓名|名字|学生|学号|序号|编号|性别|座位|科目|课程/i.test(String(x==null?'':x).trim());});
+}
+// 座位表结构分析：先找讲台（行/列），排除讲台与门窗列，剩余即学生名单位置；并判定视角
+function analyzeSeatGrid(rows2d, fullText){
+  var info={dropRows:[],dropCols:[],view:null};
+  var t=fullText||'';
+  if(/座位表[（(]讲台视角/.test(t))info.view='teacher';
+  else if(/座位表[（(]学生视角/.test(t))info.view='student';
+  var kwPodium=/讲台|讲桌|讲坛|黑板|教师|老师|讲台方向|主席台|讲区/;
+  var kwDoor=/^门$|^窗$|窗户|前门|后门|门口|侧门|门窗|走廊/;
+  for(var i=0;i<rows2d.length;i++){
+    var rowText=rows2d[i].join(' ').replace(/\s+/g,'');
+    if(rowText&&kwPodium.test(rowText))info.dropRows.push(i);
+  }
+  var maxC=0;
+  for(var i2=0;i2<rows2d.length;i2++)if(rows2d[i2].length>maxC)maxC=rows2d[i2].length;
+  for(var c=0;c<maxC;c++){
+    var cells=[];
+    for(var r=0;r<rows2d.length;r++){
+      var v=tc(rows2d[r][c]||'');
+      if(v)cells.push(v);
+    }
+    if(!cells.length)continue;
+    // 该列有 >=3 个学生名 → 是座位列，不是门窗/讲台列（即使个别 cell 含"门/讲台"字样）
+    var nameCells=0;
+    for(var ci=0;ci<cells.length;ci++)if(extractNames(cells[ci]).length)nameCells++;
+    if(nameCells>=3)continue;
+    var colText=cells.join('');
+    if(kwPodium.test(colText)&&colText.length<=12)info.dropCols.push(c);
+    else if(kwDoor.test(colText))info.dropCols.push(c);
+  }
+  if(!info.view&&info.dropRows.length){
+    // 讲台在图上方（首行/紧随表头行）→ 从讲台往后看 = 讲台视角；
+    // 讲台在图下方（末行）→ 学生坐在上方面朝下方讲台 = 学生视角
+    if(info.dropRows[0]<=1)info.view='teacher';
+    else if(info.dropRows[0]>=rows2d.length-2)info.view='student';
+  }
+  return info;
+}
+// 表格行过滤：只要有可识别的名字就保留（确保名单不丢）；无名字的行再按说明文本判定过滤
+function isNoiseRow(row){
+  for(var i=0;i<row.length;i++){
+    if(extractNames(row[i]).length)return false;
+  }
+  return isNoiseLine(row.join(''),true);
+}
+// 标题/说明类文本（非学生名单）判定；noLen=true 时跳过长度限制（表格数据行拼接可能很长，仅按关键词过滤）
+function isNoiseLine(t,noLen){
+  t=tc(t);
+  if(!t)return true;
+  if(!noLen&&t.length>14)return true;
+  return /座位表|班级|班主任|姓名|性别|排|列|过道|讲台|黑板|老师|日期|学期|男生|女生|第.{0,3}组|备注|说明|名单|序号|编号|学号|座号|电话|教室|不规则|同桌|座次|安排|示意|平面|图纸|名册|登记|学生|镜像|就座|方向|查看|图例/.test(t);
+}
+// 常见姓氏（用于把无分隔符粘连的连续中文拆成 2 字名）
+var SUR_CHARS='王李张刘陈杨黄赵吴周徐孙马朱胡郭何高林罗郑梁谢宋唐许韩冯邓曹彭曾肖田董袁潘蒋蔡余杜叶程苏魏吕丁任沈姚卢姜崔钟谭陆汪范金石廖贾夏韦付方白邹孟熊秦邱江尹薛闫段雷侯龙史陶黎贺顾毛郝龚邵万钱严覃武戴莫孔向汤';
+// 从单元格/段落文本中智能提取 2~4 字中文名（或英文名）对象：
+// 剥离序号前缀(1./①/(1))、性别/备注后缀、学号数字；支持 空白/逗号/顿号/换行 分隔的多名字；
+// 无分隔符粘连的连续中文（如"张伟王芳"）按姓表拆成 2 字名，拆不开则整体保留
+function extractNames(s){
+  s=String(s==null?'':s);
+  var out=[];
+  var NOISE=/讲台|讲桌|讲坛|黑板|过道|前门|后门|窗户|门口|走廊|座位|名单|备注|说明|班级|班主任|老师|教师|组长|第.{0,2}组|序号|编号|学号|座号|日期|学期|人数|学生|镜像|就座|方向|查看|班$|组$/;
+  var parts=s.split(/[\s\n\r,，、;；]+/);
+  for(var i=0;i<parts.length;i++){
+    var p=parts[i].trim();
+    if(!p)continue;
+    p=p.replace(/^[\[【（(]\s*\d+\s*[\]】）).\-、号]*/,'');
+    p=p.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]+/,'');
+    p=p.replace(/^第?\d+号?/,'');
+    p=p.replace(/[.·]+/g,'');
+    p=p.replace(/[（(]男[）)]|[（(]女[）)]|\[男\]|\[女\]/g,'');
+    p=p.replace(/\d+/g,'');
+    if(p.length>=4&&p.length<=12&&p.length%2===0){
+      var ok=true,segs=[];
+      for(var q=0;q<p.length;q+=2){
+        var s2=p.substr(q,2);
+        if(SUR_CHARS.indexOf(s2[0])<0){ok=false;break;}
+        segs.push(s2);
+      }
+      if(ok){for(var r=0;r<segs.length;r++)out.push(segs[r]);continue;}
+    }
+    var m=p.match(/[\u4e00-\u9fa5·]{2,4}|[A-Za-z]{2,12}/g);
+    if(m)for(var j=0;j<m.length;j++){
+      var nm=m[j];
+      if(nm.length<2||NOISE.test(nm))continue;
+      out.push(nm);
+    }
+  }
+  return out;
+}
+// 解析 HTML 型 .doc：合并所有表格行 + 收集表格外的段落（名单可能不在表格里）
+// onlyFirst：本系统导出的双视角 doc 只取第一页（讲台视角）表格，避免学生页镜像重复
+// 单元格文本（HTML：保留 <br> 为换行）
+function cellTextHTML(td){
+  var out='';
+  for(var i=0;i<td.childNodes.length;i++){
+    var n=td.childNodes[i];
+    if(!n)continue;
+    if(n.nodeType===3)out+=n.nodeValue;
+    else if(n.nodeType===1)out+=n.tagName==='BR'?'\n':(n.textContent||'');
+  }
+  return out;
+}
+// 单元格文本（XML：保留 <w:br/> 为换行）
+function cellTextXML(tc){
+  var out='';
+  var walk=function(el){
+    for(var i=0;i<el.childNodes.length;i++){
+      var n=el.childNodes[i];
+      if(!n)continue;
+      if(n.nodeType===3)out+=n.nodeValue;
+      else if(n.nodeType===1){
+        var t=n.tagName||'';
+        if(t==='w:br'||t==='w:cr'||t==='w:tab')out+=t==='w:tab'?' ':'\n';
+        else walk(n);
+      }
+    }
+  };
+  walk(tc);
+  return out;
+}
+// 一个单元格可能含多名学生（换行/逗号/顿号分隔）→ 拆成多个名字
+function splitCell(s){
+  s=String(s==null?'':s).trim();
+  if(!s)return [''];
+  var parts=s.split(/[\n,，、]+/).map(function(x){return x.trim();}).filter(function(x){return x!=='';});
+  return parts.length?parts:[''];
+}
+// 解析 HTML 型 .doc：合并所有表格行 + 收集表格外的段落（名单可能不在表格里）
+// onlyFirst：本系统导出的双视角 doc 只取第一页（讲台视角）表格，避免学生页镜像重复
+function parseWordRowsAll(html,onlyFirst){
+  try{
+    var dom=new DOMParser().parseFromString(String(html),'text/html');
+    var rows=[],free=false;
+    var tbls=dom.querySelectorAll('table');
+    if(onlyFirst&&tbls.length>1)tbls=[tbls[0]];
+    var hasTbl=tbls.length>0;
+    // 展开合并单元格（colspan/rowspan）恢复网格列对齐：合并格后续占位为空格，保证每行列数一致
+    function tableRowsHTML(tbl){
+      var trs=tbl.querySelectorAll('tr'),out=[],rowspans=[];
+      for(var j=0;j<trs.length;j++){
+        var cells=trs[j].querySelectorAll('th,td');
+        var row=[],ci=0,next=[],occ={};
+        for(var r=0;r<rowspans.length;r++){occ[rowspans[r].col]=1;if(rowspans[r].rem>1)next.push({col:rowspans[r].col,rem:rowspans[r].rem-1});}
+        for(var k=0;k<cells.length;k++){
+          while(occ[ci])ci++;
+          while(row.length<ci)row.push('');
+          var txt=cellTextHTML(cells[k]).trim();
+          var cs=parseInt(cells[k].getAttribute('colspan')||'1',10)||1;
+          var rs=parseInt(cells[k].getAttribute('rowspan')||'1',10)||1;
+          if(rs>1)next.push({col:ci,rem:rs-1});
+          row[ci]=txt;
+          for(var x=1;x<cs;x++)row[ci+x]='';
+          ci+=cs;
+        }
+        rowspans=next;
+        out.push(row);
+      }
+      return out;
+    }
+    for(var i=0;i<tbls.length;i++){
+      var trs2=tableRowsHTML(tbls[i]);
+      for(var j=0;j<trs2.length;j++){
+        var row=trs2[j];
+        if(!row.some(function(x){return x!=='';}))continue;
+        // 表头行保留（供表头/行号识别），说明性行过滤，其余保留
+        if(!looksHeader(row)&&isNoiseRow(row))continue;
+        rows.push(row);
+      }
+    }
+    var kids=dom.body?dom.body.childNodes:[];
+    for(var i2=0;i2<kids.length;i2++){
+      var el=kids[i2];
+      if(!el||el.nodeType!==1)continue;
+      var tag=el.tagName;
+      if(tag==='TABLE')continue;
+      if(tag==='P'||tag==='DIV'){
+        var txt=(el.textContent||'').trim();
+        if(txt&&extractNames(txt).length&&!isNoiseLine(txt,true)){rows.push([txt]);free=true;}
+      }
+    }
+    if(!rows.length)return null;
+    rows.free=!hasTbl&&free;
+    return rows;
+  }catch(e){return null;}
+}
+function parseWordRows(html){return parseWordRowsAll(html);}
+// 解析 Word 2003 XML / docx：合并全部表格行 + 收集 body 直接段落（名单可能不在表格里）
+function parseWordXmlAll(xml){
+  try{
+    var dom=new DOMParser().parseFromString(String(xml),'text/xml');
+    var body=dom.getElementsByTagName('w:body')[0];
+    if(!body)return null;
+    var rows=[],free=false;
+    var tbls=dom.getElementsByTagName('w:tbl');
+    var hasTbl=tbls.length>0;
+    // 展开 docx 合并单元格：gridSpan（横向）展开占位、vMerge（纵向）延续格占位，保证网格列对齐
+    function tableRowsXML(tbl){
+      var trs=tbl.getElementsByTagName('w:tr'),out=[];
+      for(var j=0;j<trs.length;j++){
+        var tcs=trs[j].getElementsByTagName('w:tc');
+        var row=[],ci=0;
+        for(var k=0;k<tcs.length;k++){
+          var tc=tcs[k];
+          while(row.length<ci)row.push('');
+          var tcPr=tc.getElementsByTagName('w:tcPr')[0];
+          var gs=1,vm='';
+          if(tcPr){
+            var g=tcPr.getElementsByTagName('w:gridSpan')[0];
+            if(g)gs=parseInt(g.getAttribute('w:val')||'1',10)||1;
+            var v=tcPr.getElementsByTagName('w:vMerge')[0];
+            if(v)vm=v.getAttribute('w:val')||'continue';
+          }
+          var txt=cellTextXML(tc).trim();
+          // vMerge 延续格视觉上属于上方合并格 → 占位（若真有名字仍保留，确保不漏人）
+          if(vm==='continue'&&!extractNames(txt).length)txt='';
+          row.push(txt);
+          for(var x=1;x<gs;x++)row.push('');
+          ci+=gs;
+        }
+        out.push(row);
+      }
+      return out;
+    }
+    for(var i=0;i<tbls.length;i++){
+      var trs2=tableRowsXML(tbls[i]);
+      for(var j=0;j<trs2.length;j++){
+        var row=trs2[j];
+        if(!row.some(function(x){return x!=='';}))continue;
+        if(!looksHeader(row)&&isNoiseRow(row))continue;
+        rows.push(row);
+      }
+    }
+    var kids=body.childNodes;
+    for(var i2=0;i2<kids.length;i2++){
+      var el=kids[i2];
+      if(!el||el.nodeType!==1)continue;
+      if(el.tagName!=='w:p')continue;
+      var ts2=el.getElementsByTagName('w:t'),txt='';
+      for(var m2=0;m2<ts2.length;m2++)txt+=(ts2[m2].textContent||'');
+      txt=txt.trim();
+      if(txt&&extractNames(txt).length&&!isNoiseLine(txt,true)){rows.push([txt]);free=true;}
+    }
+    if(!rows.length)return null;
+    rows.free=!hasTbl&&free;
+    return rows;
+  }catch(e){return null;}
+}
+function parseWordXml(xml){return parseWordXmlAll(xml);}
+function parseRtf(txt){
+  try{
+    var out='',pending=[],i=0,n=txt.length,depth=0,skipAt=-1;
+    var DEST={fonttbl:1,colortbl:1,stylesheet:1,info:1,pict:1,header:1,footer:1,headerf:1,headerl:1,headerr:1,footerf:1,footerl:1,footerr:1,footnote:1,listtable:1,listoverridetable:1,generator:1,datastore:1,themedata:1,revtbl:1,rsidtbl:1,altcolor:1,shppict:1,object:1,field:1,ud:1};
+    function flush(){if(pending.length){try{out+=new TextDecoder('gbk').decode(new Uint8Array(pending));}catch(e){}pending=[];}}
+    function skipOn(){return skipAt>=0&&depth>=skipAt;}
+    while(i<n){
+      var ch=txt[i];
+      if(ch==='{'){depth++;i++;continue;}
+      if(ch==='}'){depth--;if(skipAt>=0&&depth<skipAt)skipAt=-1;i++;continue;}
+      if(skipOn()){i++;continue;}
+      if(ch==='\r'||ch==='\n'){i++;continue;}
+      if(ch!=='\\'){flush();out+=ch;i++;continue;}
+      i++;var cc=txt[i];
+      if(cc==='\\'){flush();out+='\\';i++;continue;}
+      if(cc==='{'){flush();out+='{';i++;continue;}
+      if(cc==='}'){flush();out+='}';i++;continue;}
+      if(cc==='~'){flush();out+=' ';i++;continue;}
+      if(cc==='\''){var hx=parseInt(txt.substr(i+1,2),16);if(!isNaN(hx))pending.push(hx);i+=3;continue;}
+      if(cc==='*'){skipAt=depth+1;i++;continue;}
+      var m=/^[a-zA-Z]+/.exec(txt.substr(i));
+      if(!m){i++;continue;}
+      var word=m[0];i+=word.length;
+      var pm=/^[-]?\d+/.exec(txt.substr(i)),arg=0;
+      if(pm){arg=parseInt(pm[0],10);i+=pm[0].length;}
+      if(txt[i]===' ')i++;
+      if(word==='u'){flush();out+=String.fromCharCode(arg&0xFFFF);
+        if(txt[i]==='?')i++;
+        else if(txt.substr(i,4)==="\\'3f"||txt.substr(i,4)==="\\'3F")i+=4;
+        continue;}
+      if(word==='cell'){flush();out+='\x07';continue;}
+      if(word==='row'||word==='par'){flush();out+='\x0d';continue;}
+      if(word==='line'||word==='tab'){flush();out+=' ';continue;}
+      if(DEST[word])skipAt=depth+1;
+    }
+    flush();
+    return textToGrid(out);
+  }catch(e){return null;}
+}
+function parsePlain(txt){
+  var lines=String(txt).split(/\r?\n/).map(function(l){return l.trim();}).filter(function(l){return l!=='';});
+  if(!lines.length)return null;
+  var sep=/[,，\t]/;
+  if(!sep.test(lines[0])){
+    if(lines[0].match(/\s{2,}/))sep=/\s{2,}/;
+    else{
+      var t0=lines[0];
+      if(t0.length>=2&&t0.length<=6&&/^[\u4e00-\u9fa5a-zA-Z·]+$/.test(t0))
+        return lines.map(function(l){return [l];});
+      return null;
+    }
+  }
+  return lines.map(function(l){return l.split(sep).map(function(c){return c.trim();});});
+}
+function findPcdt(clx){
+  var i=0;
+  while(i<clx.length){
+    var t=clx[i];
+    if(t===1){
+      if(i+2>=clx.length)break;
+      i+=3+rd16(clx,i+1);
+    }else if(t===2){return clx.subarray(i+1);}
+    else break;
+  }
+  return null;
+}
+function parseDocOle(buf){
+  try{
+    var u8=new Uint8Array(buf);
+    if(rd32(u8,0)!==0xE011CFD0)return null;
+    var ss=1<<rd16(u8,0x1E);if(ss<512||ss>16384)ss=512;
+    var mss=1<<rd16(u8,0x20);if(mss<64||mss>4096)mss=64;
+    var cutoff=rd32(u8,0x38)||4096;
+    var difat=[];
+    for(var i=0;i<109;i++){var v=rd32(u8,0x4C+i*4);if(v!==0xFFFFFFFF)difat.push(v);}
+    var difSec=rd32(u8,0x44),nDif=rd32(u8,0x48),lim=Math.floor(u8.length/ss);
+    while(difSec!==0xFFFFFFFE&&nDif-->0&&difSec<lim){
+      for(var k=0;k<ss/4-1;k++){var v2=rd32(u8,(difSec+1)*ss+k*4);if(v2!==0xFFFFFFFF)difat.push(v2);}
+      difSec=rd32(u8,(difSec+1)*ss+ss-4);
+    }
+    var fat=[];
+    for(var f=0;f<difat.length;f++){var fs=difat[f];if(fs>=lim)continue;
+      for(var q=0;q<ss/4;q++)fat.push(rd32(u8,(fs+1)*ss+q*4));}
+    function chain(start){
+      var out=[],s=start,g=0;
+      while(s!==0xFFFFFFFE&&s<0xFFFFFFF0&&g++<200000&&out.length<2000){out.push(s);s=fat[s];}
+      return out;
+    }
+    function readSt(start,size){
+      var secs=chain(start);
+      if(!size)size=secs.length*ss;
+      var out=new Uint8Array(size),off=0;
+      for(var a=0;a<secs.length&&off<size;a++){var nb=Math.min(ss,size-off);
+        out.set(u8.subarray((secs[a]+1)*ss,(secs[a]+1)*ss+nb),off);off+=nb;}
+      return out;
+    }
+    var entries={},dirSecs=chain(rd32(u8,0x30));
+    for(var d=0;d<dirSecs.length;d++){
+      var base=(dirSecs[d]+1)*ss;
+      for(var e=0;e<ss/128;e++){
+        var off=base+e*128;
+        var nlen=rd16(u8,off+64);
+        if(nlen<2||nlen>64)continue;
+        var nm='';
+        for(var c2=0;c2<nlen/2-1;c2++)nm+=String.fromCharCode(rd16(u8,off+c2*2));
+        var type=u8[off+66];
+        if(type!==2&&type!==5)continue;
+        var sz=rd32(u8,off+120)+(rd32(u8,off+124)>>>0)*4294967296;
+        entries[nm]=entries[nm]||{start:rd32(u8,off+116),size:sz};
+      }
+    }
+    var root=entries['Root Entry'];
+    if(!root)return null;
+    var miniRoot=readSt(root.start,root.size);
+    var mfat=[],ms=rd32(u8,0x3C),nMf=rd32(u8,0x40);
+    while(ms!==0xFFFFFFFE&&nMf-->0&&ms<lim){
+      for(var q2=0;q2<ss/4;q2++)mfat.push(rd32(u8,(ms+1)*ss+q2*4));
+      ms=fat[ms];
+    }
+    function readMini(start,size){
+      var out=new Uint8Array(size),off=0,s=start,g=0;
+      while(s!==0xFFFFFFFE&&s<0xFFFFFFF0&&g++<100000&&off<size){
+        var nb=Math.min(mss,size-off);
+        if(s*mss+nb<=miniRoot.length)out.set(miniRoot.subarray(s*mss,s*mss+nb),off);
+        off+=nb;s=mfat[s];
+      }
+      return out;
+    }
+    function getSt(name){
+      var en=entries[name];
+      if(!en)return null;
+      return en.size<=cutoff?readMini(en.start,en.size):readSt(en.start,en.size);
+    }
+    var wd=getSt('WordDocument');
+    if(!wd||wd.length<500)return null;
+    var text='';
+    try{
+      var tbl=getSt((rd16(wd,0x0A)&0x0200)?'1Table':'0Table')||getSt('0Table')||getSt('1Table');
+      if(tbl){
+        var fcClx=rd32(wd,418),lcbClx=rd32(wd,422);
+        if(lcbClx>0&&fcClx+lcbClx<=tbl.length){
+          var plcd=findPcdt(tbl.subarray(fcClx,fcClx+lcbClx));
+          if(plcd){
+            var lcb=rd32(plcd,0),n=(lcb-4)/12;
+            if(n>0&&n===Math.floor(n)){
+              var cps=[];
+              for(var i2=0;i2<=n;i2++)cps.push(rd32(plcd,4+i2*4));
+              for(var p=0;p<n;p++){
+                var fc=rd32(plcd,4+(n+1)*4+p*8),len=cps[p+1]-cps[p];
+                if(len<=0)continue;
+                if(fc&0x80000000){
+                  var o8=fc&0x3FFFFFFF;
+                  if(o8+len<=wd.length)text+=decode8(wd.subarray(o8,o8+len));
+                }else if(fc&0x40000000){
+                  var o8b=fc&0x3FFFFFFF;
+                  if(o8b+len<=wd.length)text+=decode8(wd.subarray(o8b,o8b+len));
+                }else{
+                  var o16=fc*2;
+                  if(o16+len*2<=wd.length)text+=decode16(wd.subarray(o16,o16+len*2));
+                  else if(fc+len*2<=wd.length)text+=decode16(wd.subarray(fc,fc+len*2));
+                  else if(fc+len<=wd.length)text+=decode8(wd.subarray(fc,fc+len));
+                }
+              }
+            }
+          }
+        }
+      }
+    }catch(e){}
+    if(!text||text.indexOf('\x07')<0)text=locateDocText(wd)||text;
+    var g=textToGrid(text);
+    if(g){g.fullText=text;g.free=text.indexOf('\x07')<0;return g;}
+    // 无表格结构：纯段落名单（无 \x07）→ 按行返回（供 list 模式导入）
+    if(text){
+      var ls=text.split(/\x0d|\x0c|\n/).map(function(l){return l.trim();}).filter(function(l){return l!==''&&/[\u4e00-\u9fa5]{2,}/.test(l);});
+      if(ls.length){ls.free=true;return ls;}
+    }
+    return null;
+  }catch(e){return null;}
+}
+// 兜底：部分 writer 的 piece 偏移不规范，直接在 WordDocument 流中定位含单元格分隔符/中文的可打印 UTF-16 段
+function locateDocText(wd){
+  var t='',best='',bestPlain='';
+  for(var i=0;i+1<wd.length;i+=2){
+    var c=wd[i]|(wd[i+1]<<8);
+    if(c===0x07||c===0x0D||c===0x0C||(c>=0x20&&c<0x7f)||(c>=0x4E00&&c<=0x9FA5)||(c>=0x3000&&c<=0x303F)){
+      t+=String.fromCharCode(c);
+    }else{
+      if(t.indexOf('\x07')>=0&&t.length>best.length)best=t;
+      else if(t.length>bestPlain.length&&/[\u4e00-\u9fa5]{2,}/.test(t))bestPlain=t;
+      t='';
+    }
+  }
+  if(t.indexOf('\x07')>=0&&t.length>best.length)best=t;
+  else if(t.length>bestPlain.length&&/[\u4e00-\u9fa5]{2,}/.test(t))bestPlain=t;
+  return best||bestPlain||null;
+}
+async function parseDocx(buf){
+  try{
+    var u8=new Uint8Array(buf);
+    var eocd=-1;
+    for(var i=u8.length-22;i>=Math.max(0,u8.length-22-65536);i--){
+      if(u8[i]===0x50&&u8[i+1]===0x4B&&u8[i+2]===0x05&&u8[i+3]===0x06){eocd=i;break;}
+    }
+    if(eocd<0)return null;
+    var cdOff=rd32(u8,eocd+16),nEnt=rd16(u8,eocd+10),p=cdOff;
+    for(var e=0;e<nEnt;e++){
+      if(u8[p]!==0x50||u8[p+1]!==0x4B)break;
+      var method=rd16(u8,p+10),comp=rd32(u8,p+20),nlen=rd16(u8,p+28),xlen=rd16(u8,p+30),clen=rd16(u8,p+32);
+      var nm='';
+      for(var c=0;c<nlen;c++)nm+=String.fromCharCode(u8[p+46+c]);
+      if(nm==='word/document.xml'){
+        var start=rd32(u8,p+42)+30+nlen+xlen;
+        var data=u8.subarray(start,start+comp);
+        var xml;
+        if(method===0)xml=new TextDecoder('utf-8').decode(data);
+        else if(method===8){
+          var ds=new DecompressionStream('deflate-raw');
+          var resp=new Response(new Blob([data]).stream().pipeThrough(ds));
+          xml=new TextDecoder('utf-8').decode(new Uint8Array(await resp.arrayBuffer()));
+        }else return null;
+        return parseWordXml(xml);
+      }
+      p+=46+nlen+xlen+clen;
+    }
+    return null;
+  }catch(e){return null;}
+}
+function tryXls(buf){
+  try{
+    if(!window.XLSX)return null;
+    var wb=XLSX.read(new Uint8Array(buf),{type:'array'});
+    return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+  }catch(e){return null;}
+}
+async function parseWordAuto(buf,name,done){
+  var u8=new Uint8Array(buf),rows2d=null,fullText='';
+  if(u8.length>8&&rd32(u8,0)===0xE011CFD0){
+    rows2d=parseDocOle(buf);
+    if(!rows2d)rows2d=tryXls(buf);
+    if(rows2d&&rows2d.fullText)fullText=rows2d.fullText;
+  }else if(u8.length>4&&u8[0]===0x50&&u8[1]===0x4B&&(u8[2]===0x03||u8[2]===0x05)&&u8[3]===0x04){
+    rows2d=tryXls(buf);
+    if(!rows2d)rows2d=await parseDocx(buf);
+  }else{
+    var txt='';
+    try{txt=new TextDecoder('utf-8').decode(u8);}catch(e){}
+    if(printableRatio(txt)<0.6){
+      try{txt=new TextDecoder('gbk').decode(u8);}catch(e){}
+    }
+    if(printableRatio(txt)>=0.6){
+      fullText=txt;
+      if(/<table[\s>]/i.test(txt)||/<html[\s>]|<body[\s>]/i.test(txt))rows2d=parseWordRowsAll(txt,/座位表[（(]讲台视角/.test(txt));
+      else if(/<w:document|<w:tbl/i.test(txt))rows2d=parseWordXmlAll(txt);
+      else if(/^\s*\{?\s*\\rtf/i.test(txt))rows2d=parseRtf(txt);
+      else rows2d=parsePlain(txt);
+    }
+  }
+  if(!rows2d||!rows2d.length){toast('无法识别文件内容：请导入 .xlsx/.xls/.csv，或 Word/WPS 导出的 .doc/.docx 座位表');return;}
+  // 结构分析：确定讲台位置→排除讲台行/门窗列→剩余即学生名单位置→判定视角
+  var info=analyzeSeatGrid(rows2d,fullText);
+  if(info.dropRows.length||info.dropCols.length){
+    var dropR={};info.dropRows.forEach(function(x){dropR[x]=1;});
+    rows2d=rows2d.filter(function(r,i){return !dropR[i];});
+    if(info.dropCols.length){
+      var dropC={};info.dropCols.forEach(function(x){dropC[x]=1;});
+      rows2d=rows2d.map(function(r){return r.filter(function(x,j){return !dropC[j];});});
+    }
+    var notes=[];
+    if(info.dropRows.length)notes.push('已排除讲台'+(info.dropRows.length>1?'区域':'行'));
+    if(info.dropCols.length)notes.push('已排除门窗列');
+    toast('自动识别：'+notes.join('，')+'，其余为学生座位区');
+  }
+  if(info.view){state.studentView=info.view!=='teacher';}
+  impMode=rows2d.free?'list':'grid';
+  impReplace=true;impHeader=looksHeader(rows2d[0]);
+  // WPS .doc 标题合并单元格里的名字（如"许子乐"）被排在了真正第一排前面，
+  // 形成只有1个名字的短行；把它合并到真正第一排
+  if(impHeader&&rows2d.length>2){
+    var shortRow=rows2d[1];
+    var nextRow=rows2d[2];
+    if(shortRow&&nextRow){
+      var shortNames=extractNames(shortRow.join(''));
+      var nextNames=extractNames(nextRow.join(''));
+      if(shortNames.length===1&&nextNames.length>=5){
+        // 短行的名字合并到下一排末尾（翻转列后会到视觉右侧=魏钰清后面）
+        var newNext=nextRow.concat(shortNames);
+        rows2d=[rows2d[0],newNext].concat(rows2d.slice(3));
+      }
+    }
+  }
+  // 学生视角（讲台在文件下方）：文件第一行是后排，近讲台的最后一行是前排；
+  // 翻转行顺序（上下）和列顺序（左右），抵消 CSS rotate(180°)，使视觉与文件完全一致
+  if(info.view==='student'){
+    var hr=impHeader?1:0;
+    var head=rows2d.slice(0,hr);
+    var body=rows2d.slice(hr).map(function(r){return r.slice().reverse();}).reverse();
+    rows2d=head.concat(body);
+  }
+  render();
+  applyImport(rows2d);
+  if(done)done(rows2d);
+}
+function handleImportFile(file){
+  impFileName=file.name||'';
+  var isCsv=/\.csv$/i.test(file.name);
+  var isExcel=/\.(xlsx|xls)$/i.test(file.name);
+  if(!isExcel&&!isCsv){
+    // .doc / .docx / 无扩展名：按字节探测内容，自动识别 Word 座位表（HTML / XML / RTF / 二进制 / zip）
+    var rd=new FileReader();
+    rd.onload=function(ev){parseWordAuto(ev.target.result,file.name,null);};
+    rd.readAsArrayBuffer(file);
+    return;
+  }
+  if(isExcel&&!window.XLSX){toast('Excel 解析库未加载（需联网），请改用 CSV 文件导入');return;}
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var rows2d;
+    try{
+      if(window.XLSX&&!isCsv){
+        var wb=XLSX.read(ev.target.result,{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        rows2d=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      }else{
+        rows2d=parseCSV(ev.target.result);
+      }
+    }catch(err){toast('解析失败：'+err.message);return;}
+    applyImport(rows2d);
+  };
+  if(window.XLSX&&!isCsv)reader.readAsArrayBuffer(file);else reader.readAsText(file);
+}
+function applyImport(rows2d){
+  rows2d=rows2d.map(function(r){return (r||[]).map(tc);}).filter(function(r){return r.some(function(x){return x!=='';});});
+  if(!rows2d.length){toast('文件中没有可用的数据');return;}
+  var candidates=[], overflow=0, expandNote='';
+  if(impMode==='list'){
+    var startRow=0,nameCol=0,genderCol=-1;
+    if(impHeader){
+      var head=rows2d[0].map(function(h){return h.toLowerCase();});
+      var ni=head.findIndex(function(h){return /姓名|名字|学生|name/.test(h);});
+      var gi=head.findIndex(function(h){return /性别|gender|sex/.test(h);});
+      if(ni>=0||gi>=0){startRow=1;nameCol=ni>=0?ni:0;genderCol=gi;}
+    }
+    if(colNameSel!=='auto')nameCol=parseInt(colNameSel,10);
+    if(colGenderSel==='none')genderCol=-1;
+    else if(colGenderSel!=='auto')genderCol=parseInt(colGenderSel,10);
+    var colInfo='';
+    if(impColNames&&impColNames.length){
+      var nlabel=(nameCol>=0&&impColNames[nameCol]!==''&&impColNames[nameCol]!=null)?'第'+(nameCol+1)+'列（'+impColNames[nameCol]+'）':'自动';
+      var glabel=genderCol>=0?(impColNames[genderCol]!==''&&impColNames[genderCol]!=null?'第'+(genderCol+1)+'列（'+impColNames[genderCol]+'）':'第'+(genderCol+1)+'列'):'无（按姓名识别）';
+      colInfo='姓名列：'+nlabel+'；性别列：'+glabel;
+    }
+    var names=[];
+    for(var i=startRow;i<rows2d.length;i++){
+      var r=rows2d[i];
+      var nm=r[nameCol]||'';if(!nm)continue;
+      var nms=extractNames(nm);
+      if(!nms.length)continue;
+      var gender='';
+      var gv=(genderCol>=0?r[genderCol]:'')||'';
+      if(/^(男|男生|m|male)/i.test(gv))gender='male';
+      else if(/^(女|女生|f|female)/i.test(gv))gender='female';
+      else{var gd=detectGender(nm);if(gd)gender=gd;}
+      for(var q2=0;q2<nms.length;q2++)names.push({name:nms[q2],gender:gender});
+    }
+    if(!names.length){toast('没有识别到姓名数据，请检查表头设置');return;}
+    expandNote=expandGrid(names.length);
+    var idx=0;
+    outer:
+    for(var rr=1;rr<=state.rows;rr++)for(var cc=1;cc<=state.cols;cc++){
+      if(idx>=names.length)break outer;
+      if(patternAisle(cc))continue;
+      if(!impReplace&&seatAt(rr,cc))continue;
+      var n=names[idx++];
+      candidates.push({name:n.name,gender:n.gender,row:rr,col:cc,confirmed:true});
+    }
+    overflow=names.length-idx;
+  }else{
+    var offR=impHeader?1:0,offC=0;
+    if(impHeader){
+      var hc=tc(rows2d[0][0]||'');
+      offC=/排\\列|^\d+排|^第\d+排|^[一二三四五六七八九十百]+排|^第[一二三四五六七八九十百]+排/.test(hc)?1:0;
+    }
+    var maxR=rows2d.length-offR,maxC=0;
+    for(var mm=offR;mm<rows2d.length;mm++){
+      var l=rows2d[mm].length-offC;
+      if(l>maxC)maxC=l;
+    }
+    if(maxR>state.rows||maxC>state.cols){
+      var nR=Math.min(20,Math.max(state.rows,maxR));
+      var nC=Math.min(20,Math.max(state.cols,maxC));
+      var msgs=[];
+      if(nR>state.rows)msgs.push((nR-state.rows)+' 排');
+      if(nC>state.cols)msgs.push((nC-state.cols)+' 列');
+      expandNote='座位不足，已自动在末尾增加 '+msgs.join('、')+'。';
+      state.rows=nR;state.cols=nC;
+    }
+    for(var i2=offR;i2<rows2d.length;i2++){
+      var r2=i2-offR+1;if(r2>state.rows)break;
+      var row=rows2d[i2];
+      var cc=offC+1;
+      // 行号偏移仅用于行首确实是行号（如“1排”）的行；拆行/合并展开后的行首是名字则从第 1 格开始
+      var st2=offC;
+      if(st2>0&&!/排|列/.test(String(row[0]==null?'':row[0]).trim()))st2=0;
+      for(var j=st2;j<row.length&&cc<=state.cols;j++){
+        var raw=row[j];
+        var nms=raw?extractNames(raw):[];
+        // 空格（合并单元格/过道/空座位）也占用列位，保证与表格网格列对齐不错位
+        if(!nms.length){cc++;continue;}
+        var gd2=detectGender(raw);
+        for(var q3=0;q3<nms.length;q3++){
+          while(cc<=state.cols&&!impReplace&&seatAt(r2,cc))cc++;
+          if(cc>state.cols)break;
+          candidates.push({name:nms[q3],gender:gd2||'',row:r2,col:cc,confirmed:true});
+          cc++;
+        }
+      }
+    }
+    if(!candidates.length){toast('未识别到座位数据，请检查「首行/首列为表头」设置');return;}
+  }
+  if(!candidates.length){toast('没有可导入的数据（空位不足或数据为空）');return;}
+  openImportPreview(candidates, overflow, expandNote, colInfo);
+}
+function openImportPreview(candidates, overflow, expandNote, colInfo){
+  var isList=impMode==='list';
+  var rowsHtml='';
+  for(var i=0;i<candidates.length;i++){
+    var cd=candidates[i];
+    var g=cd.gender==='male'?'m':(cd.gender==='female'?'f':'');
+    rowsHtml+='<tr data-i="'+i+'">'
+      +'<td><input type="checkbox" class="row-cb" data-i="'+i+'" checked></td>'
+      +'<td class="nm">'+esc(cd.name||'未命名')+'</td>'
+      +'<td><span class="mini-seg" data-i="'+i+'">'
+        +'<button data-g="female" class="'+(g==='f'?'on f':'')+'">女</button>'
+        +'<button data-g="male" class="'+(g==='m'?'on m':'')+'">男</button>'
+        +'<button data-g="" class="'+(g===''?'on':'')+'">不设</button>'
+      +'</span></td>'
+      +'<td class="pos">'+(isList?('第'+(i+1)+'位'):('第'+cd.row+'排 · 第'+cd.col+'列'))+'</td>'
+      +'</tr>';
+  }
+  openModal(
+   '<div class="m-head"><h3>确认导入名单（'+candidates.length+' 人）</h3></div>'+
+   '<p class="m-hint">'+(colInfo?'<b>'+esc(colInfo)+'。</b><br>':'')+'请逐行核对姓名与性别（可手动调整性别），取消勾选可跳过该生；'+(isList?'未勾选者将被跳过，其余按序号依次入座':'未勾选者对应座位留空')+'。'+(expandNote?'<b style="color:#b45309">'+expandNote+'</b>':'')+(overflow?'另有 <b style="color:#dc2626">'+overflow+'</b> 人因座位不足未列入。':'')+'</p>'+
+   '<div class="import-tools"><label class="check"><input type="checkbox" id="selAll" checked> 全选</label><span><b id="selCount">'+candidates.length+'</b> 人已选</span></div>'+
+   '<div class="import-preview"><table><colgroup><col style="width:13%"><col style="width:36%"><col style="width:26%"><col style="width:25%"></colgroup>'+
+   '<thead><tr><th>确认</th><th>姓名</th><th>性别</th><th>'+(isList?'入座序号':'位置')+'</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div>'+
+   '<div class="m-foot"><button class="btn ghost" id="pvCancel">取消</button><button class="btn" id="pvOk">确认导入（'+candidates.length+' 人）</button></div>'
+  );
+  var pv=$('#modal').querySelector('.import-preview');
+  function refreshCount(){
+    var cbs=pv.querySelectorAll('.row-cb');
+    var on=0;
+    for(var k=0;k<cbs.length;k++)if(cbs[k].checked)on++;
+    $('#selCount').textContent=on;
+    $('#pvOk').textContent='确认导入（'+on+' 人）';
+  }
+  $('#selAll').addEventListener('change',function(e){
+    var on=e.target.checked;
+    var cbs=pv.querySelectorAll('.row-cb');
+    for(var k=0;k<cbs.length;k++){
+      cbs[k].checked=on;
+      var tr=cbs[k].closest('tr');
+      if(tr)tr.classList.toggle('row-off',!on);
+    }
+    refreshCount();
+  });
+  pv.addEventListener('change',function(e){
+    var cb=e.target.closest('.row-cb');
+    if(!cb)return;
+    var tr=cb.closest('tr');
+    if(tr)tr.classList.toggle('row-off',!cb.checked);
+    refreshCount();
+  });
+  pv.addEventListener('click',function(e){
+    var b=e.target.closest('.mini-seg button');
+    if(!b)return;
+    var seg=b.closest('.mini-seg');
+    var i=parseInt(seg.dataset.i,10);
+    candidates[i].gender=b.dataset.g;
+    var btns=seg.querySelectorAll('button');
+    for(var k=0;k<btns.length;k++){
+      var isOn=btns[k]===b;
+      btns[k].classList.toggle('on',isOn);
+      btns[k].className=isOn?(b.dataset.g==='male'?'on m':(b.dataset.g==='female'?'on f':'on')):'';
+    }
+  });
+  $('#pvCancel').addEventListener('click',closeModal);
+function detectClassName(){
+  // 从文件名提取：如"703座位表 - 副本.doc" → "703班"
+  var m=(impFileName||'').match(/(\d{3,4})\s*班?/);
+  var name=m?(m[1]+'班'):'';
+  if(!name){
+    // 从内容第一行提取（如果有）
+    var txt=impFileName||'';
+    m=txt.match(/(\d{3,4})\s*班/);
+    if(m)name=m[1]+'班';
+  }
+  if(name){
+    state.className=name;
+    els.clsName.value=name;
+    save();
+    toast('已自动识别班级：'+name);
+  }
+}
+$('#pvOk').addEventListener('click',function(){
+    var confirmed=[];
+    var cbs=pv.querySelectorAll('.row-cb');
+    for(var k=0;k<cbs.length;k++)if(cbs[k].checked)confirmed.push(candidates[parseInt(cbs[k].dataset.i,10)]);
+    if(!confirmed.length){closeModal();toast('未勾选任何学生，未导入');return;}
+    if(impReplace)state.seats=[];
+    if(isList){
+      var idx2=0,used=0;
+      outer2:
+      for(var r=1;r<=state.rows;r++)for(var c=1;c<=state.cols;c++){
+        if(idx2>=confirmed.length)break outer2;
+        if(patternAisle(c))continue;
+        if(!impReplace&&seatAt(r,c))continue;
+        var cd=confirmed[idx2++];
+        state.seats.push({id:uid(),name:cd.name,gender:cd.gender,row:r,col:c});
+        used++;
+      }
+      closeModal();render();
+      toast('成功导入 '+used+' 人'+(overflow?'（另有 '+overflow+' 人因座位不足未排）':''));
+      detectClassName();
+    }else{
+      var cnt2=0;
+      confirmed.forEach(function(cd){
+        state.seats.push({id:uid(),name:cd.name,gender:cd.gender,row:cd.row,col:cd.col});
+        cnt2++;
+      });
+      closeModal();render();
+      toast('成功导入 '+cnt2+' 个座位');
+      detectClassName();
+    }
+  });
+}
+function downloadTemplate(){
+  if(!window.XLSX){toast('Excel 解析库未加载（需联网）');return;}
+  var aoa=[['姓名','性别'],['王小明','男'],['李晓红','女'],['张子轩','男'],['陈雨欣','女'],['刘一诺','女'],['赵俊杰','男'],['孙婉婷','女'],['周宇航','男']];
+  var ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[{wch:14},{wch:8}];
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'名单');
+  XLSX.writeFile(wb,'座位名单模板.xlsx');
+}
+
+// ===== 导出 =====
+function downloadBlob(blob,name){
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);
+}
+function csvCell(v){v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function openExportModal(){
+  if(!state.seats.length){toast('当前没有座位，无法导出');return;}
+  openModal(
+   '<div class="m-head"><h3>导出座位表</h3></div>'+
+   '<p class="m-hint">导出内容基于当前页面布局与视角。Word 版包含讲台视角与学生视角（镜像）两页，A4 横向排版，可直接打印。</p>'+
+   '<div class="export-list">'+
+     '<button class="export-item" id="exWord">导出 Word 座位表<div>双视角两页 · A4 横向 · 粉色女生 / 蓝色男生</div></button>'+
+     '<button class="export-item" id="exExcel">导出 Excel 座位表<div>座位矩阵 + 名单两个工作表</div></button>'+
+     '<button class="export-item" id="exCsv">导出 CSV 名单<div>姓名 / 性别 / 排 / 列</div></button>'+
+   '</div>'+
+   '<div class="m-foot"><button class="btn ghost" id="exClose">关闭</button></div>'
+  );
+  $('#exClose').addEventListener('click',closeModal);
+  [['exWord',exportWord],['exExcel',exportExcel],['exCsv',exportCSV]].forEach(function(p){
+    document.getElementById(p[0]).addEventListener('click',function(){closeModal();p[1]();});
+  });
+}
+function exportWord(){
+  var cn=state.className||'班级';
+  var dateStr=fmtDate(new Date());
+  function buildTable(reverse){
+    var h='<table><colgroup><col style="width:6%">';
+    var tw=0;
+    for(var ct=1;ct<=state.cols;ct++)tw+=(isAisle(ct)?0.5:1);
+    for(var c=1;c<=state.cols;c++)h+='<col style="width:'+(94/tw*(isAisle(c)?0.5:1)).toFixed(3)+'%">';
+    h+='</colgroup><tr><th class="rl">排\\列</th>';
+    for(var c2=1;c2<=state.cols;c2++){
+      var hc2=reverse?state.cols+1-c2:c2;
+      h+='<th>'+(isAisle(hc2)?'过道':hc2+'列')+'</th>';
+    }
+    h+='</tr>';
+    var rs=reverse?state.rows:1,re=reverse?1:state.rows,step=reverse?-1:1;
+    for(var r=rs;r!==re+step;r+=step){
+      h+='<tr><td class="rl">第'+r+'排</td>';
+      for(var c3=1;c3<=state.cols;c3++){
+        var cc=reverse?state.cols+1-c3:c3;
+        var s=seatAt(r,cc);
+        if(s){var gc=gCls(s);h+='<td class="'+gc+'">'+esc(s.name||'')+(gSym(s)?' '+gSym(s):'')+'</td>';}
+        else h+='<td class="e"></td>';
+      }
+      h+='</tr>';
+    }
+    h+='</table>';
+    return h;
+  }
+  var podium='<div class="podium">讲 台</div>';
+  var legend='<p class="legend">粉色＝女生（♀）　蓝色＝男生（♂）　白色＝未设性别　空白＝空位　导出时间：'+esc(dateStr)+'</p>';
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>座位表</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--><style>@page{size:A4 landscape;margin:1.2cm;}body{font-family:"宋体",SimSun,serif;color:#111;font-size:11pt;}h1{text-align:center;font-size:20pt;margin:0 0 2pt;}p.meta{text-align:center;font-size:10pt;color:#555;margin:0 0 8pt;}table{border-collapse:collapse;width:100%;table-layout:fixed;}td,th{border:1px solid #444;height:32pt;text-align:center;vertical-align:middle;font-size:11pt;}th{background:#e8e8e8;font-weight:normal;}td.f{background:#FCE7F3;}td.m{background:#DBEAFE;}td.e{background:#F8FAFC;color:#bbb;}td.rl,th.rl{width:44pt;background:#F1F5F9;font-size:9pt;color:#475569;font-weight:bold;}.podium{width:58%;margin:6pt auto;border:1.5pt solid #666;border-top:6pt solid #666;text-align:center;padding:5pt;font-size:12pt;background:#F5F5F4;letter-spacing:8pt;}.legend{font-size:9pt;color:#555;text-align:center;margin:8pt 0 0;}div.pb{page-break-before:always;}</style></head><body>'
+    +'<h1>'+esc(cn)+'座位表（讲台视角）</h1><p class="meta">上端为讲台方向</p>'
+    +podium+buildTable(false)+legend
+    +'<div class="pb"></div>'
+    +'<h1>'+esc(cn)+'座位表（学生视角 · 镜像）</h1><p class="meta">从学生就座方向查看，前后、左右已镜像</p>'
+    +buildTable(true)+podium+legend
+    +'</body></html>';
+  var blob=new Blob(['\ufeff'+html],{type:'application/msword;charset=utf-8'});
+  downloadBlob(blob,cn+'座位表.doc');
+  toast('已导出 Word 座位表');
+}
+function exportExcel(){
+  if(!window.XLSX){toast('Excel 解析库未加载（需联网），可改用 CSV 导出');return;}
+  var cn=state.className||'班级';
+  var wb=XLSX.utils.book_new();
+  var aoa=[];
+  var head=['排\\列'];
+  for(var c=1;c<=state.cols;c++)head.push(isAisle(c)?'过道':c+'列');
+  aoa.push(head);
+  for(var r=1;r<=state.rows;r++){
+    var row=[r+'排'];
+    for(var c2=1;c2<=state.cols;c2++){
+      var s=seatAt(r,c2);
+      row.push(s?((s.name||'')+(gSym(s)?' '+gSym(s):'')):'');
+    }
+    aoa.push(row);
+  }
+  var ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[{wch:6}];
+  for(var i=1;i<=state.cols;i++)ws['!cols'].push({wch:isAisle(i)?7:14});
+  ws['!rows']=[{hpt:22}];
+  for(var i2=0;i2<state.rows;i2++)ws['!rows'].push({hpt:26});
+  try{
+    var styleCell=function(addr,rgb){
+      var cell=ws[addr];if(!cell)return;
+      cell.s={fill:{patternType:'solid',fgColor:{rgb:rgb}},font:{sz:11},alignment:{horizontal:'center',vertical:'center'},border:{top:{style:'thin',color:{rgb:'999999'}},bottom:{style:'thin',color:{rgb:'999999'}},left:{style:'thin',color:{rgb:'999999'}},right:{style:'thin',color:{rgb:'999999'}}}};
+    };
+    for(var j=0;j<=state.cols;j++)styleCell(XLSX.utils.encode_cell({r:0,c:j}),'E8EDF3');
+    for(var r2=1;r2<=state.rows;r2++)styleCell(XLSX.utils.encode_cell({r:r2,c:0}),'F1F5F9');
+    for(var r3=1;r3<=state.rows;r3++)for(var c3=1;c3<=state.cols;c3++){
+      var s2=seatAt(r3,c3);
+      if(s2)styleCell(XLSX.utils.encode_cell({r:r3,c:c3}),s2.gender==='male'?'DBEAFE':(s2.gender==='female'?'FCE7F3':'FFFFFF'));
+      else if(isAisle(c3))styleCell(XLSX.utils.encode_cell({r:r3,c:c3}),'EEF2F7');
+    }
+  }catch(e){}
+  XLSX.utils.book_append_sheet(wb,ws,'座位表');
+  var list=[['姓名','性别','排','列']];
+  var sorted=state.seats.slice().sort(function(a,b){return a.row-b.row||a.col-b.col;});
+  sorted.forEach(function(s){list.push([s.name||'',gWord(s),s.row,s.col]);});
+  var ws2=XLSX.utils.aoa_to_sheet(list);
+  ws2['!cols']=[{wch:14},{wch:8},{wch:6},{wch:6}];
+  XLSX.utils.book_append_sheet(wb,ws2,'名单');
+  XLSX.writeFile(wb,cn+'座位表.xlsx');
+  toast('已导出 Excel 座位表');
+}
+function exportCSV(){
+  var cn=state.className||'班级';
+  var lines=[['姓名','性别','排','列']];
+  var sorted=state.seats.slice().sort(function(a,b){return a.row-b.row||a.col-b.col;});
+  sorted.forEach(function(s){lines.push([csvCell(s.name||''),gWord(s),s.row,s.col]);});
+  var csv=lines.map(function(r){return r.join(',');}).join('\r\n');
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  downloadBlob(blob,cn+'座位名单.csv');
+  toast('已导出 CSV 名单');
+}
+
+// ===== 行列/过道整体拖动 =====
+function clearAxisHl(){
+  gridEl.querySelectorAll('.cell.row-hl,.cell.col-hl').forEach(function(c){c.classList.remove('row-hl','col-hl');});
+}
+function addAxisHl(kind,t){
+  var cells=gridEl.querySelectorAll(kind==='row'?'.cell[data-r="'+t+'"]':'.cell[data-c="'+t+'"]');
+  for(var i=0;i<cells.length;i++)cells[i].classList.add(kind==='row'?'row-hl':'col-hl');
+}
+function swapRows(r1,r2){
+  state.seats.forEach(function(s){
+    if(s.row===r1)s.row=r2;
+    else if(s.row===r2)s.row=r1;
+  });
+}
+function swapCols(c1,c2){
+  state.seats.forEach(function(s){
+    if(s.col===c1)s.col=c2;
+    else if(s.col===c2)s.col=c1;
+  });
+  state.groups.forEach(function(g){
+    function pm(x){return x===c1?c2:(x===c2?c1:x);}
+    var na=pm(g.c1),nb=pm(g.c2);
+    g.c1=Math.min(na,nb);g.c2=Math.max(na,nb);
+  });
+}
+function moveAxisInsert(kind,a,b,before){
+  var max=kind==='row'?state.rows:state.cols;
+  var seq=[];
+  for(var i=1;i<=max;i++)if(i!==a)seq.push(i);
+  var idx=seq.indexOf(b);
+  if(idx<0)idx=before?0:seq.length;
+  if(!before)idx++;
+  seq.splice(idx,0,a);
+  var map={};
+  seq.forEach(function(n,ni){map[n]=ni+1;});
+  state.seats.forEach(function(s){if(kind==='row')s.row=map[s.row];else s.col=map[s.col];});
+  if(kind==='col')state.groups.forEach(function(g){
+    g.c1=map[g.c1];g.c2=map[g.c2];
+    if(g.c1>g.c2){var t=g.c1;g.c1=g.c2;g.c2=t;}
+  });
+}
+function updateAxisGhost(kind,e){
+  if(!axisDrag)return;
+  var gr=gridEl.getBoundingClientRect();
+  var lp=flipPoint(e.clientX,e.clientY,gridEl);
+  var flipped=isFlipped();
+  if(kind==='row'){
+    axisDrag.ghostEl.style.width=(gr.width-30)+'px';
+    axisDrag.ghostEl.style.height=axisDrag.cellH+'px';
+    axisDrag.ghostEl.style.top=Math.min(Math.max(lp.y-axisDrag.cellH/2,0),gr.height-axisDrag.cellH)+'px';
+    axisDrag.ghostEl.style.left=flipped?'0px':'30px';
+  }else{
+    axisDrag.ghostEl.style.height=gr.height+'px';
+    axisDrag.ghostEl.style.width=axisDrag.cellW+'px';
+    var off=flipped?0:30,span=flipped?gr.width:(gr.width-30);
+    axisDrag.ghostEl.style.left=(off+Math.min(Math.max(lp.x-off-axisDrag.cellW/2,0),span-axisDrag.cellW))+'px';
+    axisDrag.ghostEl.style.top='0px';
+  }
+}
+function updateAxisInsert(kind,e){
+  if(!axisDrag)return;
+  var gr=gridEl.getBoundingClientRect();
+  var t=document.elementFromPoint(e.clientX,e.clientY);
+  var cell=t?t.closest('.cell[data-r]'):null;
+  var shown=false;
+  if(cell){
+    var bnum=kind==='row'?parseInt(cell.dataset.r,10):parseInt(cell.dataset.c,10);
+    if(bnum&&bnum!==axisDrag.from){
+      addAxisHl(kind,bnum);
+      var cr=cell.getBoundingClientRect();
+      var cpl=flipPoint(cr.left,cr.top,gridEl);
+      var flipped=isFlipped();
+      var before;
+      if(kind==='row'){
+        before=(e.clientY<cr.top+cr.height/2);
+        axisDrag.insertEl.className='axis-insert row-l';
+        axisDrag.insertEl.style.top=((flipped?cpl.y-(before?cr.height:0):cr.top-gr.top+(before?0:cr.height)))+'px';
+        axisDrag.insertEl.style.left=flipped?'0px':'30px';
+        axisDrag.insertEl.style.width=(gr.width-30)+'px';
+      }else{
+        before=(e.clientX<cr.left+cr.width/2);
+        axisDrag.insertEl.className='axis-insert col-l';
+        axisDrag.insertEl.style.left=((flipped?cpl.x-(before?cr.width:0):cr.left-gr.left-30+(before?0:cr.width)))+'px';
+        axisDrag.insertEl.style.top='0px';
+        axisDrag.insertEl.style.height=gr.height+'px';
+      }
+      axisDrag.insertEl.style.display='block';
+      axisDrag.insertTarget=bnum;
+      axisDrag.insertBefore=before;
+      shown=true;
+    }
+  }
+  if(!shown){axisDrag.insertEl.style.display='none';axisDrag.insertTarget=null;}
+}
+var flipPrev=null;
+function captureFlip(){
+  flipPrev={};
+  gridEl.querySelectorAll('.cell[data-r]').forEach(function(el){flipPrev[el.dataset.r+','+el.dataset.c]=el.getBoundingClientRect();});
+}
+function applyFlip(){
+  if(!flipPrev)return;
+  gridEl.querySelectorAll('.cell[data-r]').forEach(function(el){
+    var o=flipPrev[el.dataset.r+','+el.dataset.c];
+    if(!o)return;
+    var n=el.getBoundingClientRect();
+    var dx=o.left-n.left,dy=o.top-n.top;
+    if(Math.abs(dx)<1&&Math.abs(dy)<1)return;
+    el.style.transition='none';
+    el.style.transform='translate('+dx+'px,'+dy+'px)';
+    void el.offsetWidth;
+    el.style.transition='transform .35s cubic-bezier(.22,.61,.36,1)';
+    el.style.transform='';
+  });
+  flipPrev=null;
+}
+
+// ===== 自动换座 =====
+function getColumnGroups(){
+  var segs=[],start=null;
+  for(var c=1;c<=state.cols;c++){
+    if(patternAisle(c)){if(start!==null){segs.push({start:start,end:c-1});start=null;}}
+    else if(start===null)start=c;
+  }
+  if(start!==null)segs.push({start:start,end:state.cols});
+  return segs;
+}
+function rotateGroupsLR(){
+  var segs=getColumnGroups();
+  if(segs.length<2){toast('组数不足（至少 2 组），无法组间轮换');return 0;}
+  var map={};
+  for(var i=0;i<segs.length;i++){
+    var g=segs[i],t=segs[(i+1)%segs.length];
+    var w=Math.min(g.end-g.start+1,t.end-t.start+1);
+    for(var o=0;o<w;o++)map[g.start+o]=t.start+o;
+  }
+  var n=0;
+  state.seats.forEach(function(s){
+    if(map[s.col]!==undefined&&map[s.col]!==s.col){s.col=map[s.col];n++;}
+  });
+  return n;
+}
+function rotateRowsDir(dir){
+  var n=0;
+  state.seats.forEach(function(s){
+    var nr=dir==='fb'?(s.row===state.rows?1:s.row+1):(s.row===1?state.rows:s.row-1);
+    if(nr!==s.row){s.row=nr;n++;}
+  });
+  return n;
+}
+function openRotateModal(){
+  openModal(
+   '<div class="m-head"><h3>自动换座位</h3><button class="icon-btn" id="rtClose">✕</button></div>'+
+   '<p class="m-hint">自动生成轮换方案并直接应用到当前座位（原排列被替换，可先「导出」备份）：<br>① 组间轮换：全班按组从左往右平移一组，最右一组回到最左；<br>② 组内轮换：所有组同时按所选方向整体移动一排（同排内位置不变）。</p>'+
+   '<div class="export-list">'+
+     '<button class="export-item" id="rtGroup">组间轮换（全班按组从左往右）<div>第1组→第2组位置，第2组→第3组…最后一组→第1组</div></button>'+
+     '<button class="export-item" id="rtRow">组内轮换（整排整体移动）<div>所有组同时前移或后移一排</div></button>'+
+   '</div>'+
+   '<div class="field"><label>组内轮换方向</label><div class="seg" id="rtDir">'+
+     '<button data-v="bf" class="on">后 → 前</button><button data-v="fb">前 → 后</button>'+
+   '</div><p class="m-hint">后→前：第1排转到最后排，其余整体前移一排；前→后：最后排转到第1排，其余整体后移一排。</p></div>'+
+   '<div class="m-foot"><button class="btn ghost" id="rtDone">完成</button></div>'
+  );
+  var dir='bf';
+  $('#rtClose').addEventListener('click',closeModal);
+  $('#rtDone').addEventListener('click',closeModal);
+  bindSeg('rtDir',function(v){dir=v;});
+  $('#rtGroup').addEventListener('click',function(){
+    confirmDialog('确认执行「组间轮换（全班按组从左往右）」？原排列将被替换。',function(){
+      captureFlip();
+      var n=rotateGroupsLR();
+      closeModal();render();applyFlip();
+      toast(n?('组间轮换完成，共移动 '+n+' 人'):'未执行（组数不足）');
+    });
+  });
+  $('#rtRow').addEventListener('click',function(){
+    var label=dir==='bf'?'后往前（整体前移一排）':'前往后（整体后移一排）';
+    confirmDialog('确认执行「组内轮换 · '+label+'」？原排列将被替换。',function(){
+      captureFlip();
+      var n=rotateRowsDir(dir);
+      closeModal();render();applyFlip();
+      toast(n?('组内轮换完成，共移动 '+n+' 人'):'未执行（没有可移动的座位）');
+    });
+  });
+}
+
+// ===== 顶栏事件 =====
+$('#btnEdit').addEventListener('click',toggleEditMode);
+$('#btnAdd').addEventListener('click',function(){toggleAddMode();});
+$('#btnView').addEventListener('click',toggleView);
+$('#btnClear').addEventListener('click',function(){
+  if(!needEdit())return;
+  if(!state.seats.length){toast('当前没有座位');return;}
+  confirmDialog('确认清空全部座位？此操作不可撤销（数据保存在本机浏览器中）。',function(){state.seats=[];render();toast('已清空全部座位');});
+});
+$('#btnPrint').addEventListener('click',function(){window.print();});
+$('#btnGrid').addEventListener('click',function(){if(needEdit())openGridModal();});
+$('#btnSwap').addEventListener('click',function(){
+  state.swapSides=!state.swapSides;
+  render();
+  toast(state.swapSides?'已对调门窗位置（门在左、窗在右）':'已恢复门窗位置（窗在左、门在右）');
+});
+$('#btnGender').addEventListener('click',function(){
+  state.showGender=!state.showGender;
+  render();
+  toast(state.showGender?'已区分性别（粉女蓝男）':'已清除性别差异（不区分）');
+});
+$('#btnGroup').addEventListener('click',function(){if(needEdit())openGroupModal();});
+$('#btnImport').addEventListener('click',function(){if(needEdit())openImportModal();});
+$('#btnExport').addEventListener('click',openExportModal);
+$('#btnMirror').addEventListener('click',function(){if(needEdit())openMirrorModal();});
+$('#btnRotate').addEventListener('click',function(){if(needEdit())openRotateModal();});
+$('#uiTheme').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.t===state.theme)return;
+  state.theme=b.dataset.t;
+  render();
+  toast('已切换「'+b.textContent+'」主题'+(state.theme==='bw'?'（女生名字下划线，适合黑白打印）':''));
+});
+
+/* ===== 点名 ===== */
+var roll={timer:null,order:[],cur:-1,pickTimer:null};
+function rollSeatEl(r,c){var cl=document.querySelector('.cell[data-r="'+r+'"][data-c="'+c+'"]');return cl?cl.querySelector('.seat'):null;}
+function clearRollHi(){
+  var els=document.querySelectorAll('.roll-hi,.roll-pick');
+  for(var i=0;i<els.length;i++)els[i].classList.remove('roll-hi','roll-pick');
+}
+function closeRollModal(){
+  var m=document.querySelector('.roll-modal');
+  if(m)m.remove();
+}
+function showRollModal(name,gender){
+  closeRollModal();
+  var m=document.createElement('div');
+  m.className='roll-modal';
+  m.innerHTML='<div class="rm-title">点 名 结 果</div><div class="rm-name">'+esc((gender==='male'?'♂ ':(gender==='female'?'♀ ':''))+name)+'</div><div class="rm-sub">5 秒后自动关闭</div>';
+  document.body.appendChild(m);
+  setTimeout(function(){m.classList.add('closing');setTimeout(function(){m.remove();},260);},5000);
+}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+function startRoll(){
+  closeRollModal();clearRollHi();
+  clearTimeout(roll.pickTimer);roll.pickTimer=null;
+  roll.order=[];
+  for(var r=1;r<=state.rows;r++)for(var c=1;c<=state.cols;c++){
+    var s=seatAt(r,c);
+    if(s&&s.name)roll.order.push({r:r,c:c});
+  }
+  if(!roll.order.length){toast('教室里还没有座位，无法点名');return;}
+  roll.order=shuffle(roll.order);
+  roll.cur=-1;
+  roll.timer=setInterval(rollTick,40);
+  var b=els.btnRoll;b.textContent='停止';b.classList.add('running');
+  toast('点名开始：随机遍历座位，点击「停止」选中当前座位');
+}
+function rollTick(){
+  if(roll.cur>=0){
+    var p=roll.order[roll.cur],e0=rollSeatEl(p.r,p.c);
+    if(e0)e0.classList.remove('roll-hi');
+  }
+  roll.cur=(roll.cur+1)%roll.order.length;
+  var q=roll.order[roll.cur],e1=rollSeatEl(q.r,q.c);
+  if(e1)e1.classList.add('roll-hi');
+}
+function stopRoll(){
+  clearInterval(roll.timer);roll.timer=null;
+  var b=els.btnRoll;b.textContent='点名';b.classList.remove('running');
+  if(roll.cur<0||!roll.order.length)return;
+  var p=roll.order[roll.cur],s=seatAt(p.r,p.c);
+  var el=rollSeatEl(p.r,p.c);
+  if(el)el.classList.remove('roll-hi');
+  if(s&&s.name){
+    if(el)el.classList.add('roll-pick');
+    clearTimeout(roll.pickTimer);
+    roll.pickTimer=setTimeout(function(){
+      var e2=rollSeatEl(p.r,p.c);
+      if(e2)e2.classList.remove('roll-pick');
+    },30000);
+    showRollModal(s.name,s.gender);
+  }else{
+    toast('该座位暂无名字');
+  }
+}
+$('#btnRoll').addEventListener('click',function(){
+  if(roll.timer)stopRoll();
+  else startRoll();
+});
+$('#clsName').addEventListener('input',function(e){state.className=e.target.value;save();});
+$('#esAdd').addEventListener('click',function(){toggleAddMode(true);});
+$('#addF').addEventListener('click',function(){addGender='female';renderToolbar();});
+$('#addM').addEventListener('click',function(){addGender='male';renderToolbar();});
+$('#addN').addEventListener('click',function(){addGender='';renderToolbar();});
+$('#esImport').addEventListener('click',function(){if(needEdit())openImportModal();});
+$('#esDemo').addEventListener('click',function(){if(needEdit())fillDemo();});
+$('#addRow').addEventListener('click',function(){
+  if(state.rows>=10){toast('已达到最多 10 排');return;}
+  state.rows++;render();toast('已增加 1 排，当前 '+state.rows+' 排');
+});
+$('#addCol').addEventListener('click',function(){
+  if(state.cols>=12){toast('已达到最多 12 列');return;}
+  state.cols++;render();toast('已增加 1 列，当前 '+state.cols+' 列');
+});
+
+// ===== 全局 =====
+els.modal.addEventListener('click',function(e){if(e.target.classList.contains('overlay'))closeModal();});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(els.modal.classList.contains('show'))closeModal();
+    else if(addMode)toggleAddMode(false);
+    else if(els.editor.classList.contains('open'))closeEditor();
+    else if(selectedId){selectedId=null;renderGrid();}
+  }
+});
+var rzTimer=null;
+window.addEventListener('resize',function(){clearTimeout(rzTimer);rzTimer=setTimeout(renderGrid,150);});
+
+// ===== 启动 =====
+load();
+state.seats.forEach(function(s){if(!s.id)s.id=uid();});
+render();
+})();
+</script>
+<script src="../../assets/js/boot.js" data-rg-mode="flow" defer></script>
+</body>
+</html>

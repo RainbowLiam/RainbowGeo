@@ -1,0 +1,8 @@
+# 忽略自检截图（非站点内容）
+_shots/
+tools/*/_shots/
+tools/_demo/_shots/
+
+# 系统文件
+.DS_Store
+Thumbs.db

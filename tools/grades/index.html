@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>学生成绩条管理系统 · 在线试用版 | RainbowGeo（文波地理）</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f5d8a'/%3E%3Crect x='11' y='34' width='11' height='19' rx='2' fill='%23ffffff'/%3E%3Crect x='26' y='22' width='11' height='31' rx='2' fill='%23ffffff'/%3E%3Crect x='41' y='12' width='11' height='41' rx='2' fill='%23ffffff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f3f5f8; --surface:#fff; --ink:#233040; --ink2:#5c6b7d; --ink3:#8a97a8;
+  --primary:#2f5d8a; --primary2:#254b71; --primary-soft:#e8eff6; --primary-line:#c6d8e8;
+  --accent:#d9913a; --ok:#2e7d5b; --danger:#b3443c; --warn:#b07b24;
+  --line:#e1e6ed; --line2:#edf0f4; --radius:10px; --shadow:0 1px 3px rgba(23,43,64,.08);
+  --nav-h:56px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  background:var(--bg); color:var(--ink); font-size:14px; line-height:1.55;
+}
+button{font-family:inherit}
+input,select{font-family:inherit}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 18px 80px}
+
+/* ===== 顶栏 ===== */
+#topbar{
+  position:sticky;top:0;z-index:50;background:#1e3a5c;color:#fff;
+  display:flex;align-items:center;gap:18px;padding:0 18px;min-height:var(--nav-h);
+  box-shadow:0 2px 8px rgba(16,34,54,.18);
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:0}
+.brand svg{flex-shrink:0}
+.brand-name{font-size:15px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.brand-sub{font-size:11px;color:#b9c9db;white-space:nowrap}
+.steps{display:flex;align-items:center;gap:6px;flex:1;overflow-x:auto;padding:4px 0;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.step{
+  display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.22);background:transparent;color:#cdd9e6;
+  border-radius:999px;padding:6px 14px 6px 8px;font-size:13px;cursor:pointer;white-space:nowrap;transition:all .15s;
+}
+.step .step-no{
+  width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.step:hover{border-color:rgba(255,255,255,.5);color:#fff}
+.step.active{background:#fff;color:var(--primary2);border-color:#fff;font-weight:600}
+.step.active .step-no{background:var(--primary);color:#fff}
+.step.done{background:rgba(255,255,255,.08)}
+.step.disabled{opacity:.45;cursor:not-allowed}
+.top-tools{flex-shrink:0;display:flex;align-items:center;gap:8px}
+.saved-hint{font-size:11px;color:#9fb4c9;white-space:nowrap}
+
+/* ===== 面板 ===== */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.panel-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.panel-title .bar{width:4px;height:16px;border-radius:2px;background:var(--primary)}
+.panel-desc{color:var(--ink2);font-size:13px}
+.hint{color:var(--ink3);font-size:12.5px}
+h2.view-title{font-size:18px;margin:4px 0 4px;display:flex;align-items:center;gap:8px}
+h2.view-title .bar{width:5px;height:18px;border-radius:2px;background:var(--primary)}
+.view-sub{color:var(--ink2);font-size:13px;margin:0 0 14px}
+
+/* ===== 按钮 ===== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:8px;border:1px solid transparent;
+  padding:8px 16px;font-size:13.5px;cursor:pointer;background:#fff;color:var(--ink);transition:all .15s;white-space:nowrap;
+}
+.btn.primary{background:var(--primary);color:#fff;font-weight:600}
+.btn.primary:hover{background:var(--primary2)}
+.btn.ghost{border-color:var(--line);color:var(--ink2);background:#fff}
+.btn.ghost:hover{border-color:var(--primary-line);color:var(--primary)}
+.btn.warn{background:var(--accent);color:#fff;font-weight:600}
+.btn.warn:hover{filter:brightness(1.06)}
+.btn.danger{background:#fff;border-color:#e2c3c0;color:var(--danger)}
+.btn.danger:hover{background:#f9efee}
+.btn.small{padding:4px 10px;font-size:12.5px;border-radius:7px}
+.btn.lg{padding:10px 22px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ico{width:26px;height:26px;padding:0;border-radius:6px;font-size:15px;line-height:1}
+
+/* ===== 表单 ===== */
+.f-label{display:block;font-size:12.5px;color:var(--ink2);margin:0 0 4px}
+.inp,.sel{
+  height:34px;border:1px solid #d3dae3;border-radius:8px;padding:0 10px;font-size:13.5px;width:100%;
+  background:#fff;color:var(--ink);outline:none;transition:border .15s;
+}
+.inp:focus,.sel:focus{border-color:var(--primary)}
+.inp.num{width:90px}
+.inp.small{height:30px;font-size:13px}
+.sel{appearance:auto}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.form-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chk{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13.5px;user-select:none;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:#fbfcfd}
+.chk:hover{border-color:var(--primary-line)}
+.chk input{accent-color:var(--primary);width:15px;height:15px}
+.chk.off{opacity:.55}
+.radio{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;padding:5px 9px;border:1px solid var(--line);border-radius:8px;background:#fbfcfd}
+.radio input{accent-color:var(--primary)}
+
+/* ===== 标签 / 徽章 ===== */
+.chip{display:inline-flex;align-items:center;gap:4px;background:#eef3f8;border:1px solid #dbe6f0;color:var(--primary2);border-radius:999px;padding:2px 9px;font-size:12px}
+.chip.ok{background:#eaf4ee;border-color:#cfe6d8;color:var(--ok)}
+.chip.warn{background:#fdf3e3;border-color:#f0ddb8;color:var(--warn)}
+.chip.danger{background:#fbeceb;border-color:#f0d0ce;color:var(--danger)}
+.chip.plain{background:#f4f6f9;border-color:var(--line);color:var(--ink2)}
+.tag{display:inline-block;background:var(--primary-soft);color:var(--primary2);border-radius:6px;padding:1px 7px;font-size:11.5px;margin-right:5px}
+.tag.dim{background:#f1f3f6;color:var(--ink3)}
+.tag.ok{background:#eaf4ee;color:var(--ok)}
+.tag.danger{background:#fbeceb;color:var(--danger)}
+
+/* ===== 表格 ===== */
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+.data-table{width:100%;border-collapse:collapse;table-layout:fixed;background:#fff;font-size:13px}
+.data-table th,.data-table td{border-bottom:1px solid var(--line2);padding:7px 10px;text-align:left;vertical-align:middle;word-break:break-all}
+.data-table thead th{background:#f2f5f9;color:#4a5868;font-weight:600;font-size:12.5px;border-bottom:1px solid var(--line);white-space:nowrap}
+.data-table tbody tr:hover{background:#f8fafc}
+.data-table tbody tr:last-child td{border-bottom:none}
+.data-table td.num,.data-table th.num{text-align:center}
+
+/* ===== 上传 ===== */
+.dropzone{
+  border:2px dashed #c4cfdb;border-radius:12px;background:#fafbfd;padding:30px 16px;text-align:center;cursor:pointer;transition:all .15s;color:var(--ink2);
+}
+.dropzone:hover,.dropzone.over{border-color:var(--primary);background:var(--primary-soft);color:var(--primary2)}
+.dropzone .dz-icon{width:44px;height:44px;border-radius:12px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;color:var(--primary)}
+.dropzone b{color:var(--ink);font-size:14.5px}
+.file-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:#fbfcfd;margin-top:8px}
+.file-item .fname{font-weight:600;word-break:break-all}
+
+/* ===== 步骤操作条 ===== */
+.actionbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:6px;flex-wrap:wrap}
+.actionbar .left{margin-right:auto}
+
+/* ===== 列识别 ===== */
+.col-check{border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-top:10px}
+.col-check table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12.5px;background:#fff}
+.col-check th,.col-check td{border-bottom:1px solid var(--line2);padding:6px 8px;text-align:left}
+.col-check th{background:#f5f7fa;font-size:12px;color:var(--ink2)}
+.col-check .sel{height:28px;font-size:12px;padding:0 6px;width:100%}
+.col-check .col-sample{color:var(--ink3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== 折叠 ===== */
+.collapse-head{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;color:var(--primary);font-size:12.5px}
+.collapse-head .caret{transition:transform .15s;display:inline-block}
+.collapse-head.open .caret{transform:rotate(90deg)}
+
+/* ===== 考试条目 ===== */
+.exam-item{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fbfcfd}
+.exam-item.off{opacity:.6}
+.exam-item .e-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.exam-item .e-name{flex:1;min-width:180px}
+.exam-item .e-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.exam-item .e-actions{display:flex;gap:6px;margin-left:auto}
+
+/* ===== Tabs ===== */
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.tab{border:1px solid transparent;background:transparent;padding:8px 16px;font-size:13.5px;cursor:pointer;color:var(--ink2);border-radius:8px 8px 0 0;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--primary)}
+.tab.active{color:var(--primary);border-color:var(--primary) transparent;border-bottom-color:var(--primary);font-weight:600;background:#fff}
+
+/* ===== 对比表 ===== */
+.cmp-cell{text-align:center}
+.cmp-cell .rk{font-weight:700}
+.cmp-cell .sc{color:var(--ink3);font-size:11.5px}
+.cmp-best{color:var(--ok);font-weight:700}
+.cmp-miss{color:#c3ccd6}
+.chart-box{width:100%;height:260px;margin-top:6px}
+.chart-fallback{display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink3);font-size:13px;border:1px dashed var(--line);border-radius:9px}
+
+/* ===== 格式编辑 ===== */
+.grid2{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:16px;align-items:start}
+.fgroup{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:#fbfcfd}
+.fgroup legend{font-size:13px;font-weight:600;color:var(--primary2);padding:0 6px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line2)}
+.switch-row:last-child{border-bottom:none}
+.switch-row .sw-label{font-size:13.5px}
+.switch-row .sw-label small{color:var(--ink3);font-size:11.5px;display:block}
+.toggle{position:relative;width:38px;height:21px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .tk{position:absolute;inset:0;background:#cfd7e1;border-radius:999px;transition:background .15s;cursor:pointer}
+.toggle .tk:before{content:"";position:absolute;width:17px;height:17px;left:2px;top:2px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle input:checked + .tk{background:var(--primary)}
+.toggle input:checked + .tk:before{transform:translateX(17px)}
+.toggle input:disabled + .tk{background:#e3e8ee;cursor:not-allowed}
+
+/* ===== 成绩条卡片 ===== */
+.gcard{border:1px solid #c9d2dd;border-radius:6px;padding:8px 10px;background:#fff}
+.gcard .gtitle{text-align:center;font-weight:700;letter-spacing:2px;margin:0 0 6px}
+.gcard .ginfo{display:flex;flex-wrap:wrap;gap:4px 18px;margin-bottom:6px;font-size:12.5px}
+.gcard table{width:100%;border-collapse:collapse;table-layout:fixed}
+.gcard th,.gcard td{border:1px solid #9aa8b8;padding:3px 4px;text-align:center;font-size:12px;line-height:1.5}
+.gcard thead th{background:#eef2f7;font-weight:600}
+.gcard tbody tr.gz{background:#f7f9fb}
+.gcard .gdim{color:#6a7684;font-size:10.5px}
+.gcard .ghead{background:#eef2f7;font-weight:600}
+.gcard .gempty{color:#b6c0cb}
+
+/* ===== 打印页 ===== */
+.print-layout{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+.print-stage{overflow:auto;padding:12px 4px;background:#e8ebf0;border-radius:10px;min-height:520px;max-height:calc(100vh - 120px)}
+.sheet-wrap{display:flex;justify-content:center;margin-bottom:18px}
+.sheet{background:#fff;box-shadow:0 2px 10px rgba(23,43,64,.16);position:relative;padding:0}
+.sheet .pg-head{text-align:center;font-size:12px;color:#333;font-weight:600;margin-bottom:6px}
+.page-label{position:absolute;top:-20px;left:0;right:0;text-align:center;font-size:11px;color:#7c8896}
+.sheet .gcard{margin-bottom:var(--gap,3mm);border-radius:4px}
+.sheet .gcard:last-child{margin-bottom:0}
+.pg-info{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.warn-line{color:var(--danger);font-size:12.5px;margin-top:6px}
+.ok-line{color:var(--ok);font-size:12.5px;margin-top:6px}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:999;background:#233040;color:#fff;
+  padding:10px 18px;border-radius:999px;font-size:13.5px;box-shadow:0 4px 14px rgba(0,0,0,.22);max-width:86vw;opacity:0;transition:opacity .2s;
+}
+.toast.show{opacity:1}
+.toast.err{background:var(--danger)}
+.toast.ok{background:var(--ok)}
+
+/* ===== 打印 ===== */
+@media print{
+  body.printing #topbar,body.printing .print-controls,body.printing .print-actions,body.printing .pg-info,body.printing .page-label{display:none !important}
+  body.printing .wrap{padding:0;max-width:none}
+  body.printing .print-stage{overflow:visible;background:#fff;border-radius:0;max-height:none;padding:0}
+  body.printing .sheet-wrap{zoom:1 !important;margin:0 !important;justify-content:flex-start}
+  body.printing .sheet{box-shadow:none;margin:0 !important}
+  body.printing .sheet{page-break-after:always}
+  body.printing .sheet:last-child{page-break-after:auto}
+  body.printing .gcard{border-color:#000}
+  body.printing .gcard th,body.printing .gcard td{border-color:#000}
+}
+
+/* ===== 响应式 ===== */
+@media (max-width:1020px){
+  .grid2{grid-template-columns:1fr}
+  .print-layout{grid-template-columns:1fr}
+  .print-stage{max-height:none}
+}
+@media (max-width:760px){
+  #topbar{flex-wrap:wrap;padding:8px 12px;gap:8px}
+  .brand-sub{display:none}
+  .steps{order:3;width:100%;flex-basis:100%}
+  .brand-name{font-size:13.5px}
+  .wrap{padding:12px 10px 70px}
+  .step{padding:5px 10px 5px 6px;font-size:13px}
+  .form-grid{grid-template-columns:1fr 1fr}
+  body{font-size:15px}
+  .view-sub{font-size:13.5px}
+  input.inp,select.sel,textarea{font-size:16px}
+}
+@media (max-width:480px){
+  .form-grid{grid-template-columns:1fr}
+}
+.app-footer{text-align:center;padding:14px 12px 26px;font-size:12px;color:#8a94a6;letter-spacing:.5px}
+body.printing .app-footer{display:none}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#ffffff" opacity=".14"/><rect x="11" y="34" width="11" height="19" rx="2" fill="#fff"/><rect x="26" y="22" width="11" height="31" rx="2" fill="#fff"/><rect x="41" y="12" width="11" height="41" rx="2" fill="#fff"/></svg>
+      <div>
+        <div class="brand-name">学生成绩条管理系统</div>
+        <div class="brand-sub">多场考试成绩关联 · 成绩条排版 · Word 导出打印</div>
+      </div>
+    </div>
+    <nav class="steps" id="steps" aria-label="流程步骤"></nav>
+    <div class="top-tools">
+      <span class="saved-hint" id="savedHint">进度自动保存在本机</span>
+      <button class="btn small" style="border-color:rgba(255,255,255,.25);color:#dfe9f3;background:transparent" onclick="App.resetAll()">清空数据</button>
+    </div>
+  </header>
+  <main id="main" class="wrap"></main>
+  <footer class="app-footer">© RainbowGeo · 超级成绩管理器 v1.0</footer>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+'use strict';
+/* =========================================================
+   学生成绩条管理系统 —— 单文件应用
+   数据流：导入 Excel → 识别(姓名/科目/排名/总分/折后) → 名单确认
+          → 考试确认 → 成绩对比 → 格式编辑 → 打印/导出 Word
+   ========================================================= */
+
+/* ---------- 工具 ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg, type){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type === 'error' ? ' err' : type === 'ok' ? ' ok' : '');
+  t.hidden = false;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = 'toast'; t.hidden = true; }, 2600);
+}
+function fmtNum(v){
+  if (v === null || v === undefined || v === '' || isNaN(v)) return '—';
+  const n = Number(v);
+  if (!isFinite(n)) return '—';
+  return String(Math.round(n * 100) / 100);
+}
+function toNum(v){
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  let s = String(v).replace(/[,\s]/g, '').replace(/[第名位次]/g, '').replace(/分$/, '').replace(/[（）()]/g, '');
+  if (!s) return null;
+  const n = parseFloat(s);
+  return isFinite(n) ? n : null;
+}
+function avg(arr){ const a = arr.filter(v => v !== null && v !== undefined && !isNaN(v)); return a.length ? a.reduce((x,y)=>x+y,0)/a.length : null; }
+function maxV(arr){ const a = arr.filter(v => v !== null && v !== undefined && !isNaN(v)); return a.length ? Math.max(...a) : null; }
+function minV(arr){ const a = arr.filter(v => v !== null && v !== undefined && !isNaN(v)); return a.length ? Math.min(...a) : null; }
+let __uid = 1;
+const uid = () => 'e' + (__uid++);
+const mm2px = v => v * 96 / 25.4;
+const px2mm = v => v * 25.4 / 96;
+
+/* ---------- 默认配置 ---------- */
+const DEFAULT_FORMAT = {
+  cardTitle: '学生成绩通知单',
+  showCardTitle: true,
+  showName: true,
+  showCls: true,
+  showSid: false,
+  showExamCol: true,
+  examLabel: '考试',
+  subjects: {},
+  subjMode: 'both',      // score | rank | both | split
+  showTotal: true,
+  showTotalRank: true,
+  showDisc: true,
+  showDiscRank: true,
+  showClassRank: true,
+  fontSize: 11,
+  titleFontSize: 14,
+  headerBg: '#eef2f7',
+  zebra: false,
+  border: true
+};
+const DEFAULT_PRINT = {
+  pagePreset: 'A4',
+  customSize: false,
+  pageW: 210, pageH: 297,   // mm
+  orient: 'portrait',
+  marginT: 15, marginB: 12, marginL: 12, marginR: 12,  // mm
+  gap: 3,                   // mm，成绩条间距
+  perPage: 0,               // 0 = 自动
+  fontScale: 100,           // %
+  pageHeader: false,
+  pageHeaderText: ''
+};
+const PAGE_PRESETS = { 'A4': [210,297], 'A5': [148,210], 'B5': [176,250], '16K': [195,270], '自定义': [0,0] };
+
+/* ---------- 状态 ---------- */
+const DEFAULT_STATE = {
+  exams: [],       // [{id,file,sheetName,examName,suggestName,include,rawRows,hdrIdx,roles,colOverrides,subjects,hasCls,hasSid,hasTotal,hasTotalRank,hasDisc,hasDiscRank,hasClassRank,colPreview,students:[{name,cls,sid,scores:{},ranks:{},total,totalRank,disc,discRank,classRank,key}],byKey:{}}]
+  students: [],    // [{key,name,cls,sid,examIds:[]}]
+  removed: {},     // key -> {name,cls,sid}
+  joinByNameCls: true,
+  format: JSON.parse(JSON.stringify(DEFAULT_FORMAT)),
+  print: JSON.parse(JSON.stringify(DEFAULT_PRINT)),
+  route: 'import',
+  compareTab: 'subj',
+  compareSubj: '',
+  compareStudent: '',
+  cardHmm: 0,      // 实测成绩条高度（mm）
+  libs: { xlsx: false, echarts: false }
+};
+let state = null;
+const LS_KEY = 'gradeCardApp.v2';
+function save(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+  const h = $('#savedHint'); if (h){ h.textContent = '已自动保存'; }
+}
+function loadState(){
+  const base = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw){
+      const s = JSON.parse(raw);
+      base.exams = s.exams || [];
+      base.students = s.students || [];
+      base.removed = s.removed || {};
+      base.joinByNameCls = s.joinByNameCls !== false;
+      Object.assign(base.format, DEFAULT_FORMAT, s.format || {});
+      Object.assign(base.print, DEFAULT_PRINT, s.print || {});
+      base.route = s.route || 'import';
+      base.compareTab = s.compareTab || 'subj';
+      base.compareSubj = s.compareSubj || '';
+      base.compareStudent = s.compareStudent || '';
+    }
+  } catch(e){}
+  state = base;
+}
+
+/* ---------- 库检测（xlsx / echarts 已内联，完全离线可用） ---------- */
+async function loadLibs(){
+  const x = typeof XLSX !== 'undefined', e = typeof echarts !== 'undefined';
+  state.libs = { xlsx: x, echarts: e };
+  if (!x) toast('Excel 解析库加载失败', 'error');
+  render();
+}
+
+/* ---------- Excel 表头识别 ---------- */
+const SUBJECTS = ['语文','数学','英语','外语','日语','俄语','德语','法语','西班牙语','物理','化学','生物','政治','思想政治','思政','道法','道德与法治','历史','地理','科学','信息技术','信息','通用技术','技术','体育','体育与健康','音乐','美术','心理健康','心理','综合','综合实践','劳动','书法','文综','理综','文科综合','理科综合','语数英','听说','物理化学生物'];
+function cleanSubj(h){
+  return String(h).replace(/[（(].*?[)）]/g, '').replace(/成绩$|得分$|分数$|分$/, '').trim();
+}
+function classifyHeader(raw){
+  let h = String(raw == null ? '' : raw).trim();
+  if (!h) return null;
+  if (/^序号$/.test(h)) return 'ignore';
+  if (/姓名|名字|学生/.test(h) && !/排名|名次|位次/.test(h)) return 'name';
+  if (/学号|考号|准考证|编号/.test(h)) return 'sid';
+  if (/备注|说明|意见|寄语|家长/.test(h)) return 'ignore';
+  if (/加分|扣分|附加/.test(h)) return 'ignore';
+  if (/平均|均分/.test(h)) return 'ignore';
+  const rankMark = /排名|名次|位次|排位/.test(h);
+  if (/折/.test(h)){
+    if (rankMark) return 'discRank';
+    if (/总分|总成绩|成绩|分|合计/.test(h)) return 'disc';
+    return 'ignore';
+  }
+  if (/班级排名|班排名|班级名次|班名次|班内排名/.test(h)) return 'classRank';
+  if (/班级|班别|班名/.test(h)) return 'cls';
+  const base = cleanSubj(h.replace(/排名|名次|位次|排位$/, ''));
+  if (rankMark){
+    if (/总分|总成绩|总得分|合计/.test(h)) return 'totalRank';
+    if (SUBJECTS.includes(base)) return 'subjRank:' + base;
+    return 'totalRank';
+  }
+  if (/总分|总成绩|总得分|合计/.test(h)) return 'total';
+  if (SUBJECTS.includes(base)) return 'subj:' + base;
+  return null;
+}
+function detectHeader(rows){
+  let best = null;
+  for (let i = 0; i < Math.min(rows.length, 15); i++){
+    const r = rows[i];
+    if (!r.some(c => String(c == null ? '' : c).trim() !== '')) continue;
+    let score = 0, hasName = false, known = 0;
+    r.forEach(c => {
+      const role = classifyHeader(c);
+      if (!role || role === 'ignore') return;
+      if (role === 'name'){ hasName = true; score += 12; }
+      else { known++; score += role.startsWith('subj') ? 2 : 3; }
+    });
+    if (hasName && (!best || score > best.score)) best = { i, score };
+  }
+  if (!best){
+    for (let i = 0; i < Math.min(rows.length, 10); i++){
+      const r = rows[i];
+      if (!r.some(c => String(c == null ? '' : c).trim() !== '')) continue;
+      let score = 0;
+      r.forEach(c => { const role = classifyHeader(c); if (role && role !== 'ignore') score++; });
+      if (!best || score > best.score) best = { i, score };
+    }
+  }
+  return best ? best.i : 0;
+}
+
+/* ---------- 工作表解析 ---------- */
+function parseSheet(ws, sheetName, fileName, overrides){
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, blankrows: false });
+  const rows = aoa.map(r => { const rr = []; for (let i = 0; i < r.length; i++) rr.push(r[i] == null ? '' : String(r[i]).trim()); return rr; });
+  const W = rows.length ? Math.max(...rows.map(r => r.length), 0) : 0;
+  rows.forEach(r => { while (r.length < W) r.push(''); });
+  const hdrIdx = detectHeader(rows);
+  const headerRow = rows[hdrIdx];
+  const roles = headerRow.map((h, ci) => (overrides && overrides[ci] !== undefined) ? overrides[ci] : classifyHeader(h));
+  // 未识别列：数据 ≥60% 为数字时视为科目
+  for (let ci = 0; ci < W; ci++){
+    if (roles[ci]) continue;
+    let num = 0, tot = 0;
+    for (let i = hdrIdx + 1; i < rows.length; i++){
+      const v = rows[i][ci];
+      if (v === '') continue;
+      tot++;
+      if (toNum(v) !== null) num++;
+    }
+    if (tot > 0 && num / tot >= 0.6){
+      const base = cleanSubj(headerRow[ci]);
+      roles[ci] = 'subj:' + (base || headerRow[ci]);
+    } else roles[ci] = 'ignore';
+  }
+  const colOf = role => roles.indexOf(role);
+  const subjCol = {}, rankCol = {};
+  roles.forEach((r, ci) => {
+    if (!r) return;
+    if (r.startsWith('subjRank:')) rankCol[r.slice(9)] = ci;
+    else if (r.startsWith('subj:')) subjCol[r.slice(5)] = ci;
+  });
+  const subjects = Object.keys(subjCol);
+  const nameCol = colOf('name'), clsCol = colOf('cls'), sidCol = colOf('sid');
+  const totalCol = colOf('total'), totalRankCol = colOf('totalRank'), discCol = colOf('disc'), discRankCol = colOf('discRank'), classRankCol = colOf('classRank');
+  const students = [];
+  let lastName = '';
+  for (let i = hdrIdx + 1; i < rows.length; i++){
+    const r = rows[i];
+    if (!r.some(c => c !== '')) continue;
+    const name = (nameCol >= 0 ? r[nameCol] : '') || lastName;
+    lastName = name;
+    if (!name) continue;
+    if (/^(合计|总计|平均|总(分)?统计|汇总)/.test(name)) continue;
+    const rec = { name, cls: clsCol >= 0 ? r[clsCol] : '', sid: sidCol >= 0 ? r[sidCol] : '', scores: {}, ranks: {}, total: null, totalRank: null, disc: null, discRank: null, classRank: null };
+    subjects.forEach(s => {
+      rec.scores[s] = toNum(subjCol[s] >= 0 ? r[subjCol[s]] : '');
+      if (rankCol[s] !== undefined) rec.ranks[s] = toNum(rankCol[s] >= 0 ? r[rankCol[s]] : '');
+    });
+    if (totalCol >= 0) rec.total = toNum(r[totalCol]);
+    if (totalRankCol >= 0) rec.totalRank = toNum(r[totalRankCol]);
+    if (discCol >= 0) rec.disc = toNum(r[discCol]);
+    if (discRankCol >= 0) rec.discRank = toNum(r[discRankCol]);
+    if (classRankCol >= 0) rec.classRank = toNum(r[classRankCol]);
+    students.push(rec);
+  }
+  // 表名建议：表头上一行第一个非空长文本（如考试标题）
+  let suggest = '';
+  if (hdrIdx > 0){
+    const t = String(rows[hdrIdx - 1].find(c => String(c == null ? '' : c).trim() !== '') || '').trim();
+    if (t && t.length >= 2 && t.length <= 40 && !/姓名|科目|成绩|排名/.test(t)) suggest = t;
+  }
+  const colPreview = headerRow.map((h, ci) => ({ header: h, role: roles[ci], sample: hdrIdx + 1 < rows.length ? rows[hdrIdx + 1][ci] : '' }));
+  return {
+    id: uid(), file: fileName, sheetName, examName: suggest || sheetName, suggestName: suggest,
+    include: true,
+    rawRows: rows, hdrIdx, roles, colOverrides: Object.assign({}, overrides || {}),
+    subjects, subjCol, rankCol,
+    hasCls: clsCol >= 0, hasSid: sidCol >= 0,
+    hasTotal: totalCol >= 0, hasTotalRank: totalRankCol >= 0,
+    hasDisc: discCol >= 0, hasDiscRank: discRankCol >= 0, hasClassRank: classRankCol >= 0,
+    colPreview, students, byKey: {}
+  };
+}
+
+/* ---------- 名单关联 ---------- */
+function computeKey(name, cls, exam){
+  return (state.joinByNameCls && exam.hasCls && cls) ? (name + '|' + cls) : name;
+}
+function rebuildStudents(){
+  const map = new Map();
+  state.exams.forEach(ex => {
+    ex.byKey = {};
+    ex.students.forEach(rec => {
+      let key = computeKey(rec.name, rec.cls, ex);
+      let k = key, n = 2;
+      while (ex.byKey[k]) k = key + '#' + (n++);
+      rec.key = k;
+      ex.byKey[k] = rec;
+      if (!map.has(k)) map.set(k, { key: k, name: rec.name, cls: rec.cls || '', sid: rec.sid || '', examIds: [] });
+      const s = map.get(k);
+      if (!s.examIds.includes(ex.id)) s.examIds.push(ex.id);
+      if (!s.cls && rec.cls) s.cls = rec.cls;
+      if (!s.sid && rec.sid) s.sid = rec.sid;
+    });
+  });
+  state.students = Array.from(map.values()).sort((a, b) => (a.cls || '').localeCompare(b.cls || '', 'zh') || a.name.localeCompare(b.name, 'zh'));
+  // 格式中确保新科目默认显示
+  unionSubjects().forEach(s => { if (state.format.subjects[s] === undefined) state.format.subjects[s] = true; });
+}
+function unionSubjects(){
+  const list = [];
+  state.exams.forEach(ex => ex.subjects.forEach(s => { if (!list.includes(s)) list.push(s); }));
+  return list;
+}
+function includedExams(){ return state.exams.filter(e => e.include); }
+function examById(id){ return state.exams.find(e => e.id === id); }
+
+/* ---------- 示例数据（可一键体验全流程，非真实数据） ---------- */
+function makeSampleData(){
+  const people = [
+    { name:'王梓涵', cls:'高一(1)班', sid:'20250101' }, { name:'李思远', cls:'高一(1)班', sid:'20250102' },
+    { name:'张雨欣', cls:'高一(1)班', sid:'20250103' }, { name:'陈子墨', cls:'高一(1)班', sid:'20250104' },
+    { name:'刘若曦', cls:'高一(1)班', sid:'20250105' }, { name:'赵俊杰', cls:'高一(1)班', sid:'20250106' },
+    { name:'孙嘉怡', cls:'高一(1)班', sid:'20250107' }, { name:'周子航', cls:'高一(1)班', sid:'20250108' },
+    { name:'吴欣妍', cls:'高一(2)班', sid:'20250201' }, { name:'郑浩然', cls:'高一(2)班', sid:'20250202' },
+    { name:'钱思彤', cls:'高一(2)班', sid:'20250203' }, { name:'黄俊豪', cls:'高一(2)班', sid:'20250204' },
+    { name:'林可心', cls:'高一(2)班', sid:'20250205' }, { name:'何宇航', cls:'高一(2)班', sid:'20250206' },
+    { name:'杨佳琪', cls:'高一(2)班', sid:'20250207' }
+  ];
+  const ability = {}; // 姓名 -> 各科基础能力
+  const subs = ['语文','数学','英语','物理','化学'];
+  people.forEach(p => {
+    ability[p.name] = {};
+    subs.forEach((s, si) => {
+      let seed = (p.name.charCodeAt(0) * 7 + si * 13) % 41;
+      ability[p.name][s] = 58 + seed + (si % 3) * 6;
+    });
+  });
+  const exams = [
+    { name: '第一次月考', withDisc: true, wave: 0 },
+    { name: '期中考试', withDisc: true, wave: 1 },
+    { name: '第二次月考', withDisc: false, wave: 2 }
+  ];
+  const absent = { '期中考试': '郑浩然' }; // 演示缺考
+  const books = [];
+  exams.forEach(ex => {
+    const header = ['班级','姓名','学号'];
+    subs.forEach(s => header.push(s, s + '排名'));
+    header.push('总分', '总分排名');
+    if (ex.withDisc) header.push('折后成绩', '折后排名');
+    header.push('班级排名');
+    const rows = [header];
+    const records = people.filter(p => absent[ex.name] !== p.name).map(p => {
+      const row = [p.cls, p.name, p.sid];
+      const sc = {};
+      subs.forEach((s, si) => {
+        const noise = ((p.name.charCodeAt(1) + ex.wave * 5 + si * 3) % 9) - 4;
+        sc[s] = Math.max(42, Math.min(100, Math.round(ability[p.name][s] + noise + ex.wave * 1.5)));
+      });
+      subs.forEach(s => row.push(sc[s]));
+      const total = subs.reduce((a, s) => a + sc[s], 0);
+      const disc = Math.round(total * 0.9 * 10) / 10;
+      return { p, sc, total, disc };
+    });
+    // 各科排名、总排名、折后排名、班级排名
+    subs.forEach((s, si) => {
+      const sorted = records.slice().sort((a, b) => b.sc[s] - a.sc[s]);
+      sorted.forEach((r, idx) => { r['rk' + s] = idx + 1; });
+    });
+    records.slice().sort((a, b) => b.total - a.total).forEach((r, idx) => r.totalRank = idx + 1);
+    if (ex.withDisc) records.slice().sort((a, b) => b.disc - a.disc).forEach((r, idx) => r.discRank = idx + 1);
+    records.forEach(r => {
+      const clsRecs = records.filter(x => x.p.cls === r.p.cls).sort((a, b) => b.total - a.total);
+      r.classRank = clsRecs.indexOf(r) + 1;
+    });
+    records.forEach(r => {
+      const row = [r.p.cls, r.p.name, r.p.sid];
+      subs.forEach(s => row.push(r.sc[s], r['rk' + s]));
+      row.push(r.total, r.totalRank);
+      if (ex.withDisc) row.push(r.disc, r.discRank);
+      row.push(r.classRank);
+      rows.push(row);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = subs.reduce((a) => a.concat([{ wch: 14 }, { wch: 8 }]), [{ wch: 12 }, { wch: 10 }, { wch: 10 }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, ex.name);
+    const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+    const file = new File([buf], ex.name + '.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    books.push(file);
+  });
+  return books;
+}
+function loadSample(){
+  if (!window.XLSX){ toast('Excel 解析库未就绪，请稍候或检查网络', 'error'); return; }
+  state.exams = [];
+  makeSampleData().forEach(f => parseFileObj(f));
+  rebuildStudents();
+  save();
+  render();
+  toast('已载入 3 场考试的示例数据（可删除后导入真实文件）', 'ok');
+}
+
+/* ---------- 文件导入 ---------- */
+function parseFileObj(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      wb.SheetNames.forEach(sn => {
+        const ws = wb.Sheets[sn];
+        if (!ws || !ws['!ref']) return;
+        state.exams.push(parseSheet(ws, sn, file.name, null));
+      });
+      rebuildStudents();
+      save();
+      render();
+      toast('已导入 ' + file.name + '（' + wb.SheetNames.length + ' 个工作表）', 'ok');
+    } catch(err){
+      toast('解析失败：' + err.message, 'error');
+    }
+  };
+  reader.onerror = () => toast('文件读取失败', 'error');
+  reader.readAsArrayBuffer(file);
+}
+
+/* ---------- 路由与顶栏 ---------- */
+const STEPS = [
+  { r: 'import', t: '导入名单' }, { r: 'exams', t: '考试确认' },
+  { r: 'compare', t: '成绩对比' }, { r: 'format', t: '格式编辑' }, { r: 'print', t: '打印导出' }
+];
+function stepEnabled(r){
+  if (r === 'import') return true;
+  if (!state.exams.length) return false;
+  if (r === 'exams') return true;
+  return state.students.length > 0;
+}
+function navigate(r){
+  if (!stepEnabled(r)){ toast('请先完成前置步骤', 'warn'); return; }
+  state.route = r;
+  location.hash = r;
+  save();
+  render();
+}
+function renderTopbar(){
+  const idx = STEPS.findIndex(s => s.r === state.route);
+  $('#steps').innerHTML = STEPS.map((s, i) =>
+    `<button class="step ${s.r === state.route ? 'active' : ''} ${i < idx && stepEnabled(s.r) ? 'done' : ''} ${stepEnabled(s.r) ? '' : 'disabled'}" onclick="App.navigate('${s.r}')">
+       <span class="step-no">${i + 1}</span><span>${s.t}</span></button>`).join('');
+}
+
+/* ---------- 视图：导入与名单确认 ---------- */
+function roleOptionsHtml(selected){
+  const subs = unionSubjects();
+  let opts = [
+    ['name', '姓名'], ['cls', '班级'], ['sid', '学号'], ['total', '总分'],
+    ['totalRank', '总排名'], ['disc', '折后成绩'], ['discRank', '折后排名'],
+    ['classRank', '班级排名'], ['ignore', '忽略']
+  ];
+  let html = '';
+  opts.forEach(o => html += `<option value="${o[0]}" ${selected === o[0] ? 'selected' : ''}>${o[1]}</option>`);
+  html += '<optgroup label="科目">';
+  subs.forEach(s => {
+    const sv = 'subj:' + s, rv = 'subjRank:' + s;
+    html += `<option value="${esc(sv)}" ${selected === sv ? 'selected' : ''}>科目 · ${esc(s)}</option>`;
+    html += `<option value="${esc(rv)}" ${selected === rv ? 'selected' : ''}>科目排名 · ${esc(s)}</option>`;
+  });
+  if (selected && selected.startsWith('subj')){
+    const s = selected.slice(selected.indexOf(':') + 1);
+    if (!subs.includes(s)) html += `<option value="${esc(selected)}" selected>科目 · ${esc(s)}（自定义）</option>`;
+  }
+  html += '</optgroup>';
+  return html;
+}
+function renderImport(){
+  const m = $('#main');
+  let html = `
+  <h2 class="view-title"><span class="bar"></span>第一步 · 导入成绩表，确认名单</h2>
+  <p class="view-sub">可同时导入多个 Excel 文件（.xlsx / .xls / .csv），每个工作表视为一次考试。系统自动识别：姓名、班级、学号、各科成绩、各科排名、总分、总排名、折后成绩（若有）、折后排名（若有）。</p>
+  <div class="panel">
+    <div class="dropzone" id="drop" onclick="document.getElementById('fileInput').click()">
+      <div class="dz-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+      <div><b>点击选择或拖入 Excel 文件</b><div class="hint" style="margin-top:2px">支持多选；一个工作簿中的多个工作表会分别识别为不同考试</div></div>
+    </div>
+    <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display:none" onchange="App.importFiles(this.files); this.value=''">
+    <div class="form-row" style="margin-top:12px">
+      <button class="btn warn" onclick="App.loadSample()">载入示例数据体验流程</button>
+      <span class="hint">示例为演示数据，可随时清空</span>
+    </div>
+    <div id="fileList"></div>
+  </div>`;
+  if (!state.exams.length){
+    html += `<div class="panel"><div class="panel-title"><span class="bar"></span>使用说明</div>
+      <div class="hint" style="margin-top:8px;line-height:1.9">1. 成绩表需包含「姓名」列（班级、学号可选）；<br>2. 科目列形如「语文」，单科排名列形如「语文排名」「语文名次」；<br>3. 「总分 / 总分排名 / 折后成绩 / 折后排名 / 班级排名」列名含对应关键词即可识别；<br>4. 识别结果可在下方逐列核对与修正，确认后生成统一名单。</div></div>`;
+    m.innerHTML = html;
+    bindDrop();
+    return;
+  }
+  html += `<div class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><span class="bar"></span>识别结果核对（${state.exams.length} 场考试）</div>
+      <span class="hint">表头列可通过下拉框修正识别结果，修改后自动重新解析</span>
+    </div>
+    ${state.exams.map(ex => examSummaryHtml(ex)).join('')}
+  </div>`;
+  html += studentListHtml();
+  html += `<div class="actionbar">
+    <div class="left"><span class="hint">已确认学生 ${state.students.length} 人 · 已移除 ${Object.keys(state.removed).length} 人</span></div>
+    <button class="btn ghost" onclick="App.importMore()">继续导入更多文件</button>
+    <button class="btn primary lg" onclick="App.goExams()">确认名单，进入考试确认 →</button>
+  </div>`;
+  m.innerHTML = html;
+  bindDrop();
+  bindColChecks();
+}
+function bindDrop(){
+  const dz = $('#drop');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('over');
+    if (e.dataTransfer.files.length) App.importFiles(e.dataTransfer.files);
+  });
+}
+function examSummaryHtml(ex){
+  const chips = [];
+  ex.subjects.forEach(s => {
+    const hasR = ex.rankCol[s] !== undefined;
+    chips.push(`<span class="chip">${esc(s)}${hasR ? '<span class="tag ok">排名</span>' : ''}</span>`);
+  });
+  if (ex.hasTotal) chips.push('<span class="chip ok">总分</span>');
+  if (ex.hasTotalRank) chips.push('<span class="chip ok">总排名</span>');
+  if (ex.hasDisc) chips.push('<span class="chip ok">折后成绩</span>');
+  if (ex.hasDiscRank) chips.push('<span class="chip ok">折后排名</span>');
+  if (ex.hasClassRank) chips.push('<span class="chip plain">班级排名</span>');
+  if (!ex.students.length) chips.push('<span class="chip danger">未识别到学生（可展开下方修正姓名列）</span>');
+  return `
+  <div class="exam-item" id="exam-${ex.id}">
+    <div class="e-head">
+      <b style="font-size:14px">${esc(ex.examName)}</b>
+      <span class="tag dim">${esc(ex.file)} / ${esc(ex.sheetName)}</span>
+      <span class="tag">${ex.students.length} 名学生</span>
+      <div class="e-actions">
+        <span class="collapse-head" id="ch-${ex.id}" onclick="App.toggleCols('${ex.id}')"><span class="caret">▶</span>列识别检查与修正</span>
+      </div>
+    </div>
+    <div class="e-meta">${chips.join('')}</div>
+    <div id="cols-${ex.id}" class="col-check" style="display:none"></div>
+  </div>`;
+}
+function colCheckHtml(ex){
+  return `<table><colgroup><col style="width:22%"><col style="width:30%"><col style="width:22%"><col style="width:26%"></colgroup>
+    <thead><tr><th>表头</th><th>识别为（可修改）</th><th>列类型</th><th>示例值</th></tr></thead>
+    <tbody>
+    ${ex.colPreview.map((c, ci) => {
+      const isSubj = c.role && c.role.startsWith('subj');
+      const subjName = isSubj ? c.role.slice(c.role.indexOf(':') + 1) : '';
+      return `<tr>
+        <td style="font-weight:600">${esc(c.header || '（空列）')}</td>
+        <td><select class="sel" onchange="App.setColRole('${ex.id}',${ci},this.value)">${roleOptionsHtml(c.role)}</select></td>
+        <td>${isSubj ? `<span class="form-row" style="gap:4px"><span class="tag">科目</span><button class="btn small ghost" onclick="App.renameColSubject('${ex.id}',${ci})">改名</button></span>` : roleTagHtml(c.role)}</td>
+        <td class="col-sample" title="${esc(c.sample)}">${esc(c.sample)}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+function roleTagHtml(role){
+  const map = { name:'<span class="tag ok">姓名</span>', cls:'<span class="tag">班级</span>', sid:'<span class="tag">学号</span>', total:'<span class="tag ok">总分</span>', totalRank:'<span class="tag ok">总排名</span>', disc:'<span class="tag ok">折后成绩</span>', discRank:'<span class="tag ok">折后排名</span>', classRank:'<span class="tag">班级排名</span>', ignore:'<span class="tag dim">忽略</span>', rank:'<span class="tag">排名</span>' };
+  return map[role] || '<span class="tag dim">忽略</span>';
+}
+function studentListHtml(){
+  const q = (state._stuQ || '').toLowerCase();
+  const list = state.students.filter(s => !state.removed[s.key] && (String(s.name).toLowerCase().includes(q) || String(s.cls).toLowerCase().includes(q)));
+  const removedKeys = Object.keys(state.removed);
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><span class="bar"></span>名单确认（${list.length} 人）</div>
+      <div class="form-row">
+        <label class="chk"><input type="checkbox" ${state.joinByNameCls ? 'checked' : ''} onchange="App.toggleJoin(this.checked)">按「姓名+班级」关联（同名不同班视为两人）</label>
+        <input class="inp" style="width:180px" placeholder="搜索姓名/班级" value="${esc(state._stuQ || '')}" oninput="App.setStuQ(this.value)">
+      </div>
+    </div>
+    ${list.length ? `
+    <div class="table-scroll">
+      <table class="data-table"><colgroup><col style="width:16%"><col style="width:14%"><col style="width:16%"><col style="width:34%"><col style="width:12%"></colgroup>
+        <thead><tr><th>姓名（可改）</th><th>班级</th><th>学号</th><th>参与的考试</th><th class="num">操作</th></tr></thead>
+        <tbody>${list.map(s => {
+          const exams = s.examIds.map(id => examById(id)).filter(Boolean).map(e => e.examName);
+          return `<tr>
+            <td><input class="inp small" style="width:110px" value="${esc(s.name)}" onchange="App.renameStudent('${s.key}','${s.key}',this.value)"></td>
+            <td><input class="inp small" style="width:96px" value="${esc(s.cls)}" onchange="App.setStuCls('${s.key}',this.value)"></td>
+            <td>${esc(s.sid)}</td>
+            <td class="hint">${esc(exams.join('、'))}</td>
+            <td class="num"><button class="btn small danger" onclick="App.removeStudent('${s.key}')">移除</button></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>` : '<div class="hint">没有匹配的学生</div>'}
+    ${removedKeys.length ? `<div style="margin-top:10px"><span class="hint">已移除：</span>${removedKeys.map(k => {
+      const r = state.removed[k];
+      return `<span class="chip plain">${esc(r.name)}${r.cls ? '（' + esc(r.cls) + '）' : ''}<button class="btn small ghost" style="margin-left:4px" onclick="App.restoreStudent('${k}')">恢复</button></span>`;
+    }).join(' ')}</div>` : ''}
+  </div>`;
+}
+function bindColChecks(){
+  state.exams.forEach(ex => {
+    const box = $('#cols-' + ex.id);
+    if (box && box.style.display !== 'none') box.innerHTML = colCheckHtml(ex);
+  });
+}
+
+/* ---------- 导入视图操作 ---------- */
+const App = window.App = {};
+App.navigate = navigate;
+App.importFiles = function(files){
+  if (!window.XLSX){ toast('Excel 解析库未就绪，请稍候或检查网络', 'error'); return; }
+  Array.from(files).forEach(f => parseFileObj(f));
+};
+App.importMore = function(){ document.getElementById('fileInput').click(); };
+App.loadSample = loadSample;
+App.toggleJoin = function(v){ state.joinByNameCls = v; rebuildStudents(); save(); renderImport(); };
+App.setStuQ = function(v){ state._stuQ = v; renderImport(); };
+App.renameStudent = function(key, oldKey, v){
+  v = String(v || '').trim();
+  if (!v){ toast('姓名不能为空', 'error'); renderImport(); return; }
+  const s = state.students.find(x => x.key === key);
+  if (s){
+    s.name = v;
+    state.exams.forEach(ex => ex.students.forEach(r => { if (r.key === key) r.name = v; }));
+  }
+  rebuildStudents(); save(); renderImport();
+};
+App.setStuCls = function(key, v){
+  const s = state.students.find(x => x.key === key);
+  if (s){ s.cls = v; state.exams.forEach(ex => ex.students.forEach(r => { if (r.key === key) r.cls = v; })); }
+  rebuildStudents(); save(); renderImport();
+};
+App.removeStudent = function(key){
+  const s = state.students.find(x => x.key === key);
+  if (s) state.removed[key] = { name: s.name, cls: s.cls, sid: s.sid };
+  save(); renderImport();
+};
+App.restoreStudent = function(key){ delete state.removed[key]; save(); renderImport(); };
+App.toggleCols = function(id){
+  const box = $('#cols-' + id), ch = $('#ch-' + id);
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : '';
+  ch.classList.toggle('open', !open);
+  if (!open) box.innerHTML = colCheckHtml(examById(id));
+};
+App.setColRole = function(id, colIdx, role){
+  const ex = examById(id);
+  ex.colOverrides[colIdx] = role;
+  Object.assign(ex, reparseWithOverrides(ex));
+  rebuildStudents(); save(); render();
+};
+App.renameColSubject = function(id, colIdx){
+  const ex = examById(id);
+  const cur = ex.roles[colIdx];
+  if (!cur || !cur.startsWith('subj')) return;
+  const old = cur.slice(cur.indexOf(':') + 1);
+  const neu = prompt('为科目「' + old + '」输入新名称：', old);
+  if (!neu || !neu.trim() || neu.trim() === old) return;
+  const role = cur.startsWith('subjRank:') ? 'subjRank:' + neu.trim() : 'subj:' + neu.trim();
+  ex.colOverrides[colIdx] = role;
+  Object.assign(ex, reparseWithOverrides(ex));
+  rebuildStudents(); save(); render();
+};
+function reparseWithOverrides(ex){
+  const rows = ex.rawRows, hdrIdx = ex.hdrIdx, overrides = ex.colOverrides;
+  const headerRow = rows[hdrIdx];
+  const roles = headerRow.map((h, ci) => (overrides && overrides[ci] !== undefined) ? overrides[ci] : classifyHeader(h));
+  for (let ci = 0; ci < rows[0].length; ci++){
+    if (roles[ci]) continue;
+    let num = 0, tot = 0;
+    for (let i = hdrIdx + 1; i < rows.length; i++){
+      const v = rows[i][ci]; if (v === '') continue;
+      tot++; if (toNum(v) !== null) num++;
+    }
+    roles[ci] = (tot > 0 && num / tot >= 0.6) ? 'subj:' + (cleanSubj(headerRow[ci]) || headerRow[ci]) : 'ignore';
+  }
+  const colOf = role => roles.indexOf(role);
+  const subjCol = {}, rankCol = {};
+  roles.forEach((r, ci) => {
+    if (r && r.startsWith('subjRank:')) rankCol[r.slice(9)] = ci;
+    else if (r && r.startsWith('subj:')) subjCol[r.slice(5)] = ci;
+  });
+  const subjects = Object.keys(subjCol);
+  const nameCol = colOf('name'), clsCol = colOf('cls'), sidCol = colOf('sid');
+  const totalCol = colOf('total'), totalRankCol = colOf('totalRank'), discCol = colOf('disc'), discRankCol = colOf('discRank'), classRankCol = colOf('classRank');
+  const students = [];
+  let lastName = '';
+  for (let i = hdrIdx + 1; i < rows.length; i++){
+    const r = rows[i];
+    if (!r.some(c => c !== '')) continue;
+    const name = (nameCol >= 0 ? r[nameCol] : '') || lastName;
+    lastName = name;
+    if (!name) continue;
+    if (/^(合计|总计|平均|总(分)?统计|汇总)/.test(name)) continue;
+    const rec = { name, cls: clsCol >= 0 ? r[clsCol] : '', sid: sidCol >= 0 ? r[sidCol] : '', scores: {}, ranks: {}, total: null, totalRank: null, disc: null, discRank: null, classRank: null };
+    subjects.forEach(s => {
+      rec.scores[s] = toNum(subjCol[s] >= 0 ? r[subjCol[s]] : '');
+      if (rankCol[s] !== undefined) rec.ranks[s] = toNum(rankCol[s] >= 0 ? r[rankCol[s]] : '');
+    });
+    if (totalCol >= 0) rec.total = toNum(r[totalCol]);
+    if (totalRankCol >= 0) rec.totalRank = toNum(r[totalRankCol]);
+    if (discCol >= 0) rec.disc = toNum(r[discCol]);
+    if (discRankCol >= 0) rec.discRank = toNum(r[discRankCol]);
+    if (classRankCol >= 0) rec.classRank = toNum(r[classRankCol]);
+    students.push(rec);
+  }
+  const colPreview = headerRow.map((h, ci) => ({ header: h, role: roles[ci], sample: hdrIdx + 1 < rows.length ? rows[hdrIdx + 1][ci] : '' }));
+  return { roles, subjCol, rankCol, subjects, hasCls: clsCol >= 0, hasSid: sidCol >= 0, hasTotal: totalCol >= 0, hasTotalRank: totalRankCol >= 0, hasDisc: discCol >= 0, hasDiscRank: discRankCol >= 0, hasClassRank: classRankCol >= 0, colPreview, students };
+}
+App.goExams = function(){ navigate('exams'); };
+App.resetAll = function(){
+  if (!confirm('确定清空全部导入的数据与设置吗？此操作不可恢复。')) return;
+  try { localStorage.removeItem(LS_KEY); } catch(e){}
+  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  state.libs = { xlsx: !!(window.XLSX), echarts: !!(window.echarts) };
+  location.hash = 'import';
+  render();
+  toast('已清空全部数据', 'ok');
+};
+
+/* ---------- 视图：考试确认 ---------- */
+function renderExams(){
+  if (!state.exams.length){ navigate('import'); return; }
+  const m = $('#main');
+  const subs = unionSubjects();
+  const hasField = (fn, label) => state.exams.some(e => fn(e)) ? `<span class="tag ok">${label}</span>` : '';
+  let html = `
+  <h2 class="view-title"><span class="bar"></span>第二步 · 考试（工作表）确认</h2>
+  <p class="view-sub">每个工作表对应一次考试，可修改考试名称、调整顺序、选择是否参与成绩条；「科目」可全局改名。</p>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><span class="bar"></span>考试列表（${state.exams.length} 场）</div>
+      <div class="hint">${hasField(e => e.hasTotal, '含总分')}${hasField(e => e.hasTotalRank, '含总排名')}${hasField(e => e.hasDisc, '含折后成绩')}${hasField(e => e.hasDiscRank, '含折后排名')}${hasField(e => e.hasClassRank, '含班级排名')}</div>
+    </div>
+    ${state.exams.map((ex, i) => `
+    <div class="exam-item ${ex.include ? '' : 'off'}">
+      <div class="e-head">
+        <label class="chk" title="是否参与成绩条与对比"><input type="checkbox" ${ex.include ? 'checked' : ''} onchange="App.toggleExam('${ex.id}',this.checked)">参与</label>
+        <input class="inp" style="flex:1;min-width:190px;font-weight:600" value="${esc(ex.examName)}" onchange="App.renameExam('${ex.id}',this.value)">
+        <span class="tag dim">${esc(ex.file)} / ${esc(ex.sheetName)}</span>
+        <span class="tag">${ex.students.length} 人</span>
+        <div class="e-actions">
+          <button class="btn small ghost" ${i === 0 ? 'disabled' : ''} onclick="App.moveExam('${ex.id}',-1)">↑</button>
+          <button class="btn small ghost" ${i === state.exams.length - 1 ? 'disabled' : ''} onclick="App.moveExam('${ex.id}',1)">↓</button>
+          <button class="btn small danger" onclick="App.removeExam('${ex.id}')">移除</button>
+        </div>
+      </div>
+      <div class="e-meta">
+        ${ex.subjects.map(s => `<span class="chip">${esc(s)}${ex.rankCol[s] !== undefined ? '<span class="tag ok">排名</span>' : ''}</span>`).join('')}
+        ${ex.hasTotal ? '<span class="chip ok">总分</span>' : ''}${ex.hasTotalRank ? '<span class="chip ok">总排名</span>' : ''}
+        ${ex.hasDisc ? '<span class="chip ok">折后成绩</span>' : ''}${ex.hasDiscRank ? '<span class="chip ok">折后排名</span>' : ''}
+        ${ex.hasClassRank ? '<span class="chip plain">班级排名</span>' : ''}
+        ${!ex.students.length ? '<span class="chip danger">未识别到学生，请回到第一步修正</span>' : ''}
+      </div>
+    </div>`).join('')}
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><span class="bar"></span>科目管理（${subs.length} 科）</div>
+      <span class="hint">改名会同步更新所有考试中的该科目</span>
+    </div>
+    <div class="e-meta">
+      ${subs.map(s => `<span class="chip">${esc(s)}<button class="btn small ghost" style="margin-left:4px;padding:0 6px" onclick="App.renameSubject('${esc(s)}')">改名</button></span>`).join(' ')}
+      ${!subs.length ? '<span class="hint">尚未识别到科目列</span>' : ''}
+    </div>
+  </div>
+  <div class="actionbar">
+    <div class="left"><span class="hint">学生 ${state.students.length} 人 · 参与考试 ${includedExams().length} 场</span></div>
+    <button class="btn ghost" onclick="App.navigate('import')">← 返回名单</button>
+    <button class="btn primary lg" onclick="App.goCompare()">确认，查看成绩对比 →</button>
+  </div>`;
+  m.innerHTML = html;
+}
+App.toggleExam = function(id, v){ examById(id).include = v; save(); renderExams(); };
+App.renameExam = function(id, v){ const ex = examById(id); ex.examName = String(v || '').trim() || ex.sheetName; save(); renderExams(); };
+App.moveExam = function(id, d){
+  const i = state.exams.findIndex(e => e.id === id), j = i + d;
+  if (i < 0 || j < 0 || j >= state.exams.length) return;
+  const t = state.exams[i]; state.exams[i] = state.exams[j]; state.exams[j] = t;
+  save(); renderExams();
+};
+App.removeExam = function(id){
+  if (!confirm('确定移除该考试及其全部成绩数据？')) return;
+  state.exams = state.exams.filter(e => e.id !== id);
+  rebuildStudents(); save();
+  if (!state.exams.length){ navigate('import'); return; }
+  renderExams();
+};
+App.renameSubject = function(oldName){
+  const neu = prompt('将科目「' + oldName + '」改名为：', oldName);
+  if (!neu || !neu.trim() || neu.trim() === oldName) return;
+  const n = neu.trim();
+  state.exams.forEach(ex => {
+    ex.roles.forEach((r, ci) => {
+      if (r === 'subj:' + oldName) ex.colOverrides[ci] = 'subj:' + n;
+      else if (r === 'subjRank:' + oldName) ex.colOverrides[ci] = 'subjRank:' + n;
+    });
+    Object.assign(ex, reparseWithOverrides(ex));
+  });
+  if (state.format.subjects[oldName] !== undefined){
+    state.format.subjects[n] = state.format.subjects[oldName];
+    delete state.format.subjects[oldName];
+  }
+  rebuildStudents(); save(); renderExams();
+  toast('科目已改名为「' + n + '」', 'ok');
+};
+App.goCompare = function(){ navigate('compare'); };
+
+/* ---------- 视图：成绩对比 ---------- */
+let __charts = [];
+function disposeCharts(){ __charts.forEach(c => { try { c.dispose(); } catch(e){} }); __charts = []; }
+window.addEventListener('resize', () => __charts.forEach(c => { try { c.resize(); } catch(e){} }));
+function renderChart(elId, option){
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!window.echarts){ el.innerHTML = '<div class="chart-fallback">图表库未加载（需联网），请查看下方表格数据</div>'; return; }
+  const c = echarts.init(el);
+  c.setOption(option);
+  __charts.push(c);
+}
+function buildStats(ex){
+  const recs = ex.students.filter(r => r.key && !state.removed[r.key]);
+  const st = {};
+  unionSubjects().forEach(s => {
+    const vals = recs.map(r => r.scores[s]).filter(v => v !== null && v !== undefined);
+    st[s] = { avg: avg(vals), max: maxV(vals), min: minV(vals), count: vals.length };
+  });
+  const tv = recs.map(r => r.total).filter(v => v !== null && v !== undefined);
+  st['$total'] = { avg: avg(tv), max: maxV(tv), min: minV(tv), count: tv.length };
+  return st;
+}
+function renderCompare(){
+  if (!state.students.length){ navigate('import'); return; }
+  disposeCharts();
+  const exams = includedExams();
+  const subs = unionSubjects();
+  if (!subs.length){ navigate('import'); toast('未识别到科目数据', 'warn'); return; }
+  if (!subs.includes(state.compareSubj)) state.compareSubj = subs[0];
+  const stats = {};
+  exams.forEach(ex => stats[ex.id] = buildStats(ex));
+  const students = state.students.filter(s => !state.removed[s.key]);
+  const m = $('#main');
+  let html = `
+  <h2 class="view-title"><span class="bar"></span>第三步 · 成绩对比</h2>
+  <p class="view-sub">同一名学生跨考试自动关联（按姓名或姓名+班级）；可对比单科排名分布、总分走势与折后成绩。</p>
+  <div class="panel">
+    <div class="e-meta" style="margin-top:0">
+      ${exams.map(ex => {
+        const t = stats[ex.id]['$total'];
+        const cnt = ex.students.filter(r => !state.removed[r.key]).length;
+        return `<span class="chip ok">${esc(ex.examName)} · ${cnt}人 · 平均总分 ${t.avg ? fmtNum(Math.round(t.avg * 10) / 10) : '—'} · 最高 ${fmtNum(t.max)}</span>`;
+      }).join(' ')}
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab ${state.compareTab === 'subj' ? 'active' : ''}" onclick="App.setCompareTab('subj')">学科排名对比</button>
+    <button class="tab ${state.compareTab === 'student' ? 'active' : ''}" onclick="App.setCompareTab('student')">学生多场对比</button>
+  </div>
+  <div id="compareBody"></div>`;
+  m.innerHTML = html;
+  if (state.compareTab === 'subj') renderCompareSubj(exams, subs, stats, students);
+  else renderCompareStudent(exams, subs, students);
+}
+function renderCompareSubj(exams, subs, stats, students){
+  const subj = state.compareSubj;
+  const lastWithRank = exams.slice().reverse().find(ex => ex.rankCol && ex.rankCol[subj] !== undefined);
+  const rows = students.map(s => {
+    const ex = lastWithRank, rec = ex ? ex.byKey[s.key] : null;
+    return { s, rank: rec ? rec.ranks[subj] : null, score: rec ? rec.scores[subj] : null };
+  }).sort((a, b) => (a.rank == null ? 1e9 : a.rank) - (b.rank == null ? 1e9 : b.rank) || a.s.name.localeCompare(b.s.name, 'zh'));
+  const firstW = Math.min(22, Math.max(10, Math.round(100 / (exams.length + 1) * 1.4)));
+  const examW = Math.max(8, Math.round((100 - firstW) / exams.length));
+  const colgroup = '<colgroup><col style="width:' + firstW + '%">' + exams.map(() => '<col style="width:' + examW + '%">').join('') + '</colgroup>';
+  const body = $('#compareBody');
+  body.innerHTML = `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><span class="bar"></span>科目「${esc(subj)}」排名对比</div>
+      <div class="form-row">
+        <label class="f-label" style="margin:0">科目</label>
+        <select class="sel" style="width:150px" onchange="App.setCompareSubj(this.value)">
+          ${unionSubjects().map(s => `<option value="${esc(s)}" ${s === subj ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="pg-info">
+      ${exams.map(ex => {
+        const st = stats[ex.id][subj];
+        return `<span class="tag ${st.count ? 'ok' : 'dim'}">${esc(ex.examName)}：平均 ${fmtNum(st.avg && Math.round(st.avg * 10) / 10)} · 最高 ${fmtNum(st.max)} · ${st.count} 人参考</span>`;
+      }).join(' ')}
+    </div>
+    <div class="chart-box" id="chartSubj"></div>
+    <div class="table-scroll">
+      <table class="data-table">${colgroup}
+        <thead><tr><th>学生（按最新排名排序）</th>${exams.map(ex => `<th class="num">${esc(ex.examName)}<br><span class="hint">成绩/排名</span></th>`).join('')}</tr></thead>
+        <tbody>
+        ${rows.map(({ s, rank, score }) => {
+          const row = `<tr><td style="font-weight:600">${esc(s.name)}${s.cls ? '<span class="hint"> ' + esc(s.cls) + '</span>' : ''}</td>` +
+            exams.map(ex => {
+              const rec = ex.byKey[s.key];
+              if (!rec) return `<td class="num cmp-miss">缺考</td>`;
+              const rk = rec.ranks[subj], sc = rec.scores[subj];
+              const best = lastWithRank && lastWithRank.id === ex.id && rk === 1;
+              return `<td class="num"><span class="rk ${rk === 1 ? 'cmp-best' : ''}">${fmtNum(rk)}</span><div class="sc">${fmtNum(sc)}</div></td>`;
+            }).join('');
+          return row + '</tr>';
+        }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+  renderChart('chartSubj', {
+    title: { text: '各考试「' + subj + '」平均分', textStyle: { fontSize: 13, color: '#233040' }, left: 8, top: 2 },
+    tooltip: { trigger: 'axis' },
+    grid: { left: 42, right: 14, top: 34, bottom: 26 },
+    xAxis: { type: 'category', data: exams.map(e => e.examName), axisLabel: { fontSize: 11 } },
+    yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10 } },
+    series: [{ type: 'bar', data: exams.map(e => { const v = stats[e.id][subj].avg; return v == null ? null : Math.round(v * 10) / 10; }), barWidth: 34, itemStyle: { color: '#2f5d8a', borderRadius: [4, 4, 0, 0] }, label: { show: true, position: 'top', fontSize: 11 } }]
+  });
+}
+function renderCompareStudent(exams, subs, students){
+  const key = state.compareStudent && students.some(s => s.key === state.compareStudent) ? state.compareStudent : students[0].key;
+  state.compareStudent = key;
+  const stu = students.find(s => s.key === key);
+  const nCols = subs.length + 5;
+  const firstW = 12;
+  const subjW = Math.max(7, Math.round((100 - firstW) / nCols));
+  const colgroup = '<colgroup><col style="width:' + firstW + '%">' + Array.from({ length: nCols - 1 }, () => '<col style="width:' + subjW + '%">').join('') + '</colgroup>';
+  const body = $('#compareBody');
+  body.innerHTML = `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title"><span class="bar"></span>学生「${esc(stu.name)}${stu.cls ? ' · ' + esc(stu.cls) : ''}」多场对比</div>
+      <select class="sel" style="width:220px" onchange="App.setCompareStudent(this.value)">
+        ${students.map(s => `<option value="${esc(s.key)}" ${s.key === key ? 'selected' : ''}>${esc(s.name)}${s.cls ? '（' + esc(s.cls) + '）' : ''}</option>`).join('')}
+      </select>
+    </div>
+    <div class="pg-info">
+      <span class="tag ok">参加 ${stu.examIds.length} 场</span>
+      <span class="tag plain">共 ${state.students.length} 名学生</span>
+    </div>
+    <div class="chart-box" id="chartStu"></div>
+    <div class="table-scroll">
+      <table class="data-table">${colgroup}
+        <thead><tr><th>考试</th>${subs.map(s => `<th class="num">${esc(s)}</th>`).join('')}<th class="num">总分</th><th class="num">总排名</th><th class="num">折后成绩</th><th class="num">折后排名</th><th class="num">班级排名</th></tr></thead>
+        <tbody>
+        ${exams.map(ex => {
+          const rec = ex.byKey[key];
+          if (!rec) return `<tr><td>${esc(ex.examName)}</td>${Array.from({ length: nCols - 1 }, () => '<td class="num cmp-miss">缺考</td>').join('')}</tr>`;
+          const scs = subs.map(s => {
+            const v = rec.scores[s], r = rec.ranks[s];
+            return `<td class="num">${fmtNum(v)}${r != null ? '<div class="sc">第' + fmtNum(r) + '名</div>' : ''}</td>`;
+          }).join('');
+          return `<tr><td style="font-weight:600">${esc(ex.examName)}</td>${scs}<td class="num" style="font-weight:700">${fmtNum(rec.total)}</td><td class="num">${fmtNum(rec.totalRank)}</td><td class="num">${fmtNum(rec.disc)}</td><td class="num">${fmtNum(rec.discRank)}</td><td class="num">${fmtNum(rec.classRank)}</td></tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+  const totSeries = exams.map(ex => { const rec = ex.byKey[key]; return rec ? rec.total : null; });
+  renderChart('chartStu', {
+    title: { text: '总分走势（' + stu.name + '）', textStyle: { fontSize: 13, color: '#233040' }, left: 8, top: 2 },
+    tooltip: { trigger: 'axis' },
+    grid: { left: 42, right: 14, top: 34, bottom: 26 },
+    xAxis: { type: 'category', data: exams.map(e => e.examName), axisLabel: { fontSize: 11 } },
+    yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10 } },
+    series: [{ type: 'bar', data: totSeries, barWidth: 34, itemStyle: { color: '#d9913a', borderRadius: [4, 4, 0, 0] }, label: { show: true, position: 'top', fontSize: 11 } }]
+  });
+}
+App.setCompareTab = function(t){ state.compareTab = t; save(); renderCompare(); };
+App.setCompareSubj = function(v){ state.compareSubj = v; save(); renderCompare(); };
+App.setCompareStudent = function(v){ state.compareStudent = v; save(); renderCompare(); };
+App.goFormat = function(){ navigate('format'); };
+
+/* ---------- 成绩条卡片渲染（屏幕 px / Word pt 双单位） ---------- */
+function buildCardHTML(stu, unit){
+  const fmt = state.format, exams = includedExams();
+  const subs = unionSubjects().filter(s => fmt.subjects[s]);
+  const f = v => unit === 'pt' ? (v * 0.75).toFixed(1) + 'pt' : v + 'px';
+  const fs = fmt.fontSize * (state.print.fontScale / 100);
+  const tfs = fmt.titleFontSize * (state.print.fontScale / 100);
+  const bd = fmt.border ? (unit === 'pt' ? '0.5pt solid #000' : '0.8px solid #93a1b2') : 'none';
+  const pad = unit === 'pt' ? '1pt 3pt' : '3px 5px';
+  const bg = fmt.headerBg || '#eef2f7';
+  let h = `<div class="gcard" style="font-size:${f(fs)};font-family:${unit === 'pt' ? "'宋体',SimSun,serif" : 'inherit'};line-height:1.5">`;
+  if (fmt.showCardTitle && fmt.cardTitle) h += `<div class="gtitle" style="font-size:${f(tfs)};margin-bottom:${f(unit==='pt'?2:3)}">${esc(fmt.cardTitle)}</div>`;
+  const info = [];
+  if (fmt.showName) info.push('姓名：<b>' + esc(stu.name) + '</b>');
+  if (fmt.showCls && stu.cls) info.push('班级：' + esc(stu.cls));
+  if (fmt.showSid && stu.sid) info.push('学号：' + esc(stu.sid));
+  if (info.length) h += '<div class="ginfo" style="margin-bottom:' + f(unit==='pt'?2:3) + '">' + info.join('') + '</div>';
+  const cols = [];
+  if (fmt.showExamCol) cols.push(fmt.examLabel || '考试');
+  subs.forEach(s => { if (fmt.subjMode === 'split'){ cols.push(s); cols.push(s + '排名'); } else cols.push(s); });
+  if (fmt.showTotal) cols.push('总分');
+  if (fmt.showTotalRank) cols.push('总排名');
+  if (fmt.showDisc) cols.push('折后成绩');
+  if (fmt.showDiscRank) cols.push('折后排名');
+  if (fmt.showClassRank) cols.push('班级排名');
+  h += '<table style="border-collapse:collapse;width:100%;table-layout:fixed"><thead><tr>' +
+    cols.map(c => '<th style="background:' + bg + ';border:' + bd + ';padding:' + pad + ';font-weight:700">' + esc(c) + '</th>').join('') + '</tr></thead><tbody>';
+  exams.forEach((ex, ri) => {
+    const rec = ex.byKey[stu.key];
+    const trBg = (fmt.zebra && ri % 2) ? 'background:#f4f6f9;' : '';
+    let cells = [];
+    if (fmt.showExamCol) cells.push('<td style="' + trBg + 'border:' + bd + ';padding:' + pad + ';white-space:nowrap">' + esc(ex.examName) + '</td>');
+    subs.forEach(s => {
+      const sc = rec ? rec.scores[s] : null, rk = rec ? rec.ranks[s] : null;
+      const td = '<td style="' + trBg + 'border:' + bd + ';padding:' + pad + '">';
+      if (fmt.subjMode === 'split'){
+        cells.push(td + fmtNum(sc) + '</td>');
+        cells.push(td + fmtNum(rk) + '</td>');
+      } else if (fmt.subjMode === 'rank'){
+        cells.push(td + fmtNum(rk) + '</td>');
+      } else if (fmt.subjMode === 'both'){
+        cells.push(td + (sc != null ? fmtNum(sc) : '—') + (rk != null ? '<span class="gdim" style="font-size:' + f(fs * 0.85) + ';color:#5c6b7d">(' + fmtNum(rk) + ')</span>' : '') + '</td>');
+      } else {
+        cells.push(td + fmtNum(sc) + '</td>');
+      }
+    });
+    if (fmt.showTotal) cells.push('<td style="' + trBg + 'border:' + bd + ';padding:' + pad + ';font-weight:700">' + (rec ? fmtNum(rec.total) : '—') + '</td>');
+    if (fmt.showTotalRank) cells.push('<td style="' + trBg + 'border:' + bd + ';padding:' + pad + '">' + (rec ? fmtNum(rec.totalRank) : '—') + '</td>');
+    if (fmt.showDisc) cells.push('<td style="' + trBg + 'border:' + bd + ';padding:' + pad + '">' + (rec ? fmtNum(rec.disc) : '—') + '</td>');
+    if (fmt.showDiscRank) cells.push('<td style="' + trBg + 'border:' + bd + ';padding:' + pad + '">' + (rec ? fmtNum(rec.discRank) : '—') + '</td>');
+    if (fmt.showClassRank) cells.push('<td style="' + trBg + 'border:' + bd + ';padding:' + pad + '">' + (rec ? fmtNum(rec.classRank) : '—') + '</td>');
+    h += '<tr>' + cells.join('') + '</tr>';
+  });
+  h += '</tbody></table></div>';
+  return h;
+}
+
+/* ---------- 视图：成绩条格式编辑 ---------- */
+function sw(label, key, sub){
+  const on = !!state.format[key];
+  const dis = sub === true ? '' : (sub === false ? ' disabled' : '');
+  return `<div class="switch-row"><span class="sw-label">${label}${sub === true || sub === false ? '<small>' + (sub === true ? '已有数据' : '无数据，暂不可用') + '</small>' : ''}</span>
+    <label class="toggle"><input type="checkbox" ${on ? 'checked' : ''} ${dis} onchange="App.fmt('${key}',this.checked)"><span class="tk"></span></label></div>`;
+}
+function renderFormat(){
+  if (!state.students.length){ navigate('import'); return; }
+  const subs = unionSubjects();
+  const any = fn => state.exams.some(fn);
+  const students = state.students.filter(s => !state.removed[s.key]);
+  if (!students.some(s => s.key === state._previewStu)) state._previewStu = students[0].key;
+  const m = $('#main');
+  const modeRadios = [
+    ['score', '仅成绩'], ['rank', '仅排名'], ['both', '成绩(排名)'], ['split', '成绩/排名分列']
+  ];
+  m.innerHTML = `
+  <h2 class="view-title"><span class="bar"></span>第四步 · 成绩条格式编辑</h2>
+  <p class="view-sub">选择成绩条上要显示的项目，左侧即时生效，右侧实时预览。</p>
+  <div class="grid2">
+    <div>
+      <fieldset class="fgroup"><legend>卡片标题</legend>
+        ${sw('显示卡片标题', 'showCardTitle')}
+        <div class="form-row" style="margin-top:8px"><label class="f-label" style="width:70px;margin:0">标题文字</label>
+          <input class="inp" value="${esc(state.format.cardTitle)}" oninput="App.fmtText('cardTitle',this.value)"></div>
+      </fieldset>
+      <fieldset class="fgroup"><legend>学生信息</legend>
+        ${sw('显示姓名', 'showName')}${sw('显示班级', 'showCls')}${sw('显示学号', 'showSid')}
+      </fieldset>
+      <fieldset class="fgroup"><legend>表格内容</legend>
+        ${sw('显示考试名称列', 'showExamCol')}
+        <div class="form-row" style="margin-top:8px"><label class="f-label" style="width:70px;margin:0">考试列名</label>
+          <input class="inp" style="width:120px" value="${esc(state.format.examLabel)}" oninput="App.fmtText('examLabel',this.value)"></div>
+        <div style="margin-top:10px"><span class="f-label">科目（勾选显示）</span>
+          <div class="e-meta">${subs.map(s => `<label class="chk"><input type="checkbox" ${state.format.subjects[s] ? 'checked' : ''} onchange="App.fmtSubj('${esc(s)}',this.checked)">${esc(s)}</label>`).join(' ')}${!subs.length ? '<span class="hint">未识别到科目</span>' : ''}</div>
+        </div>
+        <div style="margin-top:10px">${sw('显示总分', 'showTotal', any(e => e.hasTotal))}${sw('显示总排名', 'showTotalRank', any(e => e.hasTotalRank))}${sw('显示折后成绩', 'showDisc', any(e => e.hasDisc))}${sw('显示折后排名', 'showDiscRank', any(e => e.hasDiscRank))}${sw('显示班级排名', 'showClassRank', any(e => e.hasClassRank))}</div>
+      </fieldset>
+      <fieldset class="fgroup"><legend>单科显示方式</legend>
+        <div class="form-row">${modeRadios.map(([v, t]) => `<label class="radio"><input type="radio" name="subjMode" value="${v}" ${state.format.subjMode === v ? 'checked' : ''} onchange="App.fmt('subjMode',this.value)">${t}</label>`).join('')}</div>
+      </fieldset>
+      <fieldset class="fgroup"><legend>样式</legend>
+        <div class="form-grid">
+          <div class="field"><label class="f-label">表格字号</label><select class="sel" onchange="App.fmt('fontSize',parseInt(this.value))">${[9,10,11,12,13,14].map(v => `<option value="${v}" ${state.format.fontSize === v ? 'selected' : ''}>${v}px</option>`).join('')}</select></div>
+          <div class="field"><label class="f-label">标题字号</label><select class="sel" onchange="App.fmt('titleFontSize',parseInt(this.value))">${[12,13,14,15,16,18].map(v => `<option value="${v}" ${state.format.titleFontSize === v ? 'selected' : ''}>${v}px</option>`).join('')}</select></div>
+          <div class="field"><label class="f-label">表头背景色</label><input type="color" class="inp" style="padding:3px;height:34px" value="${state.format.headerBg}" onchange="App.fmt('headerBg',this.value)"></div>
+        </div>
+        <div style="margin-top:10px">${sw('斑马纹行', 'zebra')}${sw('表格边框', 'border')}</div>
+      </fieldset>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title"><span class="bar"></span>实时预览</div>
+        <select class="sel" style="width:200px" onchange="App.setPreviewStudent(this.value)">
+          ${students.map(s => `<option value="${esc(s.key)}" ${s.key === state._previewStu ? 'selected' : ''}>${esc(s.name)}${s.cls ? '（' + esc(s.cls) + '）' : ''}</option>`).join('')}
+        </select>
+      </div>
+      <div id="fmtPreview"></div>
+      <div class="actionbar" style="margin-top:12px">
+        <span class="hint">当前设置会应用到全部学生</span>
+        <button class="btn primary lg" onclick="App.goPrint()">下一步：打印设置与导出 →</button>
+      </div>
+    </div>
+  </div>`;
+  const stu = students.find(s => s.key === state._previewStu) || students[0];
+  $('#fmtPreview').innerHTML = buildCardHTML(stu, 'px');
+}
+App.fmt = function(key, v){ state.format[key] = v; save(); renderFormat(); };
+App.fmtText = function(key, v){ state.format[key] = v; save(); clearTimeout(App._ft); App._ft = setTimeout(renderFormat, 300); };
+App.fmtSubj = function(s, v){ state.format.subjects[s] = v; save(); renderFormat(); };
+App.setPreviewStudent = function(k){ state._previewStu = k; save(); renderFormat(); };
+App.goPrint = function(){ navigate('print'); };
+
+/* ---------- 视图：打印设置与导出 ---------- */
+function effectivePerPage(cardHmm){
+  const p = state.print;
+  const W = p.orient === 'landscape' ? Math.max(p.pageW, p.pageH) : Math.min(p.pageW, p.pageH);
+  const H = p.orient === 'landscape' ? Math.min(p.pageW, p.pageH) : Math.max(p.pageW, p.pageH);
+  const headerH = p.pageHeader ? 9 : 0;
+  const printableH = H - p.marginT - p.marginB - headerH;
+  const gap = p.gap;
+  if (p.perPage > 0) return { per: p.perPage, printableH, headerH, W, H, autoPer: cardHmm > 0 ? Math.max(1, Math.floor((printableH + gap) / (cardHmm + gap))) : 5 };
+  return { per: cardHmm > 0 ? Math.max(1, Math.floor((printableH + gap) / (cardHmm + gap))) : 5, printableH, headerH, W, H, autoPer: 0 };
+}
+function renderPrint(){
+  if (!state.students.length){ navigate('import'); return; }
+  const p = state.print, fmt = state.format;
+  const students = state.students.filter(s => !state.removed[s.key]);
+  const W = p.orient === 'landscape' ? Math.max(p.pageW, p.pageH) : Math.min(p.pageW, p.pageH);
+  const H = p.orient === 'landscape' ? Math.min(p.pageW, p.pageH) : Math.max(p.pageW, p.pageH);
+  const contentW = W - p.marginL - p.marginR;
+  // 离屏测量卡片高度
+  let cardHmm = 0;
+  if (students.length){
+    const mb = document.createElement('div');
+    mb.style.cssText = 'position:absolute;left:-9999px;top:0;width:' + mm2px(contentW) + 'px;visibility:hidden';
+    mb.innerHTML = buildCardHTML(students[0], 'px');
+    document.body.appendChild(mb);
+    const gc = mb.querySelector('.gcard');
+    if (gc) cardHmm = px2mm(gc.offsetHeight);
+    mb.remove();
+  }
+  state.cardHmm = cardHmm;
+  const { per, printableH, headerH, autoPer } = effectivePerPage(cardHmm);
+  const gap = p.gap;
+  const totalH = cardHmm * per + gap * (per - 1);
+  const overflow = cardHmm > 0 && totalH > printableH + 0.5;
+  const pages = [];
+  for (let i = 0; i < students.length; i += per) pages.push(students.slice(i, i + per));
+  const m = $('#main');
+  m.innerHTML = `
+  <h2 class="view-title"><span class="bar"></span>第五步 · 打印设置与导出 Word</h2>
+  <p class="view-sub">调节纸张、页边距、成绩条间距与每页条数；预览无误后可导出 Word（.doc，用 Word / WPS 打开打印）或直接打印。</p>
+  <div class="print-layout">
+    <div>
+      <div class="print-controls">
+        <div class="panel">
+          <div class="panel-title" style="font-size:14px;margin-bottom:10px"><span class="bar"></span>纸张与方向</div>
+          <div class="form-grid">
+            <div class="field"><label class="f-label">纸张</label><select class="sel" onchange="App.setPaper(this.value)">
+              ${Object.keys(PAGE_PRESETS).map(k => `<option value="${k}" ${(p.customSize ? '自定义' : p.pagePreset) === k ? 'selected' : ''}>${k}</option>`).join('')}
+            </select></div>
+            <div class="field"><label class="f-label">方向</label>
+              <div class="form-row"><label class="radio"><input type="radio" name="orient" value="portrait" ${p.orient === 'portrait' ? 'checked' : ''} onchange="App.setPrint('orient',this.value)">纵向</label>
+              <label class="radio"><input type="radio" name="orient" value="landscape" ${p.orient === 'landscape' ? 'checked' : ''} onchange="App.setPrint('orient',this.value)">横向</label></div>
+            </div>
+          </div>
+          ${p.customSize ? `<div class="form-row" style="margin-top:8px"><label class="f-label" style="margin:0">宽 mm</label><input class="inp num" type="number" min="50" max="500" value="${p.pageW}" onchange="App.setPrint('pageW',this.value)"><label class="f-label" style="margin:0">高 mm</label><input class="inp num" type="number" min="50" max="500" value="${p.pageH}" onchange="App.setPrint('pageH',this.value)"></div>` : ''}
+        </div>
+        <div class="panel">
+          <div class="panel-title" style="font-size:14px;margin-bottom:10px"><span class="bar"></span>页边距与排版</div>
+          <div class="form-grid">
+            <div class="field"><label class="f-label">上边距 mm</label><input class="inp num" type="number" min="0" max="80" value="${p.marginT}" oninput="App.setPrint('marginT',this.value,1)"></div>
+            <div class="field"><label class="f-label">下边距 mm</label><input class="inp num" type="number" min="0" max="80" value="${p.marginB}" oninput="App.setPrint('marginB',this.value,1)"></div>
+            <div class="field"><label class="f-label">左边距 mm</label><input class="inp num" type="number" min="0" max="80" value="${p.marginL}" oninput="App.setPrint('marginL',this.value,1)"></div>
+            <div class="field"><label class="f-label">右边距 mm</label><input class="inp num" type="number" min="0" max="80" value="${p.marginR}" oninput="App.setPrint('marginR',this.value,1)"></div>
+            <div class="field"><label class="f-label">成绩条间距 mm</label><input class="inp num" type="number" min="0" max="30" step="0.5" value="${p.gap}" oninput="App.setPrint('gap',this.value,1)"></div>
+            <div class="field"><label class="f-label">每页条数（0 = 自动）</label><input class="inp num" type="number" min="0" max="50" value="${p.perPage}" oninput="App.setPrint('perPage',this.value,1)"></div>
+            <div class="field"><label class="f-label">字号缩放 %</label><input class="inp num" type="number" min="60" max="150" value="${p.fontScale}" oninput="App.setPrint('fontScale',this.value,1)"></div>
+          </div>
+          <div style="margin-top:10px">${sw('每页顶部显示页眉', 'pageHeader')}</div>
+          <div class="form-row" style="margin-top:8px"><label class="f-label" style="width:80px;margin:0">页眉文字</label>
+            <input class="inp" value="${esc(p.pageHeaderText)}" oninput="App.setPrintText('pageHeaderText',this.value)"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title"><span class="bar"></span>导出与打印</div></div>
+        <div class="form-row" style="flex-wrap:wrap">
+          <button class="btn primary lg" onclick="App.exportWord()">导出 Word（.doc）</button>
+          <button class="btn ghost lg" onclick="App.exportExcel()">导出 Excel（.xlsx）</button>
+          <button class="btn ghost lg" onclick="App.exportMerged()">导出拼接总表（一页）</button>
+          <button class="btn warn lg" onclick="App.doPrint()">直接打印</button>
+        </div>
+        <div class="pg-info" style="margin-top:12px">
+          <span class="tag ok">学生 ${students.length} 人</span>
+          <span class="tag">按每页 ${per} 条，共 ${pages.length} 页</span>
+          <span class="tag plain">卡片高约 ${cardHmm ? cardHmm.toFixed(1) : '—'} mm</span>
+          <span class="tag plain">可打印区 ${printableH.toFixed(0)} mm</span>
+        </div>
+        ${overflow ? `<div class="warn-line">提示：每页 ${per} 张卡片的总高度超过可打印区，内容可能溢出到下一张。建议减少每页条数，或缩小字号 / 边距。</div>` : ''}
+        ${p.perPage === 0 ? `<div class="ok-line">每页条数已按页面高度自动分配（${autoPer} 条/页）。</div>` : ''}
+      </div>
+    </div>
+    <div>
+      <div class="print-stage" id="printStage">
+        ${pages.map((chunk, pi) => `
+        <div class="sheet-wrap" id="sw-${pi}">
+          <div class="page-label">第 ${pi + 1} / ${pages.length} 页</div>
+          <div class="sheet" style="width:${W}mm;height:${H}mm;padding:${p.marginT}mm ${p.marginR}mm ${p.marginB}mm ${p.marginL}mm;--gap:${gap}mm">
+            ${p.pageHeader ? '<div class="pg-head">' + esc(p.pageHeaderText || '成绩条') + '</div>' : ''}
+            ${chunk.map(s => buildCardHTML(s, 'px')).join('')}
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+  requestAnimationFrame(() => {
+    const stg = document.getElementById('printStage');
+    if (!stg) return;
+    const avail = stg.clientWidth - 8;
+    const z = state._zoom || Math.min(1, avail / mm2px(W));
+    document.querySelectorAll('.sheet-wrap').forEach(w => w.style.zoom = z);
+    document.getElementById('printStage').scrollLeft = 0;
+  });
+}
+App.setPaper = function(k){
+  const p = state.print;
+  if (k === '自定义'){ p.customSize = true; }
+  else { p.customSize = false; p.pagePreset = k; p.pageW = PAGE_PRESETS[k][0]; p.pageH = PAGE_PRESETS[k][1]; }
+  save(); renderPrint();
+};
+App.setPrint = function(key, v, deb){
+  let val = v;
+  if (['marginT','marginB','marginL','marginR','gap','perPage','fontScale','pageW','pageH'].includes(key)) val = parseFloat(v) || 0;
+  state.print[key] = val;
+  save();
+  if (deb){ clearTimeout(App._pt); App._pt = setTimeout(renderPrint, 300); }
+  else renderPrint();
+};
+App.setPrintText = function(key, v){ state.print[key] = v; save(); clearTimeout(App._pt); App._pt = setTimeout(renderPrint, 300); };
+App.doPrint = function(){
+  const p = state.print;
+  const W = p.orient === 'landscape' ? Math.max(p.pageW, p.pageH) : Math.min(p.pageW, p.pageH);
+  const H = p.orient === 'landscape' ? Math.min(p.pageW, p.pageH) : Math.max(p.pageW, p.pageH);
+  let st = document.getElementById('printPageStyle');
+  if (!st){ st = document.createElement('style'); st.id = 'printPageStyle'; document.head.appendChild(st); }
+  st.textContent = '@page{size:' + W + 'mm ' + H + 'mm;margin:0}';
+  document.body.classList.add('printing');
+  window.print();
+  document.body.classList.remove('printing');
+};
+
+/* ---------- 导出 Word（.doc，Word HTML 格式） ---------- */
+App.exportWord = function(){
+  const p = state.print, fmt = state.format;
+  const students = state.students.filter(s => !state.removed[s.key]);
+  if (!students.length){ toast('没有可导出的学生', 'error'); return; }
+  const mm2pt = v => +(v * 72 / 25.4).toFixed(1);
+  const W = p.orient === 'landscape' ? Math.max(p.pageW, p.pageH) : Math.min(p.pageW, p.pageH);
+  const H = p.orient === 'landscape' ? Math.min(p.pageW, p.pageH) : Math.max(p.pageW, p.pageH);
+  const { per } = effectivePerPage(state.cardHmm);
+  const gapPt = mm2pt(p.gap);
+  const fsPt = Math.max(7, Math.min(22, fmt.fontSize * (p.fontScale / 100) * 0.75));
+  const titlePt = fmt.titleFontSize * (p.fontScale / 100) * 0.75;
+  let pagesHtml = '';
+  for (let i = 0; i < students.length; i += per){
+    const chunk = students.slice(i, i + per);
+    pagesHtml += '<div' + (i > 0 ? ' style="page-break-before:always"' : '') + '>';
+    if (p.pageHeader) pagesHtml += '<p style="text-align:center;font-weight:bold;margin:0 0 4pt">' + esc(p.pageHeaderText || '成绩条') + '</p>';
+    pagesHtml += chunk.map(s => buildCardHTML(s, 'pt')).join('');
+    pagesHtml += '</div>';
+  }
+  const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>学生成绩条</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->
+<style>
+@page WordSection1{size:${mm2pt(W)}pt ${mm2pt(H)}pt;margin:${mm2pt(p.marginT)}pt ${mm2pt(p.marginR)}pt ${mm2pt(p.marginB)}pt ${mm2pt(p.marginL)}pt;}
+div.WordSection1{page:WordSection1;}
+body{font-family:"宋体",SimSun,serif;font-size:${fsPt.toFixed(1)}pt;}
+.gcard{border:0.75pt solid #7a8694;border-radius:2pt;padding:3pt 4pt;margin-bottom:${gapPt}pt;}
+.gtitle{text-align:center;font-weight:bold;font-size:${titlePt.toFixed(1)}pt;letter-spacing:2pt;margin:0 0 3pt;}
+.ginfo{margin:0 0 3pt;}
+table{border-collapse:collapse;width:100%;}
+th,td{border:0.5pt solid #000;padding:1pt 2pt;text-align:center;}
+th{background:#eef2f7;font-weight:bold;}
+.gdim{font-size:${(fsPt * 0.85).toFixed(1)}pt;color:#5c6b7d;}
+</style>
+</head>
+<body><div class="WordSection1">${pagesHtml}</div></body>
+</html>`;
+  const blob = new Blob(['\ufeff' + doc], { type: 'application/msword;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '成绩条_' + students.length + '人_' + includedExams().map(e => e.examName).join('-') + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 600);
+  toast('已导出 Word 文件，可用 Word / WPS 打开打印', 'ok');
+};
+
+/* ---------- 导出 Excel（.xlsx，总名单 + 每场考试 + 跨考试对比） ---------- */
+App.exportExcel = function(){
+  if (!window.XLSX){ toast('Excel 解析库未加载，请检查网络后重试', 'error'); return; }
+  const students = state.students.filter(s => !state.removed[s.key]);
+  const exams = includedExams();
+  if (!students.length){ toast('没有可导出的学生', 'error'); return; }
+  const safeName = n => (String(n).replace(/[\\\/\?\*\[\]:]/g, '').slice(0, 30)) || 'Sheet';
+  const val = v => (v === null || v === undefined) ? '' : v;
+  const wb = XLSX.utils.book_new();
+
+  // 1. 总名单
+  const roster = [['姓名', '班级', '学号', '参与的考试']];
+  students.forEach(s => {
+    roster.push([s.name, s.cls, s.sid, exams.filter(e => s.examIds.includes(e.id)).map(e => e.examName).join('、')]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(roster), '总名单');
+
+  // 2. 每场考试一个工作表（该场考试的全部识别成绩）
+  exams.forEach(ex => {
+    const head = ['姓名', '班级', '学号'];
+    ex.subjects.forEach(s => head.push(s + '成绩', s + '排名'));
+    if (ex.hasTotal) head.push('总分');
+    if (ex.hasTotalRank) head.push('总排名');
+    if (ex.hasDisc) head.push('折后成绩');
+    if (ex.hasDiscRank) head.push('折后排名');
+    if (ex.hasClassRank) head.push('班级排名');
+    const rows = [head];
+    ex.students.forEach(rec => {
+      const row = [rec.name, rec.cls, rec.sid];
+      ex.subjects.forEach(s => row.push(val(rec.scores[s]), val(rec.ranks[s])));
+      if (ex.hasTotal) row.push(val(rec.total));
+      if (ex.hasTotalRank) row.push(val(rec.totalRank));
+      if (ex.hasDisc) row.push(val(rec.disc));
+      if (ex.hasDiscRank) row.push(val(rec.discRank));
+      if (ex.hasClassRank) row.push(val(rec.classRank));
+      rows.push(row);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), safeName(ex.examName));
+  });
+
+  // 3. 跨考试对比（确认名单学生 × 各考试总分/总排名 + 各科成绩/排名）
+  const subs = unionSubjects();
+  const head = ['姓名', '班级', '学号', '参与考试数'];
+  exams.forEach(ex => {
+    if (ex.hasTotal) head.push('总分·' + ex.examName);
+    if (ex.hasTotalRank) head.push('总排名·' + ex.examName);
+    if (ex.hasDisc) head.push('折后成绩·' + ex.examName);
+    if (ex.hasDiscRank) head.push('折后排名·' + ex.examName);
+  });
+  subs.forEach(s => exams.forEach(ex => head.push(s + '成绩·' + ex.examName, s + '排名·' + ex.examName)));
+  const rows = [head];
+  students.forEach(stu => {
+    const row = [stu.name, stu.cls, stu.sid, stu.examIds.length];
+    exams.forEach(ex => {
+      const rec = ex.byKey[stu.key];
+      if (ex.hasTotal) row.push(rec ? val(rec.total) : '');
+      if (ex.hasTotalRank) row.push(rec ? val(rec.totalRank) : '');
+      if (ex.hasDisc) row.push(rec ? val(rec.disc) : '');
+      if (ex.hasDiscRank) row.push(rec ? val(rec.discRank) : '');
+    });
+    subs.forEach(s => exams.forEach(ex => {
+      const rec = ex.byKey[stu.key];
+      row.push(rec ? val(rec.scores[s]) : '', rec ? val(rec.ranks[s]) : '');
+    }));
+    rows.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), '跨考试对比');
+
+  const fname = '成绩数据_' + students.length + '人_' + exams.map(e => e.examName).join('-').replace(/[\\\/:*?"<>|]/g, '_') + '.xlsx';
+  XLSX.writeFile(wb, fname);
+  toast('已导出 Excel 文件（总名单 + 各考试 + 跨考试对比）', 'ok');
+};
+
+/* ---------- 导出拼接总表（单页大表：按学生横向拼接全部考试成绩） ---------- */
+App.exportMerged = function(){
+  if (!window.XLSX){ toast('Excel 解析库未加载，请检查网络后重试', 'error'); return; }
+  const students = state.students.filter(s => !state.removed[s.key]);
+  const exams = includedExams();
+  if (!students.length){ toast('没有可导出的学生', 'error'); return; }
+  const val = v => (v === null || v === undefined) ? '' : v;
+  const head = ['姓名', '班级', '学号'];
+  const cols = []; // {exam, label, get(rec)}
+  exams.forEach(ex => {
+    const P = ex.examName + '·';
+    ex.subjects.forEach(s => {
+      cols.push({ exam: ex, label: P + s + '成绩', get: r => r ? val(r.scores[s]) : '' });
+      cols.push({ exam: ex, label: P + s + '排名', get: r => r ? val(r.ranks[s]) : '' });
+    });
+    if (ex.hasTotal) cols.push({ exam: ex, label: P + '总分', get: r => r ? val(r.total) : '' });
+    if (ex.hasTotalRank) cols.push({ exam: ex, label: P + '总排名', get: r => r ? val(r.totalRank) : '' });
+    if (ex.hasDisc) cols.push({ exam: ex, label: P + '折后成绩', get: r => r ? val(r.disc) : '' });
+    if (ex.hasDiscRank) cols.push({ exam: ex, label: P + '折后排名', get: r => r ? val(r.discRank) : '' });
+    if (ex.hasClassRank) cols.push({ exam: ex, label: P + '班级排名', get: r => r ? val(r.classRank) : '' });
+  });
+  cols.forEach(c => head.push(c.label));
+  const rows = [head];
+  students.forEach(stu => {
+    const row = [stu.name, stu.cls, stu.sid];
+    cols.forEach(c => row.push(c.get(c.exam.byKey[stu.key])));
+    rows.push(row);
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), '拼接总表');
+  const fname = '成绩拼接总表_' + students.length + '人_' + exams.map(e => e.examName).join('-').replace(/[\\\/:*?"<>|]/g, '_') + '.xlsx';
+  XLSX.writeFile(wb, fname);
+  toast('已导出拼接总表（一页，按学生横向拼接全部成绩）', 'ok');
+};
+
+/* ---------- 全局渲染与启动 ---------- */
+function render(){
+  renderTopbar();
+  const v = { import: renderImport, exams: renderExams, compare: renderCompare, format: renderFormat, print: renderPrint }[state.route];
+  if (v) v();
+  const h = $('#savedHint');
+  if (h) h.textContent = '已自动保存';
+}
+function init(){
+  loadState();
+  const r = (location.hash || '').replace('#', '');
+  state.route = STEPS.some(s => s.r === r) ? r : 'import';
+  rebuildStudents();
+  render();
+  loadLibs();
+}
+init();
+</script>
+<script src="../../assets/js/boot.js" data-rg-mode="flow" defer></script>
+</body>
+</html>
