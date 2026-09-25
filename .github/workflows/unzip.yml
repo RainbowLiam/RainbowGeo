@@ -1,0 +1,16 @@
+name: 自动解压站点
+on: [push]
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: 解压并移除zip
+        run: |
+          unzip -o rainbowgeo-root.zip
+          rm rainbowgeo-root.zip
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "自动解压 v1.0"
