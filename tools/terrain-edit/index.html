@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M3 25 L12 9 L17 17 L21 12 L29 25 Z' fill='%235b8a4f'/%3E%3Cpath d='M17 17 L21 12 L25 19 Z' fill='%23e8e6e0'/%3E%3Crect x='3' y='25' width='26' height='4' rx='1' fill='%2385b0dd'/%3E%3C/svg%3E" />
-    <title>3D 超级地形编辑器 V9.32 · 在线试用版 | RainbowGeo（文波地理）</title>
+    <title>3D 超级地形编辑器 V10 · 在线试用版 | RainbowGeo（文波地理）</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -2811,7 +2811,7 @@ input[type="range"] {
                 <p class="u-mt4">🏫 <span class="highlight">RainbowGeo</span> 原创版权所有</p>
                 <p class="u-mt8 u-fs13 u-blue">🤖 AI赋能地理教学成果展示</p>
                 <p class="u-mt8 u-fs13 u-muted3">📧 <span class="u-gold2">rainbowliam@163.com</span></p>
-                <p class="u-mt8 u-fs13 u-muted3">📦 版本: <span class="u-gold2">在线版 V9.32</span> · 更新日期: 2026-09-21</p>
+                <p class="u-mt8 u-fs13 u-muted3">📦 版本: <span class="u-gold2">在线版 V10</span> · 更新日期: 2026-09-21</p>
                 <div class="u-mt12 u-p8-12 u-bg-darker u-r6 u-border-dark u-fs12 u-muted">⚡ 本工具为地理教学辅助软件，仅供教学研究使用<br>🚫 未经 RainbowGeo 授权，禁止商用、转载、二次分发。</div>
                 <div class="u-mt8 u-flex u-gap8 u-flex-wrap">
                     <span class="tag">🌍 地形可视化</span><span class="tag">🗺️ 等高线分析</span>
@@ -2955,7 +2955,7 @@ input[type="range"] {
     <!-- 主控制面板 -->
     <div id="floatingPanel">
         <div id="panelHeader">
-            <h1>⛰️ 3D 超级地形编辑器 <small>在线版 V9.32</small></h1>
+            <h1>⛰️ 3D 超级地形编辑器 <small>在线版 V10</small></h1>
             <div id="panelControls">
                 <button id="gearToggle" class="rotated" title="折叠/展开面板">⚙</button>
                 <button id="closePanel" title="关闭面板">✕</button>
@@ -3877,6 +3877,7 @@ input[type="range"] {
     @keyframes spinReverse{to{transform:rotate(-360deg)}}
     #loader-title{font-size:38px;font-weight:800;letter-spacing:2px;margin-bottom:8px;z-index:1;background:linear-gradient(90deg,#3a6fb5,#4a90e2,#7ab0f0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
     #loader-sub{font-size:16px;color:#7a88aa;margin-bottom:20px;z-index:1}
+  #loader-copy { margin-top: 12px; font-size: 12px; color: rgba(122,136,170,0.75); letter-spacing: 0.5px; user-select: none; }
     /* 沙漏倒计时 */
     #loader-hourglass{display:flex;align-items:center;gap:10px;margin-bottom:20px;z-index:1;background:rgba(74,144,226,0.08);border:1px solid rgba(74,144,226,0.2);padding:8px 22px;border-radius:999px}
     #loader-hourglass .hg-icon{font-size:26px;animation:hgShake 1s ease-in-out infinite}
@@ -3991,7 +3992,8 @@ input[type="range"] {
   <img id="loader-side-icon-right" class="loader-side-icon" alt="" />
   <div id="loader-spinner"></div>
   <div id="loader-title">3D 超级地形编辑器</div>
-  <div id="loader-sub">在线版 V9.32 · 分辨率512 + 程序化纹理/IBL/天空 · 纹理默认关</div>
+  <div id="loader-sub">在线版 V10 · 分辨率512 + 程序化纹理/IBL/天空 · 纹理默认关</div>
+  <div id="loader-copy">© 2026 RainbowGeo（文波地理）版权所有</div>
   <div id="loader-hourglass"><span class="hg-icon">⏳</span><span class="hg-num" id="hg-count">3</span><span style="font-size:24px;color:#7a88aa;">s</span></div>
   <div id="cdn-source-list"></div>
   <div id="loader-progress-wrap"><div id="cdn-progress"></div></div>

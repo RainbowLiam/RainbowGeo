@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RainbowGeo · 文波地理 — 3D 地理教学工具集</title>
-<meta name="description" content="RainbowGeo（文波地理）3D 地理教学工具集：3D 超级地球仪、世界地形图生成器、地形编辑器、成绩条管理系统、座位管理器。在线免费试用。">
+<meta name="description" content="RainbowGeo（文波地理）3D 地理教学工具集：3D 超级地球仪、世界地形图生成器、地形编辑器、成绩条管理系统、座位管理器、课堂点名器。在线免费试用。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%231d4ed8'/%3E%3Cpath d='M15 62c8 10 20 16 35 16s27-6 35-16' stroke='%23f59e0b' stroke-width='7' fill='none'/%3E%3Cpath d='M50 8c-24 0-40 18-40 42 20 4 34-4 40-14 6 10 20 18 40 14 0-24-16-42-40-42z' fill='%2334d399'/%3E%3Cpath d='M12 36c20 6 34 2 38-6M88 36c-20 6-34 2-38-6' stroke='%23fff' stroke-width='3' fill='none'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -79,28 +79,31 @@
   .tools-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
   .tools-head h2 { font-size: 24px; font-weight: 700; }
   .tools-head .en { font-size: 13px; color: var(--ink-low); letter-spacing: 1px; }
-  .tool-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .tool-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
   .tool-card {
     position: relative; display: block; text-decoration: none; color: inherit;
-    background: linear-gradient(180deg, var(--bg-card), var(--bg-panel));
-    border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 24px 18px 20px; overflow: hidden;
+    background: var(--bg-card);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent, #4fc3f7) 13%, var(--bg-card)), var(--bg-panel));
+    border: 1px solid color-mix(in srgb, var(--accent, #4fc3f7) 30%, var(--line));
+    border-radius: var(--radius);
+    padding: 26px 18px 18px; overflow: hidden;
     transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   }
-  .tool-card:hover { transform: translateY(-4px); border-color: rgba(79,195,247,0.5); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
-  .tool-card .accent-line { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent, var(--rainbow)); opacity: 0.85; }
+  .tool-card:hover { transform: translateY(-4px); border-color: var(--accent, #4fc3f7); box-shadow: 0 12px 30px color-mix(in srgb, var(--accent, #4fc3f7) 18%, rgba(0,0,0,0.35)); }
+  .tool-card .accent-line { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent, var(--rainbow)); opacity: 0.9; }
   .tool-icon {
-    width: 46px; height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    background: rgba(79,195,247,0.12); margin-bottom: 14px;
+    width: 68px; height: 68px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--accent, #4fc3f7) 18%, transparent); margin-bottom: 18px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, #4fc3f7) 35%, transparent);
   }
-  .tool-icon svg { width: 26px; height: 26px; stroke: var(--accent, #4fc3f7); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .tool-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-  .tool-card p { font-size: 13px; color: var(--ink-mid); min-height: 40px; }
-  .tool-card .go { margin-top: 14px; font-size: 12px; color: var(--accent, #4fc3f7); display: flex; align-items: center; gap: 4px; }
-  .tool-card .go svg { width: 12px; height: 12px; }
+  .tool-icon svg { width: 36px; height: 36px; stroke: var(--accent, #4fc3f7); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .tool-card h3 { font-size: 21px; font-weight: 800; margin-bottom: 6px; letter-spacing: .3px; }
+  .tool-card p { font-size: 12px; color: var(--ink-low); line-height: 1.5; }
+  .tool-card .go { margin-top: 12px; font-size: 11px; color: var(--ink-low); display: flex; align-items: center; gap: 4px; }
+  .tool-card .go svg { width: 11px; height: 11px; }
   .tool-tag {
-    position: absolute; top: 12px; right: 12px; font-size: 11px; color: var(--ink-low);
-    border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; background: rgba(7,19,32,0.5);
+    position: absolute; top: 12px; right: 12px; font-size: 10px; color: rgba(111,141,176,0.75);
+    border: 1px solid rgba(148,197,255,0.14); border-radius: 999px; padding: 2px 8px; background: rgba(7,19,32,0.5);
   }
 
   /* ===== 说明条 ===== */
@@ -128,9 +131,9 @@
     .tool-grid { grid-template-columns: 1fr; }
     .brand-bar { flex-direction: column; gap: 10px; }
     .hero { padding: 48px 0 36px; }
-    .tool-card p { font-size: 14px; min-height: 0; }
-    .tool-card .go { font-size: 13px; }
-    .notice { font-size: 14px; }
+    .tool-card p { font-size: 13px; }
+    .tool-card .go { font-size: 12px; }
+    .notice { font-size: 13.5px; }
   }
 </style>
 </head>
@@ -163,14 +166,13 @@
     <path d="M40 260 a320 320 0 0 1 640 0" fill="none" stroke="url(#arcG)" stroke-width="10" stroke-linecap="round"/>
     <path d="M96 260 a264 264 0 0 1 528 0" fill="none" stroke="url(#arcG)" stroke-width="6" stroke-linecap="round" opacity=".55"/>
   </svg>
-  <div class="hero-badge"><span class="bar"></span>5 款工具 · 持续更新</div>
+  <div class="hero-badge"><span class="bar"></span>6 款工具 · 持续更新</div>
   <h1>让地理教学<span class="ra">立体可见</span></h1>
-  <p class="sub">RainbowGeo（文波地理）为课堂打造的可视化工具集：三维地球、地形生成与编辑、教学管理工具，全部浏览器在线使用。</p>
+  <p class="sub">六款地理教学工具，浏览器即开即用。</p>
   <div class="meta">
-    <span><b>5</b> 款教学工具</span>
-    <span><b>100%</b> 浏览器运行</span>
+    <span><b>6</b> 款教学工具</span>
     <span><b>0</b> 安装成本</span>
-    <span><b>∞</b> 教学场景</span>
+    <span><b>在线</b> 免费试用</span>
   </div>
 </section>
 
@@ -186,7 +188,7 @@
       <span class="accent-line"></span><span class="tool-tag">3D 演示</span>
       <span class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.6 3.5 14.4 0 18M12 3c-3.5 3.6-3.5 14.4 0 18"/></svg></span>
       <h3>3D 超级地球仪</h3>
-      <p>昼夜、晨昏线、经纬网、公转与标注联动的三维地球模型。</p>
+      <p>昼夜、晨昏线、公转演示</p>
       <span class="go">进入试用 <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
 
@@ -194,7 +196,7 @@
       <span class="accent-line"></span><span class="tool-tag">3D 演示</span>
       <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 5 4-7 5 8"/><path d="M3 21h18"/></svg></span>
       <h3>3D 世界地形图生成器</h3>
-      <p>基于真实高程数据的全球地形可视化与智能 LOD 加载。</p>
+      <p>全球地形可视化，智能 LOD 加载</p>
       <span class="go">进入试用 <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
 
@@ -202,7 +204,7 @@
       <span class="accent-line"></span><span class="tool-tag">3D 演示</span>
       <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.5"/></svg></span>
       <h3>3D 超级地形编辑器</h3>
-      <p>实时抬升、雕刻与平滑的三维地形编辑沙盘。</p>
+      <p>三维地形实时雕刻与编辑</p>
       <span class="go">进入试用 <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
 
@@ -210,7 +212,7 @@
       <span class="accent-line"></span><span class="tool-tag">教学管理</span>
       <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 10h16M8 6.5v3M12 6.5v3M16 6.5v3M8 14l3 3 5-6"/></svg></span>
       <h3>学生成绩条管理系统</h3>
-      <p>成绩条批量生成、编辑与导出的班级管理工具。</p>
+      <p>成绩条批量生成与导出</p>
       <span class="go">进入试用 <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
 
@@ -218,18 +220,25 @@
       <span class="accent-line"></span><span class="tool-tag">教学管理</span>
       <span class="tool-icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="7" height="7" rx="1"/><rect x="13" y="3" width="7" height="7" rx="1"/><rect x="4" y="14" width="7" height="7" rx="1"/><rect x="13" y="14" width="7" height="7" rx="1"/></svg></span>
       <h3>超级座位管理器 v2.0</h3>
-      <p>教室座位智能编排、调整与快速导出。</p>
+      <p>座位智能编排与调整</p>
+      <span class="go">进入试用 <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="tool-card" href="tools/roll-call/index.html" style="--accent:#ff5f56">
+      <span class="accent-line"></span><span class="tool-tag">教学管理</span>
+      <span class="tool-icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg></span>
+      <h3>课堂点名器</h3>
+      <p>4 种风格 + 走马灯，随机点名</p>
       <span class="go">进入试用 <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
 
   </div>
 
   <div class="notice">
-    <b>关于本平台：</b>以上为在线试用版，仅需浏览器即可运行，用于课堂教学评估与体验。<br>
+    <b>在线试用版：</b>浏览器即开即用，用于课堂评估体验。<br>
     <div class="tips">
-      <span><i>●</i> 全部工具离线数据优先本地，加载即用</span>
-      <span><i>●</i> 移动端与桌面端均已适配</span>
-      <span><i>●</i> 各工具离线单文件版为商业授权产品，另有合作方式</span>
+      <span><i>●</i> 离线单文件版为商业授权产品</span>
+      <span><i>●</i> 合作联系 rainbowliam@163.com</span>
     </div>
   </div>
 </section>
@@ -237,8 +246,7 @@
 <!-- ===== 版权栏（品牌占位：版权信息） ===== -->
 <footer class="copyright wrap">
   <div class="brand-line">© 2026 <b>RainbowGeo</b>（文波地理） · 保留所有权利</div>
-  <div>本页面与全部工具为在线试用版本，离线单文件版商业授权请联系：<b style="color:var(--ink-hi)">brand@rainbowgeo.example</b></div>
-  <div class="lic">RainbowGeo is a placeholder brand for evaluation. All tools are provided as-is for trial use.</div>
+  <div>在线试用版 · 商业授权请联系 <b style="color:var(--ink-hi)">rainbowliam@163.com</b></div>
 </footer>
 
 </body>

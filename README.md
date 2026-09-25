@@ -1,6 +1,6 @@
 # RainbowGeo（文波地理）· 3D 地理教学工具集
 
-在线试用站（GitHub Pages）：5 款地理教学工具，浏览器直接运行，无需安装。
+在线试用站（GitHub Pages）：6 款地理教学工具，浏览器直接运行，无需安装。
 
 - **品牌**：RainbowGeo（英文主） · 文波地理（中文名，版权信息中注明）
 - **性质**：在线试用版，仅用于课堂教学评估与体验
@@ -15,6 +15,7 @@
 | 3D 超级地形编辑器 | `tools/terrain-edit/` | 实时抬升、雕刻与平滑的三维地形编辑沙盘 |
 | 学生成绩条管理系统 | `tools/grades/` | 成绩条批量生成、编辑与 Word 导出 |
 | 超级座位管理器 v2.0 | `tools/seats/` | 教室座位智能编排、调整与导出 |
+| 课堂点名器 v1.2 | `tools/roll-call/` | 4 种风格 + 走马灯，Excel 导入名单随机点名 |
 
 ## 目录结构
 
@@ -31,6 +32,7 @@ rainbowgeo/
     ├── terrain-edit/index.html
     ├── grades/index.html
     ├── seats/index.html
+    ├── roll-call/index.html
     └── _demo/                 # 共享层接入示例（非站点内容）
 ```
 
@@ -73,6 +75,7 @@ rainbowgeo/
 - 在线版库通过 CDN 加载（three.js / SheetJS / ECharts，jsDelivr 等多源），有网优先联网
 - 地形生成器的地形 PNG 外置懒加载：首屏体积 5.51 MB → 0.59 MB
 - 共享层（`assets/`）统一注入品牌栏 + 版权栏 + 试用水印，`window.RainbowGeo` 命名空间可供工具页调用
+- 3D 工具为 overlay 悬浮模式，页面工具为 flow 流式模式；加载页均已标注 `© 2026 RainbowGeo（文波地理）版权所有`
 - 在线版为模块化结构，不可直接"另存为单文件"使用；离线单文件版为独立出售产品
 
 ## 版权声明
