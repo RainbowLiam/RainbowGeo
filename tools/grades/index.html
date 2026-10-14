@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>学生成绩条管理系统 · 在线试用版 | RainbowGeo（文波地理）</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f5d8a'/%3E%3Crect x='11' y='34' width='11' height='19' rx='2' fill='%23ffffff'/%3E%3Crect x='26' y='22' width='11' height='31' rx='2' fill='%23ffffff'/%3E%3Crect x='41' y='12' width='11' height='41' rx='2' fill='%23ffffff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#ffffff" opacity=".14"/><rect x="11" y="34" width="11" height="19" rx="2" fill="#fff"/><rect x="26" y="22" width="11" height="31" rx="2" fill="#fff"/><rect x="41" y="12" width="11" height="41" rx="2" fill="#fff"/></svg>
+      <div>
+        <div class="brand-name">学生成绩条管理系统</div>
+        <div class="brand-sub">多场考试成绩关联 · 成绩条排版 · Word 导出打印</div>
+      </div>
+    </div>
+    <nav class="steps" id="steps" aria-label="流程步骤"></nav>
+    <div class="top-tools">
+      <span class="saved-hint" id="savedHint">进度自动保存在本机</span>
+      <button class="btn small" style="border-color:rgba(255,255,255,.25);color:#dfe9f3;background:transparent" onclick="App.resetAll()">清空数据</button>
+    </div>
+  </header>
+  <main id="main" class="wrap"></main>
+  <footer class="app-footer">© RainbowGeo · 超级成绩管理器 v1.0</footer>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="js/app.js"></script>
+<script src="../../assets/js/boot.js" data-rg-mode="flow" defer></script>
+</body>
+</html>

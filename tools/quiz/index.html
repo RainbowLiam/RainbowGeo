@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>答题竞技场 V3.0 · 课堂互动答题工具 · 在线试用版 | RainbowGeo（文波地理）</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230C1120'/%3E%3Cpath d='M16 6l2.4 6.1L24.5 14l-4.6 3.5 1.4 6.3L16 20.4l-5.3 3.4 1.4-6.3L7.5 14l6.1-1.9z' fill='%23FFC53D'/%3E%3Cpath d='M16 6v14.4m0-3.9l4.6 3.4m-4.6-3.4l-4.6 3.4' stroke='%2343C6FF' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+
+<!-- ============================================================
+     顶栏
+     ============================================================ -->
+<header class="header">
+  <div class="brand" id="btnBrand" title="关于 RainbowGeo" role="button" tabindex="0">
+    <span class="brand-text">RainbowGeo</span>
+  </div>
+  <nav class="nav" aria-label="主导航">
+    <button class="nav-item active" data-nav="lobby">模式大厅</button>
+    <button class="nav-item" data-nav="bank">题库管理</button>
+  </nav>
+  <div class="header-right">
+    <div class="bank-chip"><span>题库</span><b class="num" id="chipCount">0</b><span>题</span></div>
+    <button class="icon-btn" id="btnTheme" title="切换亮色 / 深色主题" aria-label="切换主题"></button>
+    <button class="icon-btn" id="btnMute" title="音效开关" aria-label="音效开关">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.4 5.6a9 9 0 0 1 0 12.8"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ============================================================
+       视图：模式大厅
+       ============================================================ -->
+  <section id="view-lobby" class="view active">
+    <div class="hero">
+      <div class="hero-badge">🎮 RainbowGeo · 课堂互动</div>
+      <h1 class="hero-title">答题<span class="rainbow">竞技场</span><em>V3.0</em></h1>
+      <p class="hero-sub">单人挑战 · 限时冲刺 · 双人对战 · 抢答擂台 —— 让随堂测验变成一场热闹的比赛</p>
+      <div class="hero-tips">
+        <span>📥 Excel / Word / PPT 一键导入</span>
+        <span>📤 JSON 题库双向备份</span>
+        <span>🎨 亮 / 暗双主题</span>
+      </div>
+    </div>
+    <div class="lobby-main">
+      <div class="lobby-left">
+        <div class="group-divider"><span>🎮 单人模式</span></div>
+        <div class="mode-grid" id="modeGrid"></div>
+        <div class="group-divider"><span>⚔️ 双人对战</span></div>
+        <div class="mode-grid" id="modeGridDuo"></div>
+      </div>
+      <div class="config-wrap">
+        <div class="config-panel" id="configPanel"></div>
+        <aside class="panel-empty" id="panelEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/><path d="M12 7v5l3 3"/></svg>
+          <div>选择左侧任一模式，<br>在这里调整题目范围、计时、分值等参数</div>
+          <div class="act">
+            <button class="btn btn-ghost" data-goto="bank">先去导入题目</button>
+            <button class="btn btn-ghost" id="btnSampleBank">载入示例题库</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+     视图：题库管理
+     ============================================================ -->
+  <section id="view-bank" class="view">
+    <div class="view-head">
+      <h1>题库管理</h1>
+      <p>题目按「题组」分组管理：可多选 JSON 文件导入（每个文件自动生成一个题组），Excel / Word / PPT 导入到当前题组；支持题组切换、合并、删除，以及导出全部或当前题组。</p>
+    </div>
+
+    <div class="group-bar">
+      <div class="glabel"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>题组</div>
+      <div class="group-tabs" id="groupTabs"></div>
+      <div class="group-ops">
+        <button class="btn" id="btnAddGroup"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>新题组</button>
+        <button class="btn" id="btnMergeGroup"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><path d="M12 8v8M8 12h8"/></svg>合并题组</button>
+        <button class="btn btn-ghost" id="btnDelGroup" style="color:var(--danger,#FF5C5C)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>删除题组</button>
+      </div>
+    </div>
+
+    <div class="bank-stats">
+      <div class="stat-card"><div class="ic" style="--sc:#FFC53D"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="txt"><div class="n num" id="statTotal">0</div><div class="l">题目总数</div></div></div>
+      <div class="stat-card"><div class="ic" style="--sc:#43C6FF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10a3 3 0 1 1 6 0c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg></div><div class="txt"><div class="n num" id="statSingle">0</div><div class="l">单选</div></div></div>
+      <div class="stat-card"><div class="ic" style="--sc:#A78BFF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h.01M12 12h.01M16 12h.01"/><path d="M21 12c0 4.5-4.03 8-9 8-1.1 0-2.2-.17-3.2-.5L4 21l1.6-4.2C4.5 15.6 4 13.9 4 12c0-4.5 4.03-8 9-8s9 3.5 9 8z"/></svg></div><div class="txt"><div class="n num" id="statMulti">0</div><div class="l">多选</div></div></div>
+      <div class="stat-card"><div class="ic" style="--sc:#3AD29F"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="txt"><div class="n num" id="statOther">0</div><div class="l">判断/填空</div></div></div>
+    </div>
+
+    <div class="bank-panels">
+      <!-- 面板一：导入 -->
+      <div class="panel-card" id="dropZone">
+        <div class="pc-head"><span class="pc-ic imp">📥</span><h3>导入题目</h3></div>
+        <p class="pc-s">拖拽文件到此处，或点击按钮选择。识别 Excel / Word / PPT 中的题目文本，多个 JSON 自动各成一个题组。</p>
+        <button class="btn btn-primary" id="btnImportFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>选择文件导入</button>
+      </div>
+      <!-- 面板二：导出 -->
+      <div class="panel-card">
+        <div class="pc-head"><span class="pc-ic exp">📤</span><h3>导出备份</h3></div>
+        <p class="pc-s">把题库存为 JSON 文件，下次可一键导入复原。</p>
+        <div class="pc-btns">
+          <button class="btn btn-cyan" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5"/><path d="M12 3v12"/></svg>导出当前题组</button>
+          <button class="btn" id="btnExportAll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5"/><path d="M12 3v12"/><path d="M3 18h18"/></svg>导出全部题组</button>
+        </div>
+      </div>
+      <!-- 面板三：数据维护 -->
+      <div class="panel-card danger">
+        <div class="pc-head"><span class="pc-ic main">🧹</span><h3>数据维护</h3></div>
+        <p class="pc-s">清空当前题组内的全部题目（题组本身保留）。此操作不可恢复，请先导出备份。</p>
+        <button class="btn btn-ghost danger" id="btnClearBank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>清空题组</button>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.docx,.pptx,.json" multiple hidden>
+    </div>
+
+    <div class="bank-toolbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" class="text-input" id="bankSearch" placeholder="搜索题干关键词…">
+      </div>
+      <select class="text-input" id="typeFilter" style="width:132px">
+        <option value="all">全部题型</option>
+        <option value="single">单选</option>
+        <option value="multiple">多选</option>
+        <option value="judge">判断</option>
+        <option value="fill">填空/简答</option>
+      </select>
+      <button class="btn" id="btnAddManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>手动添加题目</button>
+    </div>
+    <div class="qlist" id="qList"></div>
+  </section>
+</main>
+
+<!-- ============================================================
+     游戏舞台
+     ============================================================ -->
+<div id="stage">
+  <div class="stage-top">
+    <button class="back-btn" id="btnExitStage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>退出游戏</button>
+    <div class="mode-chip" id="stageModeChip"></div>
+    <div class="stage-progress">
+      <span class="num" id="stageProgText">0 / 0</span>
+      <div class="bar"><i id="stageProgBar"></i></div>
+    </div>
+    <div class="stage-score"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg><span class="num" id="stageScore">0</span></div>
+    <button class="theme-btn icon-btn" id="btnThemeStage" title="切换亮色 / 深色主题" aria-label="切换主题"></button>
+  </div>
+  <div class="stage-body">
+    <div class="duel-top" id="duelTop" style="display:none"></div>
+    <!-- 双人分屏容器 -->
+    <div class="split-wrap" id="splitWrap">
+      <div class="split-shared" id="splitShared" style="display:none">
+        <div class="q-main">
+          <div class="q-no"><span class="num" id="spQIndex"></span><span class="t-type" id="spQType"></span></div>
+          <div class="q-title" id="spQTitle"></div>
+        </div>
+        <div class="sp-ctl" id="spCtl">
+          <button class="ctl-btn" id="spBtnPause" title="暂停游戏"><span>⏸️</span><i>暂停</i></button>
+          <button class="ctl-btn ctl-amber" id="spBtnReveal" title="公布答案"><span>💡</span><i>公布</i></button>
+          <button class="ctl-btn ctl-ghost" id="spBtnSkip" title="跳过本题"><span>⏭️</span><i>跳过</i></button>
+        </div>
+        <div class="mini-ring" id="spMiniRing">
+          <svg viewBox="0 0 76 76"><circle class="tr" cx="38" cy="38" r="32"/><circle class="fg" id="spMiniFg" cx="38" cy="38" r="32" stroke-dasharray="201.1" stroke-dashoffset="0"/></svg>
+          <div class="n num" id="spMiniNum">15</div>
+        </div>
+      </div>
+      <div class="split-grid" id="splitGrid"></div>
+    </div>
+    <div class="qzone" id="qzone">
+      <div class="timer-wrap" id="timerWrap">
+        <div class="timer-ring" id="timerRing">
+          <svg viewBox="0 0 110 110"><circle class="track" cx="55" cy="55" r="48"/><circle class="fg" id="timerFg" cx="55" cy="55" r="48" stroke-dasharray="301.6" stroke-dashoffset="0"/></svg>
+          <div class="num"><b id="timerNum">10</b><span>秒</span></div>
+        </div>
+        <div class="total-bar" id="totalBar" style="display:none">
+          <div class="lb"><span>总时长</span><b class="num" id="totalLeft">02:00</b></div>
+          <div class="track"><div class="fill" id="totalFill"></div></div>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-no"><span class="num" id="qIndex">第 1 题</span><span class="t-type" id="qType"></span></div>
+        <div class="q-title" id="qTitle"></div>
+        <div class="options" id="options"></div>
+        <div class="fill-box" id="fillBox" style="display:none">
+          <input type="text" class="text-input num" id="fillInput" placeholder="输入你的答案…" autocomplete="off">
+          <button class="btn btn-primary" id="fillSubmit" style="align-self:flex-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>提交答案</button>
+          <div class="fill-ans" id="fillAns"></div>
+        </div>
+      </div>
+      <div class="buzz-row" id="buzzRow" style="display:none"></div>
+      <div class="buzz-hint" id="buzzHint" style="display:none"></div>
+    </div>
+    <div class="stage-nav left" id="stageNavPrev"><button id="btnPrevQ"><span>⏮️</span>上一题</button></div>
+    <div class="stage-nav right" id="stageNavNext"><button id="btnNextQ">下一题<span>⏭️</span></button></div>
+    <div id="feedback"></div>
+    <div id="resultView"></div>
+    <div id="explainView">
+      <div class="ex-head">
+        <h3>📖 讲解模式</h3>
+        <div class="ex-sub">点击题号跳转讲解，直接展示正确答案</div>
+        <button class="close" id="btnExplainClose" title="返回结算">✕</button>
+      </div>
+      <div class="ex-main">
+        <div class="ex-nav" id="exNav"></div>
+        <div class="ex-side">
+          <div class="ex-body" id="exBody"></div>
+          <div class="ex-foot">
+            <button class="btn" id="exPrev">← 上一题</button>
+            <button class="btn btn-primary" id="exNext">下一题 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="pauseMask">
+      <h3>⏸️ 已暂停</h3>
+      <div class="acts">
+        <button class="btn btn-primary" id="btnResume"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l14 8-14 8z"/></svg>继续游戏</button>
+        <button class="btn" id="btnRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>重新开始</button>
+        <button class="btn btn-danger" id="btnQuitPause">退出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     导入预览弹窗
+     ============================================================ -->
+<div class="modal-mask" id="previewModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 8v4l3 3"/></svg>导入预览 · 确认题目识别结果</h3>
+      <button class="icon-btn" id="previewClose" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body"><div class="preview-list" id="previewList"></div></div>
+    <div class="modal-foot">
+      <div class="preview-bar"><span>识别到</span> <b class="num" id="previewCount">0</b> 题，勾选需要导入的题目</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" id="previewCancel">取消</button>
+        <button class="btn btn-primary" id="previewConfirm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>确认导入</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     导入失败 / 无法识别 信息弹窗
+     ============================================================ -->
+<div class="modal-mask" id="importFailModal">
+  <div class="modal modal-narrow">
+    <div class="modal-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>导入失败 · 无法识别题目</h3>
+      <button class="icon-btn" id="failClose" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="fail-list" id="failList"></div>
+      <div class="fail-partial" id="failPartial" style="display:none"></div>
+      <p class="fail-hint">可重新选择其它文件重试，或放弃本次导入。</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="failAbort">放弃导入</button>
+      <button class="btn" id="failRetry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>重新选择文件</button>
+      <button class="btn btn-primary" id="failContinue" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>查看成功题目</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     RainbowGeo 品牌弹窗
+     ============================================================ -->
+<div class="modal-mask" id="brandModal">
+  <div class="brand-panel">
+    <div class="bp-hero">
+      <span class="bp-rainbow">RainbowGeo</span>
+      <div class="bp-slogan">让学习像游戏一样有趣</div>
+    </div>
+    <div class="bp-body">
+      <div class="bp-intro">RainbowGeo 是一个课堂互动答题竞技场：支持 Excel / Word 题库一键导入、多种对战模式、抢答擂台与拼图玩法，让随堂测验变成一场热闹的比赛。</div>
+      <div class="bp-row"><span class="bp-ic">📮</span><div>联系方式：<b>rainbowgeo@qq.com</b></div></div>
+      <div class="bp-row"><span class="bp-ic">🧩</span><div>版本：V3.0 · 单文件 · 离线可用</div></div>
+      <div class="bp-copy">© 2026 RainbowGeo · 保留所有权利</div>
+    </div>
+    <button class="bp-close" id="btnBrandClose">关闭</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     手动添加题目弹窗
+     ============================================================ -->
+<div class="modal-mask" id="mergeModal">
+  <div class="modal" style="width:min(460px,100%)">
+    <div class="modal-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><path d="M12 8v8M8 12h8"/></svg>合并题组</h3>
+      <button class="icon-btn" id="mergeClose" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 14px;color:var(--text-2);font-size:13.5px;line-height:1.6">当前题组 <b style="color:var(--amber-2)" id="mergeCurName"></b> 将并入下列目标题组，合并后当前题组会被删除：</p>
+      <div class="merge-list" id="mergeList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-mask" id="manualModal">
+  <div class="modal" style="width:min(640px,100%)">
+    <div class="modal-head">
+      <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>手动添加题目</h3>
+      <button class="icon-btn" id="manualClose" title="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="fields" style="gap:14px">
+        <div class="field">
+          <label>题型</label>
+          <select class="text-input" id="mType">
+            <option value="single">单选</option>
+            <option value="multiple">多选</option>
+            <option value="judge">判断</option>
+            <option value="fill">填空 / 简答</option>
+          </select>
+        </div>
+        <div class="field"><label>题干</label><textarea class="text-input" id="mQ" placeholder="输入题目内容…"></textarea></div>
+        <div class="field" id="mOptsField"><label>选项（每行一个，自动编号 A / B / C）</label><textarea class="text-input opts-in" id="mOpts" placeholder="选项一&#10;选项二&#10;选项三&#10;选项四"></textarea></div>
+        <div class="field"><label>答案 <span style="color:var(--text-3);font-weight:400">单选填字母如 A；多选填 AB；判断填「对/错」；填空填参考答案</span></label><input type="text" class="text-input num" id="mAns" placeholder="A"></div>
+        <div class="field"><label>解析（可选）</label><textarea class="text-input" id="mAna" placeholder="讲解本题的知识点…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="preview-bar">添加后立即进入题库</div>
+      <button class="btn btn-primary" id="manualSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>保存题目</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<canvas id="confetti"></canvas>
+
+</main>
+
+<!-- 解析库：SheetJS（Excel）+ mammoth（Word）+ JSZip（PPT），jsDelivr 主源、cdnjs 兜底 -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';"></script>
+
+<script src="js/app.js"></script>
+  <script src="../../assets/js/boot.js" data-rg-mode="overlay" defer></script>
+</body>
+</html>
+<!-- （注：内容由AI生成） -->

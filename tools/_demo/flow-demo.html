@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>共享层 Demo · flow 模式（模拟普通页面工具）</title>
+<link rel="stylesheet" href="../../assets/css/app.css">
+<style>
+  /* 模拟工具页自身样式 */
+  html, body { margin: 0; background: #f4f7fb; color: #1f3247; }
+  .demo-body { max-width: 760px; margin: 0 auto; padding: 40px 24px 60px; font: 15px/1.9 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif; }
+  .demo-body h1 { font-size: 26px; margin-bottom: 10px; }
+  .demo-body p { color: #4a5f76; }
+</style>
+</head>
+<body>
+<div class="demo-body">
+  <h1>模拟普通页面工具（流式布局）</h1>
+  <p>共享层以 flow 模式注入：品牌条固定在页面顶部流式占位，版权条在页面底部，随内容自然滚动，不遮挡任何交互元素。</p>
+  <p>品牌配置可在引用前通过 <code>window.RAINBOWGEO_BRAND</code> 覆盖；右上角 × 可关闭并记忆。</p>
+</div>
+<script>
+  // 工具页自定义示例：版本号自动读 window.APP_VERSION
+  window.APP_VERSION = 'V2.0';
+</script>
+<script src="../../assets/js/boot.js" data-rg-mode="flow" defer></script>
+</body>
+</html>

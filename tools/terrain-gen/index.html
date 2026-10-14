@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D世界地形图生成器 v2.0 · 在线试用版 | RainbowGeo（文波地理）</title>
+    <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+
+    <!-- ===== 标题框 ===== -->
+    <div id="info">
+        <h1>🗺️ <span>世界</span> 地形</h1>
+        <div class="scheme-name" id="scheme-display">🎨 经典</div>
+        <div class="stats" id="stats-display">⏳ 加载中...</div>
+        <div class="lod-status" id="lod-status">
+            <span class="dot"></span>
+            <span id="lod-text">检测到聚焦省份...</span>
+        </div>
+    </div>
+
+    <!-- ===== 版本号 - 左下角 ===== -->
+    <div id="version-info">
+        <span class="version-num">V0.5</span>
+        <span class="version-time" id="version-time">2026-09-03 15:30</span>
+    </div>
+
+    <!-- ===== 版权标注 - 右上角 ===== -->
+    <div id="copyright-info">
+        <span class="gradient-text">RainbowGeo</span>
+    </div>
+
+    <!-- ===== 版权弹窗 ===== -->
+    <div id="copyright-modal">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-box">
+            <button class="modal-close" id="modal-close">✕</button>
+            <div class="modal-icon">📚</div>
+            <div class="modal-title">
+                <span class="highlight">RainbowGeo</span>
+            </div>
+            <div class="modal-body">
+                <p><span class="org">RainbowGeo 版权所有</span></p>
+                <p style="margin-top:8px;">
+                    <span class="tag">原创版权所有</span>
+                    <span class="tag">AI赋能地理教学案例展示</span>
+                </p>
+                <hr class="modal-divider">
+                <p class="email">📧 rainbowgeo@qq.com</p>
+                <p style="font-size:0.7rem;color:#ffcf5c;margin-top:8px;">⚠️ 未经 RainbowGeo 授权，禁止商用、转载、二次分发。</p>
+                <p style="font-size:0.6rem;opacity:0.4;margin-top:8px;letter-spacing:2px;">
+                    3D地形可视化 · 智能LOD加载
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-close-modal" id="modal-btn-close">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 上传面板 ===== -->
+    <div id="upload-panel">
+        <span class="icon">🗺️</span>
+        <h2>3D 地形可视化</h2>
+        <div class="sub">导入数据 或 选择示例</div>
+        
+        <!-- 示例按钮 -->
+        <div class="example-group">
+            <button class="example-btn" id="btn-world">
+                <span class="icon-lg">🌍</span>
+                世界地形
+                <span class="badge">带标注</span>
+            </button>
+            <button class="example-btn" id="btn-china">
+                <span class="icon-lg">🇨🇳</span>
+                中国地形
+                <span class="badge">裁剪区域</span>
+            </button>
+        </div>
+        
+        <div style="margin: 4px 0 8px 0; font-size:0.7rem; opacity:0.3; letter-spacing:1px;">— 或 —</div>
+        
+        <!-- 导入按钮行 -->
+        <div class="btn-row">
+            <label for="file-input" class="btn">
+                <span class="icon-lg">🖼️</span> 导入图片
+            </label>
+            <label for="geojson-input" class="btn btn-geojson">
+                <span class="icon-lg">📊</span> 导入GeoJSON
+            </label>
+        </div>
+        
+        <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp">
+        <input type="file" id="geojson-input" accept=".geojson,.json">
+        
+        <div class="hint">拖拽图片到此处 · 支持 PNG / JPG · GeoJSON需含高程字段</div>
+    </div>
+
+    <!-- ===== 加载遮罩 ===== -->
+    <div id="profile-panel">
+        <div class="profile-header" id="profile-header">
+            <div class="profile-title" id="profile-title">36°N 黄河剖面 · 西高东低 三级阶梯（示意换算）</div>
+            <button id="profile-close-btn" title="关闭剖面面板">×</button>
+        </div>
+        <canvas id="profile-canvas" width="480" height="160"></canvas>
+        <div id="profile-resize" title="拖动调整大小"></div>
+    </div>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="load-text" id="load-text">⏳ 加载示例地形...</div>
+    </div>
+
+    <!-- ===== 状态消息 ===== -->
+    <div id="status-msg">✅ 加载成功</div>
+    <div id="zoom-indicator">🔍 100%</div>
+
+    <!-- ===== 标注模式指示器 ===== -->
+    <div id="label-mode-indicator">🏷️ 标注模式已开启<br><span style="font-size:0.6rem;opacity:0.6;">双击地形添加标注</span></div>
+
+    <!-- ===== 交互提示 ===== -->
+    <div id="interact-hint">
+        🖱 <span class="highlight">左键拖拽</span> 平移 · <span class="highlight">滚轮</span> 缩放 · <span class="highlight">右键拖拽</span> 旋转 · <span class="label-hint">🏷️ 双击地形</span> 添加标注
+    </div>
+
+    <!-- ===== 齿轮按钮 ===== -->
+    <button id="toggle-panel-btn" class="pulse">⚙️</button>
+
+    <!-- ===== 控制面板 ===== -->
+    <div id="controls-panel">
+        <div class="panel-header">
+            <span class="panel-title">⚙️ 控制面板</span>
+            <button class="collapse-btn" id="collapse-panel-btn">✕</button>
+        </div>
+        <div class="panel-body" id="panel-body">
+            <!-- 标注开关 -->
+            <div class="control-group">
+                <button class="toggle-label-btn" id="toggle-label-btn">
+                    <span class="status-dot"></span>
+                    <span>🏷️ 标注模式</span>
+                    <span class="key-hint">L</span>
+                    <span id="label-status-text" style="font-weight:600;opacity:0.6;">关闭</span>
+                </button>
+                <div class="hint-text">开启后双击地形可添加标注 · 双击标注可删除</div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- 世界标注字体大小 -->
+            <div class="control-group" id="world-label-size-group">
+                <label>🌍 标注字体大小 <span id="world-label-size-value">16</span></label>
+                <input type="range" id="world-label-size-slider" min="10" max="32" step="1" value="16">
+                <div class="range-labels"><span>小</span><span>16</span><span>大</span></div>
+                <div class="hint-text">仅影响世界地形的大洲/大洋标注</div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label>🔍 LOD精细度 <span id="lod-threshold-value">0.6</span></label>
+                <input type="range" id="lod-threshold-slider" min="0.1" max="2.0" step="0.05" value="0.6">
+                <div class="range-labels"><span>近</span><span>0.6</span><span>远</span></div>
+                <div class="hint-text">阈值越小，越早加载高清省份地形</div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label style="margin-bottom: 4px;">⚡ 快捷操作</label>
+                <div class="quick-actions">
+                    <button class="quick-btn" id="btn-reset-view"><span class="icon">🏠</span>重置视角</button>
+                    <button class="quick-btn" id="btn-top-view"><span class="icon">⬇</span>俯视图</button>
+                    <button class="quick-btn" id="btn-fit-view"><span class="icon">⬛</span>适应屏幕</button>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label>🔬 精细度 <span id="seg-value">200</span></label>
+                <input type="range" id="seg-slider" min="50" max="800" step="10" value="200">
+                <div class="range-labels"><span>粗糙</span><span>200</span><span>精细</span></div>
+                <div class="hint-text">分段数越高 · 细节越丰富 · 性能消耗越大</div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label style="margin-bottom: 4px;">🔄 自动旋转</label>
+                <div class="rotate-controls">
+                    <button class="rotate-btn" id="rotate-left">◀ 左旋</button>
+                    <button class="rotate-btn active" id="rotate-stop">⏸ 停止</button>
+                    <button class="rotate-btn" id="rotate-right">右旋 ▶</button>
+                </div>
+                <div style="margin-top:6px;">
+                    <label>旋转速度 <span id="speed-value">1.0</span></label>
+                    <input type="range" id="speed-slider" min="0.1" max="3.0" step="0.1" value="1.0">
+                    <div class="range-labels"><span>慢</span><span>1.0</span><span>快</span></div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label style="margin-bottom: 4px;">🎨 配色方案</label>
+                <div class="scheme-group" id="scheme-group">
+                    <button class="scheme-btn active" data-scheme="classic">
+                        <div class="preview"><span style="background:#8a6e5a;"></span><span style="background:#b5774a;"></span><span style="background:#d4a76a;"></span><span style="background:#8cb369;"></span><span style="background:#2d8a4e;"></span></div>
+                        经典地形
+                    </button>
+                    <button class="scheme-btn" data-scheme="custom">
+                        <div class="preview" id="custom-preview"><span style="background:#2d8a4e;"></span><span style="background:#8cb369;"></span><span style="background:#d4a76a;"></span><span style="background:#b5774a;"></span><span style="background:#8a6e5a;"></span></div>
+                        自定义
+                    </button>
+                    <button class="scheme-btn" data-scheme="terrace">
+                        <div class="preview"><span style="background:#3f9460;"></span><span style="background:#c8be6e;"></span><span style="background:#d6a05a;"></span><span style="background:#b27a58;"></span></div>
+                        三级阶梯
+                    </button>
+                </div>
+                <div class="custom-colors" id="custom-colors">
+                    <div class="custom-color-picker"><label>0%</label><input type="color" id="c0" value="#2d8a4e"></div>
+                    <div class="custom-color-picker"><label>25%</label><input type="color" id="c1" value="#8cb369"></div>
+                    <div class="custom-color-picker"><label>50%</label><input type="color" id="c2" value="#d4a76a"></div>
+                    <div class="custom-color-picker"><label>75%</label><input type="color" id="c3" value="#b5774a"></div>
+                    <div class="custom-color-picker"><label>100%</label><input type="color" id="c4" value="#8a6e5a"></div>
+                </div>
+                <div class="hint-text">点击颜色块自定义 · 自动应用</div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group" id="mountain-group" style="display:none;">
+                <label style="margin-bottom:4px;">⛰️ 山脉骨架 · 26条走向光带</label>
+                <div class="teach-row">
+                    <button class="dir-btn active" data-dir="全部">全部 <span class="dir-count" id="dir-all-count">0</span></button>
+                    <button class="dir-btn" data-dir="横向">横向 <span class="dir-count" id="dir-h-count">0</span></button>
+                    <button class="dir-btn" data-dir="纵向">纵向 <span class="dir-count" id="dir-v-count">0</span></button>
+                    <button class="dir-btn" data-dir="西北—东南">西北—东南 <span class="dir-count" id="dir-nw-count">0</span></button>
+                    <button class="dir-btn" data-dir="南北走向">南北走向 <span class="dir-count" id="dir-s-count">0</span></button>
+                </div>
+                <div class="teach-row">
+                    <label class="toggle-switch"><input type="checkbox" id="mt-toggle" checked><span class="toggle-slider"></span></label>
+                    <span style="font-size:0.7rem;">显示光带</span>
+                    <button class="quick-btn" id="btn-regrow" style="margin-left:auto;">✨ 重制生长</button>
+                </div>
+                <div class="hint-text">山脉折线按走向分类 · 沿山脊发光生长（教学示意数据）</div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group" id="profile-group" style="display:none;">
+                <label style="margin-bottom:4px;">📐 地形剖面 · 动态剖切</label>
+                <div class="teach-row">
+                    <button class="profile-preset" data-lat="45">45°N 准噶尔</button>
+                    <button class="profile-preset active" data-lat="36">36°N 黄河</button>
+                    <button class="profile-preset" data-lat="30">30°N 长江</button>
+                    <button class="profile-preset" data-lat="22">22°N 珠江</button>
+                </div>
+                <div class="teach-row">
+                    <label style="font-size:0.75rem;">剖切纬度</label>
+                    <span id="profile-lat-value" style="font-weight:600;color:#2b6cb0;font-size:0.75rem;">36.0°N</span>
+                </div>
+                <input type="range" id="profile-lat-slider" min="18" max="54" step="0.5" value="36">
+                <div class="range-labels"><span>18°N</span><span>36°N</span><span>54°N</span></div>
+                <div class="teach-row" style="margin-top:6px;">
+                    <label class="toggle-switch"><input type="checkbox" id="profile-toggle" checked><span class="toggle-slider"></span></label>
+                    <span style="font-size:0.7rem;">显示剖面面板</span>
+                    <label class="toggle-switch" style="margin-left:auto;"><input type="checkbox" id="persp-toggle"><span class="toggle-slider"></span></label>
+                    <span style="font-size:0.7rem;">透视剖面（隐藏一侧）</span>
+                </div>
+                <div class="teach-row" id="clip-side-row">
+                    <span style="font-size:0.7rem;">隐藏侧：</span>
+                    <button class="dir-btn active" id="clip-north-btn">剖切线以南（保留北侧）</button>
+                    <button class="dir-btn" id="clip-south-btn">剖切线以北（保留南侧）</button>
+                </div>
+                <div class="teach-row" id="hidden-style-row">
+                    <span style="font-size:0.7rem;">隐藏侧样式：</span>
+                    <button class="dir-btn active" id="hidden-hide-btn">完全隐藏（真切开）</button>
+                    <button class="dir-btn" id="hidden-ghost-btn">半透明显示</button>
+                </div>
+                <div class="hint-text">三级阶梯示意：第一级&gt;4000m · 第二级1000–2000m · 第三级&lt;500m</div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label>🌊 海拔基准 <span id="bias-value">0.00</span></label>
+                <input type="range" id="bias-slider" min="-0.50" max="0.50" step="0.01" value="0.00">
+            </div>
+            <div class="control-group">
+                <label>⛰️ 地形起伏 <span id="scale-value">0.60</span></label>
+                <input type="range" id="scale-slider" min="-2.00" max="1.00" step="0.01" value="0.60">
+                <div class="range-labels"><span>反向</span><span>0</span><span>增强</span></div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label>🎯 识别阈值 <span id="threshold-value">0.10</span></label>
+                <input type="range" id="threshold-slider" min="0.00" max="0.30" step="0.005" value="0.10">
+                <div class="range-labels"><span>严格</span><span>0.10</span><span>宽松</span></div>
+            </div>
+            <div class="hint-text">灰度值低于阈值 → 透明（无数据区域）</div>
+
+            <hr class="divider">
+
+            <div class="control-group">
+                <label style="margin-bottom: 4px;">🖼️ 背景主题</label>
+                <div class="bg-btn-group">
+                    <button class="bg-btn active" data-bg="light"><span class="dot" style="background:#f5f5f5;border-color:#ccc;"></span>白色</button>
+                    <button class="bg-btn" data-bg="lightblue"><span class="dot" style="background:#c8e6ff;"></span>淡蓝</button>
+                    <button class="bg-btn" data-bg="dark"><span class="dot" style="background:#0a0a1a;"></span>深色</button>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="toggle-row">
+                <label>🔄 反转灰度 <span class="toggle-status" id="invert-status">正常</span></label>
+                <label class="toggle-switch"><input type="checkbox" id="invert-toggle"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="hint-text">开启后：白色→低海拔，黑色→高海拔</div>
+        </div>
+    </div>
+
+
+    <script type="module" src="js/app.js"></script>
+<script src="../../assets/js/boot.js" data-rg-mode="overlay" defer></script>
+</body>
+</html>

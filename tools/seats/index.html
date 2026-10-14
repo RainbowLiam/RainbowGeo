@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>超级座位管理器 v2.0 · 在线试用版 | RainbowGeo（文波地理）</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8E%93</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+
+<header class="topbar no-print">
+  <div class="brand">
+    <span class="brand-ico">🎓</span>
+    超级座位管理器 v2.0
+  </div>
+  <input id="clsName" class="cls-input" maxlength="30" placeholder="班级名称" autocomplete="off">
+  <div class="grp">
+    <button id="btnEdit" class="btn ghost">编辑模式</button>
+    <button id="btnAdd" class="btn">＋ 添加座位</button>
+    <button id="btnGrid" class="btn ghost">教室设置</button>
+  </div>
+  <div class="grp grp-data">
+    <button id="btnImport" class="btn ghost">导入名单</button>
+    <button id="btnExport" class="btn ghost">导出</button>
+    <button id="btnPrint" class="btn ghost">打印</button>
+  </div>
+  <button id="btnClear" class="btn ghost danger">清空</button>
+</header>
+
+<main class="stage print-area">
+  <div class="print-head">
+    <div class="ph-title"><span id="phCls">班级</span>座位表</div>
+    <div class="ph-meta"><span id="phView">讲台视角</span> · 粉色＝女生（♀）　蓝色＝男生（♂）　白色＝未设性别　空白＝空位　浅灰＝过道　· 打印时间：<span id="phDate"></span></div>
+  </div>
+
+  <div id="classroom" class="classroom">
+    <div class="blackboard">黑　板</div>
+    <div class="podium">讲　台</div>
+    <div class="win-strip"><div class="win"></div><div class="win"></div><div class="win"></div></div>
+    <div class="door-strip"><div class="door">前门</div><div class="door">后门</div></div>
+    <div id="grid" class="seats-grid"></div>
+    <div id="emptyState" class="empty-state">
+      <div class="empty-card">
+        <h3>教室里还没有座位</h3>
+        <p>点击「添加座位」或直接导入名单排座。</p>
+        <div class="btns">
+          <button id="esAdd" class="btn">添加座位</button>
+          <button id="esImport" class="btn ghost">导入名单</button>
+          <button id="esDemo" class="btn ghost">填入示例</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar no-print">
+    <span id="viewStatus">讲台视角</span>
+    <span id="addBar" class="hidden">
+      添加：点击/拖动空白格 · 默认
+      <button class="mini on" id="addF">女生</button>
+      <button class="mini" id="addM">男生</button>
+      <button class="mini" id="addN">不设</button>
+      <button class="mini" id="addRow">＋1排</button>
+      <button class="mini" id="addCol">＋1列</button>
+      · Esc 退出
+    </span>
+  </div>
+
+  <div class="grp grp-view no-print">
+    <button id="btnSwap" class="btn ghost">门窗对调</button>
+    <button id="btnGroup" class="btn ghost">分组</button>
+    <button id="btnMirror" class="btn ghost">调位·镜像</button>
+    <button id="btnRotate" class="btn ghost">自动换座</button>
+    <button id="btnGender" class="btn ghost">不区分性别</button>
+    <button id="btnView" class="btn ghost">学生视角</button>
+  </div>
+
+  <div class="legend no-print">
+    <span class="chip female" id="chF">女生 ♀</span>
+    <span class="chip male" id="chM">男生 ♂</span>
+    <span>共 <b id="stTotal">0</b> 人</span>
+    <span>男生 <b id="stMale">0</b></span>
+    <span>女生 <b id="stFemale">0</b></span>
+    <span>空位 <b id="stEmpty">0</b></span>
+    <span class="tip">拖动座位或排/列标签调整 · 空列自动变过道 · 数据自动保存</span>
+  </div>
+</main>
+
+<aside id="editor" class="editor no-print"></aside>
+<div id="toast" class="toast no-print"></div>
+<div id="modal" class="modal-root no-print"></div>
+<div id="uiTheme" class="theme-dock no-print">
+  <button data-t="default" class="on">默认</button>
+  <button data-t="bw" title="黑白A4风格，适合黑白打印">黑白</button>
+  <button data-t="paper">纸质</button>
+  <button data-t="dark">深色</button>
+</div>
+<div id="rollDock" class="roll-dock no-print">
+  <button id="btnRoll" class="btn">点名</button>
+</div>
+
+<footer class="page-footer no-print">RainbowGeo · 班级超级座位管理器 v2.0 · 2026-09-21</footer>
+
+<script src="js/app.js"></script>
+<script src="../../assets/js/boot.js" data-rg-mode="flow" defer></script>
+</body>
+</html>

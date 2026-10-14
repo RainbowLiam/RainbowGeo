@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="neon">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>课堂点名器 v1.2 · 在线试用版 | RainbowGeo（文波地理）</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.20.2/dist/xlsx.full.min.js">
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ===== 走马灯容器 ===== -->
+        <div class="marquee-container" id="marqueeContainer"></div>
+
+        <!-- ===== 左上角版权 ===== -->
+        <div class="copyright" id="copyrightBtn">RainbowGeo</div>
+
+        <!-- ===== 左下角版本 ===== -->
+        <span class="version-info" id="versionInfo">超级点名器 V1.2 · 加载中...</span>
+
+        <!-- ===== 状态栏 ===== -->
+        <div class="status-bar">
+            <span id="studentCount">👥 未导入</span>
+        </div>
+
+        <!-- ===== 显示区域 ===== -->
+        <div class="display-area">
+            <div class="side-name" id="prevName">
+                <span class="label">⬆ 上一位</span>
+                <span id="prevNameText">—</span>
+            </div>
+            <div class="main-name-wrapper">
+                <div class="main-name" id="mainName">
+                    <span class="hint">📂 导入名单<br>或 📌 加载示例</span>
+                </div>
+            </div>
+            <div class="side-name" id="nextName">
+                <span class="label">下一位 ⬇</span>
+                <span id="nextNameText">—</span>
+            </div>
+        </div>
+
+        <!-- ===== 控制按钮 ===== -->
+        <div class="controls">
+            <button class="btn-import" id="importBtn">📥 导入</button>
+            <button class="btn-clear" id="clearBtn">🗑️ 清除</button>
+            <button class="btn-start" id="startBtn" disabled>▶ 开始</button>
+            <button class="btn-stop" id="stopBtn" disabled>⏹ 停止</button>
+        </div>
+
+        <!-- ===== 示例按钮 ===== -->
+        <div class="controls-bottom">
+            <button class="btn-local" id="localBtn">📌 加载示例数据</button>
+        </div>
+
+        <!-- ===== 底部 ===== -->
+        <div class="footer-bar">
+            <div class="col-selector">
+                <span>📋 姓名列：</span>
+                <select id="colSelect" disabled>
+                    <option value="">— 请先导入 —</option>
+                </select>
+            </div>
+            <div class="theme-toggle-area">
+                <span class="label">🎨 主题</span>
+                <div class="theme-btn-group" id="themeBtnGroup">
+                    <button class="theme-btn active" data-theme="neon">霓虹灯</button>
+                    <button class="theme-btn" data-theme="gradient">渐变色</button>
+                    <button class="theme-btn" data-theme="memphis">孟菲斯</button>
+                    <button class="theme-btn" data-theme="clay">粘土</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 版权弹窗 ===== -->
+    <div class="modal-overlay" id="copyrightModal">
+        <div class="modal-box">
+            <span class="icon">©</span>
+            <h2>RainbowGeo</h2>
+            <div class="divider"></div>
+            <p class="sub">文波地理 · © RainbowGeo 版权所有</p>
+            <p class="desc">本作品受版权保护，未经授权禁止复制、修改、传播或用于商业用途。</p>
+            <p class="email">rainbowgeo@qq.com</p>
+            <button class="close-btn" id="modalCloseBtn">✕ 关闭</button>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
+
+    <script src="js/app.js"></script>
+
+<script src="../../assets/js/boot.js" data-rg-mode="overlay" defer></script>
+</body>
+</html>
+<!-- （注：内容由AI生成） -->

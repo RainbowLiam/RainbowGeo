@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M3 25 L12 9 L17 17 L21 12 L29 25 Z' fill='%235b8a4f'/%3E%3Cpath d='M17 17 L21 12 L25 19 Z' fill='%23e8e6e0'/%3E%3Crect x='3' y='25' width='26' height='4' rx='1' fill='%2385b0dd'/%3E%3C/svg%3E" />
+    <title>3D 超级地形编辑器 V12.0 · 在线试用版 | RainbowGeo（文波地理）</title>
+    <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+    <!-- 版权弹窗 -->
+    <div id="copyrightWatermark" title="点击查看版权信息">RainbowGeo</div>
+    <div id="copyrightModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalCloseBtn">✕</button>
+            <div class="modal-title"><span class="icon">📚</span>版权声明</div>
+            <div class="modal-divider"></div>
+            <div class="modal-body">
+                <p><span class="highlight">🌈 RainbowGeo（文波地理）</span></p>
+                <p class="u-mt4">© 2026 RainbowGeo（文波地理）原创版权所有 · 保留所有权利</p>
+                <p class="u-mt8 u-fs13 u-blue">🤖 AI赋能地理教学成果展示</p>
+                <p class="u-mt8 u-fs13 u-muted3">📧 <span class="u-gold2">rainbowgeo@qq.com</span></p>
+                <p class="u-mt8 u-fs13 u-muted3">📦 版本: <span class="u-gold2">在线版 V12.0</span> · 更新日期: 2026-10-14</p>
+                <div class="u-mt12 u-p8-12 u-bg-darker u-r6 u-border-dark u-fs12 u-muted">⚡ 本工具为地理教学辅助软件，仅供教学研究使用</div>
+                <div class="u-mt8 u-flex u-gap8 u-flex-wrap">
+                    <span class="tag">🌍 地形可视化</span><span class="tag">🗺️ 等高线分析</span>
+                    <span class="tag">📐 剖面图</span><span class="tag">🧭 GIS教学</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-copy" id="copyEmailBtn">📋 复制邮箱</button>
+                <button class="btn-ok" id="modalOkBtn">知道了 👍</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 海拔滑块 -->
+    <div id="elevationSliderContainer">
+        <div class="slider-title">海 拔</div>
+        <div class="slider-track" id="sliderTrack" data-action="sliderTrack">
+            <div class="track-fill" id="trackFill"></div>
+            <div class="slider-thumb" id="sliderThumb"></div>
+        </div>
+        <div class="u-dn">▼</div>
+    </div>
+    <div id="elevationHoverInfo">
+        <span id="hoverElevationText">--</span>
+        <span class="sub-info" id="hoverContourCount">0 条等高线</span>
+    </div>
+
+    <!-- 右下角浮动按钮组（横排：等高面 | 等高线 | 专注模式） -->
+    <!-- 右上角浮动按钮组 -->
+    <!-- 左上角快捷按钮组 -->
+    <div id="leftTopControls">
+        <button id="ltbTerrainSize" class="float-action-btn" title="地形面积切换：1x1→2x2→3x3→4x4→5x5" data-action="cycleTerrainSize">1×1</button>
+        <button id="ltbFog" class="float-action-btn" title="雾效开关" data-action="toggleFog">🌫️</button>
+        <button id="ltbWalls" class="float-action-btn" title="围墙开关" data-action="toggleWalls">🧱</button>
+        <button id="labelIntervalBtn" class="float-action-btn" title="标注间隔：点击切换 1条/2条/3条">1</button>
+    </div>
+    <div id="rightTopControls">
+        <button id="rtbSculpt" class="float-action-btn" title="雕刻模式开关" data-action="quickSculpt">🔨</button>
+        <button id="rtbWater" class="float-action-btn" title="水系图开关" data-action="quickWater">🌊</button>
+        <button id="floatSectionBtn" class="float-action-btn" title="剖面图系统开启/关闭" data-action="floatSectionToggle">🥥</button>
+        <!-- ★ 地形表面标点画笔 -->
+        <div style="position:relative;">
+            <div id="markerToolWrap" style="display:none;position:absolute;right:48px;top:0;align-items:center;gap:6px;background:var(--ui-panel-bg);border:1px solid var(--ui-border-unified);border-radius:8px;padding:6px 8px;box-shadow:0 2px 12px rgba(0,0,0,0.15);white-space:nowrap;z-index:2001;">
+                <span style="font-size:10px;color:var(--ui-label);">半径</span>
+                <input type="range" id="markerRadiusSlider" min="0.05" max="2" step="0.05" value="0.1" style="width:80px;" />
+                <span id="markerRadiusVal" style="font-size:10px;color:var(--ui-label);min-width:28px;">0.10</span>
+                <input type="color" id="markerColorPicker" value="#ff4444" style="width:22px;height:22px;border:none;background:none;cursor:pointer;padding:0;" title="标记颜色（默认随机亮色）" />
+                <button id="markerColorRandomBtn" class="btn" style="padding:2px 6px;font-size:10px;line-height:1;" title="切换随机亮色/指定颜色">🎲</button>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                <button id="rtbGameToggle" class="float-action-btn" title="游戏模式：开启/关闭（Minecraft 风格）" data-action="toggleGame">🎮</button>
+                <button id="rtbMarkerPen" class="float-action-btn" title="地形表面标点：开启后点击地形放置彩色圆球标记" data-action="toggleMarkerPen">✏️</button>
+                <button id="markerTextEditBtn" class="float-action-btn" title="编辑标点标注文字" data-action="toggleMarkerTextEdit">✒️</button>
+                <button id="rtbMarkerClear" class="float-action-btn" style="display:none;" title="清空所有标记" data-action="clearMarkers">🗑️</button>
+            </div>
+        </div>
+    </div>
+    <!-- 右上角导入/导出按钮组（雕刻按钮组左边，横向） -->
+    <div id="ioControls">
+        <button id="rtbImportJSON" class="float-action-btn" title="导入JSON" data-action="importJSON">📂</button>
+        <button id="rtbExportJSON" class="float-action-btn" title="导出JSON" data-action="exportJSON">💾</button>
+    </div>
+    <!-- 右下角浮动按钮容器（与左下角一致的定位逻辑：容器 fixed + flex 排列） -->
+    <div id="rightBottomControls">
+    <!-- 🔍按钮组（relative定位包裹，方便子元素absolute定位） -->
+    <div style="position:relative;display:flex;align-items:center;">
+    <button id="btnLabelInteractive" class="float-action-btn" title="海拔标注交互：开启后可点击标注" data-action="labelInteractive">🔍</button>
+    <div id="interactiveColorWrap" class="interactive-color-wrap">
+        <input type="color" id="interactiveColorPicker" value="#ffd700" title="交互动效颜色（标注激活态背景色）" />
+    </div>
+    <div id="labelOpacitySliderWrap" class="label-opacity-slider-wrap">
+        <span class="label-opacity-label">材质</span>
+        <input type="range" id="labelOpacitySlider" dir="rtl" min="0.05" max="1" step="0.01" value="0.5" />
+        <span class="label-opacity-val" id="labelOpacitySliderVal">0.50</span>
+    </div>
+    </div>
+        <button id="floatCameraBtn" class="float-action-btn" title="视觉鼠标（视角摇杆）" data-action="cameraSliderToggle">📷</button>
+        <!-- V11.32：已移除右下角🧲稳定模式 / 🛡️不透视快捷按钮（控制面板内仍可切换） -->
+        <div style="position:relative;display:inline-flex;gap:6px;">
+        <button id="floatContourLabelsBtn" class="float-action-btn" title="海拔标注：点击切换显示/隐藏" data-action="floatReshuffleLabels">📌</button>
+        <div id="labelSizeSliderWrap">
+            <input type="range" id="labelSizeSlider" min="8" max="100" step="1" value="28" />
+            <span id="labelSizeSliderVal">28</span>
+        </div>
+        <!-- V10.51: 🌊水系图水位横向拖动条（向左弹出，10s自动收起） -->
+        <div id="waterLevelFloatWrap">
+            <span id="waterLevelFloatVal">0.25</span>
+            <input type="range" id="waterLevelFloatSlider" min="-0.4" max="0.6" step="0.01" value="0.25" />
+        </div>
+    </div>
+        <button id="floatContourLinesBtn" class="float-action-btn" title="等高线：默认→D模式→关闭（3态）" data-action="floatContourLines3">🧿</button>
+        <button id="floatContourPlanesBtn" class="float-action-btn" title="等高面显示/隐藏" data-action="floatContourPlanes">🟨</button>
+        <button id="floatFocusBtn" class="float-action-btn" title="专注模式开启/关闭" data-action="floatFocusToggle">🎯</button>
+    </div>
+    <!-- 专注模式投影面距离拖动条（开启专注模式时显示，桌面竖直/移动横向） -->
+    <div id="focusProjSlider" class="focus-proj-slider">
+        <span class="fps-label">投影面</span>
+        <input type="range" id="focusProjRange" min="-10" max="30" step="0.1" value="0" />
+        <span class="fps-val" id="focusProjVal">0.0m</span>
+    </div>
+    <!-- 浮动齿轮按钮 -->
+    <button id="floatGearBtn" class="panel-visible" title="收起控制面板">⚙<span class="gear-tooltip">收起控制面板</span></button>
+
+    <!-- 六边形六向操纵杆 -->
+    <div id="hexPad" class="hex-pad">
+        <button class="hex-btn hex-up" data-dir="up" title="放大">↑</button>
+        <button class="hex-btn hex-up-left" data-dir="upLeft" title="左上旋转">↖</button>
+        <button class="hex-btn hex-up-right" data-dir="upRight" title="右上旋转">↗</button>
+        <button class="hex-btn hex-down" data-dir="down" title="缩小">↓</button>
+        <button class="hex-btn hex-down-left" data-dir="downLeft" title="左下旋转">↙</button>
+        <button class="hex-btn hex-down-right" data-dir="downRight" title="右下旋转">↘</button>
+        <div class="hex-center">📍</div>
+    </div>
+
+    <!-- 标注大小拖动条（悬停等高线按钮时显示，离开2s隐藏） -->
+
+    <!-- 左侧竖直等高距带节点拖动条 -->
+    <div id="contourIntervalVertical">
+        <div id="ciVertTrack">
+            <div id="ciVertFill"></div>
+            <!-- 节点由JS动态生成 -->
+            <div id="ciVertThumb"></div>
+        </div>
+        <div id="ciVertValue">10.0<small> m</small></div>
+    </div>
+
+    <!-- 左下角相机控制按钮（已并入统一按钮组） -->
+
+    <!-- 左下角生成地形按钮和弹出面板 -->
+    <button id="ltbLockCenter" class="float-action-btn" title="锁定旋转中心" style="position:fixed;left:140px;bottom:72px;z-index:2001;display:none;">🔒</button>
+    <!-- V10.58: 🎮 游戏模式控制圆盘（摇杆+跳跃） -->
+    <div id="gamePadWrap">
+        <div id="gameDisc">
+            <div id="gameStick">🕹️</div>
+        </div>
+    </div>
+    <!-- V10.91：游戏模式手柄功能键（仿手柄右侧十字：上抬升/下降低/左平滑/右撤销） -->
+    <div id="gamePadFunc">
+        <button id="gpfUp" class="gpf-btn gpf-up" data-func="raise" title="抬高地形">高</button>
+        <button id="gpfDown" class="gpf-btn gpf-down" data-func="lower" title="降低地形">低</button>
+        <button id="gpfLeft" class="gpf-btn gpf-left" data-func="smooth" title="平滑地形">平</button>
+        <button id="gpfUndo" class="gpf-btn gpf-lb" data-func="undo" title="撤回上一步">撤</button>
+        <button id="gpfDash" class="gpf-btn gpf-r" data-func="dash" title="冲刺滚动（D仔）">🚀</button>
+        <button id="gpfDance" class="gpf-btn gpf-rb" data-func="dance" title="跳舞：人物舞动3秒">💃</button>
+        <button id="gpfJump" class="gpf-btn gpf-center" data-func="jump" title="跳跃 (空格)">␣</button>
+    </div>
+    <!-- V10.92：角色大小/雕刻画笔范围调整（横向圆角长条） -->
+    <div id="gameSizeBar">
+        <div class="gsb-row2">
+            <span id="gsbStrengthVal" class="gsb-sv">0.08</span>
+            <input type="range" id="gsbStrength" min="0.01" max="0.2" step="0.005" value="0.08" title="雕刻强度" />
+        </div>
+        <div class="gsb-row1">
+            <button id="gsbMinus" class="gsb-btn" data-func="shrink" title="减小画笔范围/角色">−</button>
+            <button id="gsbToggleGpf" class="gsb-btn" title="显示/隐藏右侧雕刻按钮组" data-func="toggleGpf">⦿</button>
+            <button id="gsbPlus" class="gsb-btn" data-func="grow" title="增大画笔范围/角色">＋</button>
+            <button id="gsbBgm" class="gsb-btn" data-func="bgm" title="背景音乐播放/暂停" style="display:none;">🎵</button>   <!-- V11.30：bgm.mp3存在时显示 -->
+        </div>   <!-- V11.30：删除刻度小字 -->
+    </div>
+    <div id="leftBottomControls">
+        <!-- V10.86：L形布局——左侧竖排 + 底部横排 -->
+        <div class="lb-col">
+            <button id="ltbGenTerrain" class="float-action-btn" title="生成地形（按当前参数）" data-action="genTerrainPopup">⛰️</button>
+            <button id="btnCameraViewToggle" class="float-action-btn" title="切换俯视/正视图" data-action="cameraViewToggle">↓</button>
+        </div>
+        <div class="lb-row">
+            <button id="envSwitchBtn" class="float-action-btn" title="切换环境（白色 / 深色）" data-action="envSwitchBtn"><span class="env-icon">☀️</span><span class="env-text">白色环境</span><span class="env-arrow">⇄</span></button>
+            <button id="ltbFullscreen" class="float-action-btn" title="全屏切换" data-action="toggleFullscreen">⛶</button>
+            <button id="ltbAutoRotate" class="float-action-btn" title="自动旋转相机" data-action="autoRotate">💿</button>
+            <button id="btnMiniViewportToggle" class="float-action-btn" title="等高线投影视窗" data-action="toggleMiniViewport">📈</button>
+            <button id="ltbPatrolToggle" class="float-action-btn" title="巡天引擎（展开/折叠扇形抽屉）" data-action="togglePatrolDrawer">📽️</button>
+        </div>
+    </div>
+    <button id="ptlRecord" class="patrol-drawer-btn" title="记录相机机位" data-action="recordCameraShot" style="left:314px;bottom:51px;">🎬</button>
+    <button id="ptlTrack" class="patrol-drawer-btn" title="机位时间轴" data-action="toggleCamTrackBar" style="left:305px;bottom:86px;">🎞️</button>
+    <button id="ptlSave" class="patrol-drawer-btn" title="保存机位数据到本地" data-action="savePatrolData" style="left:280px;bottom:111px;">📼</button>
+    <button id="ptlClear" class="patrol-drawer-btn" title="清空全部机位" data-action="clearPatrolData" style="left:245px;bottom:120px;">❌</button>
+    <!-- V12.0：面板位置由JS动态定位到⛰️按钮右侧（left/bottom 为兜底值） -->
+    <div id="genTerrainPanel" style="position:fixed;left:340px;bottom:88px;z-index:2100;display:none;background:var(--glass);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px;backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,0.35);flex-direction:column;gap:8px;min-width:180px;">
+        <div style="font-size:12px;color:#ccc;text-align:center;margin-bottom:4px;">生成地形参数</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;color:#999;">起伏 <span id="gtAmpVal">1.2</span></label>
+            <input type="range" id="gtAmp" min="0.1" max="10" step="0.1" value="1.2" style="width:160px;">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;color:#999;">频率 <span id="gtFreqVal">1.6</span></label>
+            <input type="range" id="gtFreq" min="0.1" max="5" step="0.1" value="1.6" style="width:160px;">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;color:#999;">种子 <span id="gtSeedVal">20</span></label>
+            <input type="range" id="gtSeed" min="0" max="9999" step="1" value="20" style="width:160px;">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;color:#999;">八度 <span id="gtOctVal">2</span></label>
+            <input type="range" id="gtOct" min="1" max="10" step="1" value="2" style="width:160px;">
+        </div>
+        <button id="gtApply" style="margin-top:4px;padding:6px 12px;background:var(--violet);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;">应用</button>
+    </div>
+
+    <!-- 主控制面板 -->
+    <div id="floatingPanel">
+        <div id="panelHeader">
+            <h1>⛰️ 3D 超级地形编辑器 <small>在线版 V12.0</small></h1>
+            <div id="panelControls">
+                <button id="gearToggle" class="rotated" title="折叠/展开面板">⚙</button>
+                <button id="closePanel" title="关闭面板">✕</button>
+            </div>
+        </div>
+        <div id="tabBar">
+            <div class="tab-row tab-row-top">
+                <button class="tab-btn active" data-tab="terrain"><span class="tab-icon">🏔️</span>地形 <span class="tab-shortcut">1</span></button>
+                <button class="tab-btn" data-tab="sculpt"><span class="tab-icon">🛠️</span>塑造 <span class="tab-shortcut">2</span></button>
+                <button class="tab-btn" data-tab="contour"><span class="tab-icon">🗺️</span>等高线 <span class="tab-shortcut">3</span></button>
+                <button class="tab-btn" data-tab="water"><span class="tab-icon">🌊</span>水系统 <span class="tab-shortcut">8</span></button>
+            </div>
+            <div class="tab-row tab-row-bottom">
+                <button class="tab-btn" data-tab="visual"><span class="tab-icon">👁️</span>视觉 <span class="tab-shortcut">6</span></button>
+                <button class="tab-btn" data-tab="section"><span class="tab-icon">🥥</span>剖面图 <span class="tab-shortcut">5</span></button>
+                <button class="tab-btn" data-tab="focus"><span class="tab-icon">🎮</span>交互 <span class="tab-shortcut">4</span></button>
+                <button class="tab-btn" data-tab="config"><span class="tab-icon">⚙️</span>配置 <span class="tab-shortcut">7</span></button>
+            </div>
+        </div>
+        <div id="panelBody">
+            <!-- Tab 1: 地形 -->
+            <div class="tab-content active" id="tab-terrain">
+                <div class="section">
+                    <div class="section-title">📏 海拔基准</div>
+                    <div class="row">
+                        <label>基准</label><input type="number" id="baseElevation" value="20" step="1" class="u-w44" />
+                        <span id="baseElevUnit" class="u-fs9 u-muted">m</span>
+                        <label class="u-minw24">起伏</label>
+                        <input type="range" id="relief" min="0.1" max="10" step="0.1" value="8" class="u-flex1 u-minw35" />
+                        <span id="reliefVal" class="u-fs9 u-minw18">8</span>
+                        <span id="reliefUnit" class="u-fs9 u-muted">m</span>
+                        <button class="btn " id="btnApplyElevation" data-action="applyElevation">应用</button>
+                    </div>
+                    <div class="elev-info">
+                        <span class="min-elev">▼ 最低: <span id="minElevation">0.0</span> <span id="minElevUnit" class="u-fs8 u-muted">m</span></span>
+                        <span class="max-elev">▲ 最高: <span id="maxElevation">0.0</span> <span id="maxElevUnit" class="u-fs8 u-muted">m</span></span>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-title">🌋 程序化生成</div>
+                    <div class="row">
+                        <label class="u-minw30">分类</label>
+                        <select id="noiseCategorySelect" class="u-flex1">
+                            <option value="fractal">分形噪声 (Fractal)</option>
+                            <option value="lattice">晶格与距离 (Lattice)</option>
+                            <option value="domainwarp">域扭曲 (Domain Warp)</option>
+                            <option value="geomorphic">地貌模拟 (Geomorphic)</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label class="u-minw30">方法</label>
+                        <select id="noiseMethodSelect" class="u-flex1"></select>
+                    </div>
+                    <div class="row">
+                        <label>频率</label><input type="range" id="genFreq" min="0.5" max="6" step="0.1" value="1.6" />
+                        <span id="genFreqVal" class="u-fs9 u-minw18">1.6</span>
+                        <label>振幅</label><input type="range" id="genAmp" min="0.2" max="3" step="0.05" value="1.2" />
+                        <span id="genAmpVal" class="u-fs9 u-minw18">1.2</span>
+                    </div>
+                    <div class="row">
+                        <label>八度</label><input type="range" id="genOct" min="1" max="8" step="1" value="2" />
+                        <span id="genOctVal" class="u-fs9 u-minw18">2</span>
+                        <label>种子</label><input type="number" id="genSeed" value="20" class="u-w38" />
+                    </div>
+                    <div class="row">
+                        <button class="btn primary u-flex1" id="btnGenerate"  data-action="generate">生成地形</button>
+                 
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2"><span id="currentMethodDisplay">当前: FBM · 分形噪声</span></div>
+                </div>
+
+                <!-- 倾斜控制（简化版：仅西、西南） -->
+                <div class="section u-border-steel">
+                    <div class="section-title">🧭 地形方向倾斜 <span class="u-fs9 u-muted2">西 / 西南</span></div>
+                    <div class="tilt-control-group u-border-left-steel">
+                        <div class="row">
+                            <button class="btn active u-flex00auto" id="btnToggleTilt" data-action="toggleTilt">📐 禁用倾斜</button>
+                            <span class="u-fs8 u-muted2 u-ml4" id="tiltStatus">状态: ✅ 启用</span>
+                            <span class="u-fs8 u-muted u-ml-auto" id="tiltInfo">方向: 西 · 坡度: 45%</span>
+                        </div>
+                    </div>
+                    <div class="tilt-control-group u-border-left-steel u-mt1">
+                        <div class="row">
+                            <label class="u-minw28">方向</label>
+                            <button class="dir-btn active" data-angle="270" data-dir="西" data-action="setTiltDirection">← 西高东低</button>
+                            <button class="dir-btn" data-angle="225" data-dir="西南" data-action="setTiltDirection">↙ 西南高东北低</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw28">角度</label>
+                            <input type="range" id="tiltAngleSlider" min="0" max="360" step="1" value="270" class="u-flex2 u-minw60" />
+                            <span id="tiltAngleVal" class="u-fs9 u-minw36">270°</span>
+                            <input type="number" id="tiltAngleInput" value="270" min="0" max="360" step="1" class="u-w40" />
+                        </div>
+                        <div class="row">
+                            <label class="u-minw28">坡度</label>
+                            <input type="range" id="tiltSlopeSlider" min="0" max="100" step="1" value="45" class="u-flex2 u-minw60" />
+                            <span id="tiltSlopeVal" class="u-fs9 u-minw36">45%</span>
+                            <input type="number" id="tiltSlopeInput" value="45" min="0" max="100" step="1" class="u-w40" />
+                        </div>
+                        <div class="row u-mt2">
+                            <button class="btn u-flex1" id="btnApplyTilt" data-action="applyTilt">🔄 应用倾斜</button>
+                            <button class="btn u-flex1" id="btnResetTilt" data-action="resetTilt">↺ 重置倾斜</button>
+                        </div>
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2 u-mt2">
+                        <span id="tiltDebugInfo">倾斜: 开启 · 方向: 西(270°) · 坡度: 45%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: 塑造 -->
+            <div class="tab-content" id="tab-sculpt">
+                <!-- 历史操作（独立分类，作用于雕刻+大范围调整） -->
+                <div class="section u-border-amber">
+                    <div class="section-title">📜 历史操作</div>
+                    <div class="row">
+                        <button class="btn u-flex1" id="btnUndo" disabled data-action="undo">↩ 撤销</button>
+                        <button class="btn u-flex1" id="btnRedo" disabled data-action="redo">↪ 重做</button>
+                        <span class="u-fs8 u-muted2 u-minw36 u-tac" id="undoCount">0/0</span>
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2 u-mt1">
+                        <span>Ctrl+Z 撤销 / Ctrl+Y 重做 · 作用于所有地形修改</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🛠️ 雕刻工具
+                        <label class="mode-toggle" title="雕刻模式（与大范围调整互斥）">
+                            <input type="checkbox" id="sculptModeToggle" />
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="btn-group" id="toolGroup">
+                        <button class="btn " data-tool="raise" data-action="selectTool">⬆ Raise</button>
+                        <button class="btn " data-tool="lower" data-action="selectTool">⬇ Lower</button>
+                        <button class="btn " data-tool="smooth" data-action="selectTool">〰️ Smooth</button>
+                        <button class="btn " data-tool="flatten" data-action="selectTool">⬜ Flatten</button>
+                        <button class="btn " data-tool="mountain" data-action="selectTool">⛰️ Mountain</button>
+                    </div>
+                    <div class="row u-mt2">
+                        <label>大小</label><input type="range" id="brushSize" min="1" max="100" step="0.5" value="8" />
+                        <span id="brushSizeVal" class="u-fs9 u-minw24">8</span>
+                        <span id="brushSizeUnit" class="u-fs9 u-muted">m</span>
+                        <label>强度</label><input type="range" id="brushStrength" min="0.01" max="2.0" step="0.005" value="0.08" />
+                        <span id="brushStrengthVal" class="u-fs9 u-minw20">0.08</span>
+                    </div>
+                    <div class="row u-mt2 u-bt-d3 u-pt2" id="brushShapeGroup">
+                        <label class="u-minw28 u-fs8">形状</label>
+                        <div class="brush-shape-grid">
+                            <button class="btn active" data-shape="circle" data-action="selectBrushShape">○ 圆</button>
+                            <button class="btn " data-shape="soft" data-action="selectBrushShape">⊙ 柔</button>
+                            <button class="btn " data-shape="hard" data-action="selectBrushShape">● 硬</button>
+                            <button class="btn " data-shape="square" data-action="selectBrushShape">■ 方</button>
+                            <button class="btn " data-shape="gaussian" data-action="selectBrushShape">◉ 高</button>
+                            <button class="btn " data-shape="needle" data-action="selectBrushShape">▽ 尖</button>
+                        </div>
+                        <span class="u-fs7 u-muted2 u-ml4" id="brushShapeDisplay">当前: 圆形</span>
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2 u-mt2">
+                        <span>快捷键 1-5</span>
+                        <span id="activeToolDisplay">当前: 无</span>
+                    </div>
+                </div>
+
+                <!-- 大范围调整（统一API） -->
+                <div class="section u-border-steel">
+                    <div class="section-title">🌊 大范围调整
+                        <label class="mode-toggle" title="大范围调整模式（与雕刻互斥）">
+                            <input type="checkbox" id="largeScaleModeToggle" />
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="row u-bb-d1 u-pb2 u-mb3">
+                        <button class="btn active" data-subtab="filter">🔮 滤波器</button>
+                        <button class="btn " data-subtab="transform">📐 整体变换</button>
+                        <button class="btn " data-subtab="preset">🏔️ 地形预设</button>
+                    </div>
+                    
+                    <div id="filterSubtab" class="subtab-content">
+                        <div class="row">
+                            <label class="u-minw28">滤镜</label>
+                            <button class="btn active" data-filter="smooth" data-action="selectFilter">平滑</button>
+                            <button class="btn " data-filter="sharpen" data-action="selectFilter">锐化</button>
+                            <button class="btn " data-filter="noise" data-action="selectFilter">噪声</button>
+                            <button class="btn " data-filter="ridges" data-action="selectFilter">山脊增强</button>
+                            <button class="btn " data-filter="valleys" data-action="selectFilter">山谷增强</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw28">强度</label>
+                            <input type="range" id="filterStrength" min="0.01" max="5.0" step="0.01" value="0.3" class="u-flex1 u-minw60" />
+                            <span id="filterStrengthVal" class="u-fs9 u-minw30">0.30</span>
+                            <label class="u-minw20">半径</label>
+                            <input type="range" id="filterRadius" min="1" max="40" step="0.5" value="2" class="u-flex06 u-minw40" />
+                            <span id="filterRadiusVal" class="u-fs9 u-minw24">2</span>
+                            <button class="btn " id="btnApplyFilter" data-action="applyFilter">✅ 应用</button>
+                        </div>
+                    </div>
+                    
+                    <div id="transformSubtab" class="subtab-content u-dn">
+                        <div class="row">
+                            <label class="u-minw28">操作</label>
+                            <button class="btn active" data-transform="scale" data-action="selectTransform">海拔缩放</button>
+                            <button class="btn " data-transform="raise" data-action="selectTransform">整体抬升</button>
+                            <button class="btn " data-transform="lower" data-action="selectTransform">整体降低</button>
+                            <button class="btn " data-transform="mirror" data-action="selectTransform">镜像</button>
+                            <button class="btn " data-transform="flatten" data-action="selectTransform">整体压平</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw28">因子</label>
+                            <input type="range" id="transformFactor" min="0.01" max="10.0" step="0.05" value="1.5" class="u-flex1 u-minw60" />
+                            <span id="transformFactorVal" class="u-fs9 u-minw36">1.50</span>
+                            <label class="u-minw20">轴</label>
+                            <button class="btn active" data-axis="x" data-action="selectAxis">X</button>
+                            <button class="btn " data-axis="y" data-action="selectAxis">Y</button>
+                            <button class="btn " data-axis="both" data-action="selectAxis">XY</button>
+                            <button class="btn " id="btnApplyTransform" data-action="applyTransform">✅ 应用</button>
+                        </div>
+                    </div>
+                    
+                    <div id="presetSubtab" class="subtab-content u-dn">
+                        <div class="row">
+                            <label class="u-minw28">预设</label>
+                            <button class="btn " data-preset="mountain" data-action="selectTerrainPreset">⛰️ 山地</button>
+                            <button class="btn " data-preset="hills" data-action="selectTerrainPreset">🏜️ 丘陵</button>
+                            <button class="btn active" data-preset="island" data-action="selectTerrainPreset">🏝️ 岛屿</button>
+                            <button class="btn " data-preset="volcano" data-action="selectTerrainPreset">🌋 火山</button>
+                            <button class="btn " data-preset="plateau" data-action="selectTerrainPreset">🏞️ 高原</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw28">起伏</label>
+                            <input type="range" id="presetRelief" min="2" max="100" step="0.5" value="12" class="u-flex1 u-minw60" />
+                            <span id="presetReliefVal" class="u-fs9 u-minw36">12</span>
+                            <label class="u-minw20">基准</label>
+                            <input type="range" id="presetBase" min="0" max="80" step="0.5" value="20" class="u-flex06 u-minw40" />
+                            <span id="presetBaseVal" class="u-fs9 u-minw30">20</span>
+                        </div>
+                        <div class="row">
+                            <button class="btn u-flex1" id="btnApplyPreset" data-action="applyPreset">🏗️ 生成预设</button>
+                            <button class="btn u-flex1" id="btnPresetReplace" data-action="presetReplace">🔄 替换当前</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 腐蚀模拟 -->
+                <div class="section">
+                    <div class="section-title">🌊 腐蚀模拟</div>
+                    <div class="row">
+                        <button class="btn " id="btnHydraulic" data-action="hydraulic">🌊 液压</button>
+                        <button class="btn " id="btnThermal" data-action="thermal">🔥 热蚀</button>
+                        <button class="btn " id="btnResetErosion" data-action="resetErosion">↺ 重置</button>
+                        <label class="u-minw24">强度</label>
+                        <input type="range" id="erosionStrength" min="0.1" max="2.0" step="0.05" value="0.6" class="u-flex1 u-minw35" />
+                        <span id="erosionStrengthVal" class="u-fs9 u-minw18">0.6</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: 等高线 -->
+            <div class="tab-content" id="tab-contour">
+                <div class="section u-border-cyan">
+                    <div class="section-title">📥 等高线图片导入 <span class="u-cyan u-fs9">图片 → 3D地形</span></div>
+                    <div class="contour-import-area u-border-left-cyan">
+                        <div class="row">
+                            <button class="btn primary u-flex1" id="btnOpenContourImportModal">📥 打开等高线导入面板</button>
+                        </div>
+                        <div class="u-fs9 u-muted u-mt2 u-center">在独立弹窗中导入等高线图片，可自由调整大小</div>
+                    </div>
+                </div>
+                <div class="section u-border-orange">
+                    <div class="section-title">🗺️ 等高线系统</div>
+                    <div class="row">
+                        <button class="btn active" id="btnToggleContourSystem" data-action="toggleContourSystem">📐 隐藏等高线系统</button>
+                        <button class="btn active" id="btnToggleContourPlanes" data-action="toggleContourPlanes">🟡 隐藏水平面</button>
+                        <button class="btn active" id="btnToggleContourLines" data-action="toggleContourLines">⬛ 隐藏等高线</button>
+                    </div>
+                    <div class="row u-mt2 u-bt-d1 u-pt2">
+                        <label class="u-minw28 u-fs8">渲染</label>
+                        <button class="method-btn active" id="btnRenderLegacy" data-action="renderLegacy">传统</button>
+                        <button class="method-btn " id="btnRenderD" data-action="renderD">D (Segments2)</button>
+                        <span id="renderStatus" class="u-fs8 u-muted u-minw70">当前: 传统</span>
+                    </div>
+                    <div class="render-mode-info">
+                        <span>传统: WebGL限制(宽度≈1)</span>
+                        <span>D: 高效批量渲染 (真像素宽度)</span>
+                        <span class="active-mode" id="renderActiveHint">✓ 当前: 传统</span>
+                    </div>
+                    <div class="contour-control-group">
+                        <div class="row">
+                            <label class="u-minw24">等高距</label>
+                            <input type="range" id="contourInterval" min="0.5" max="20" step="0.5" value="10" class="u-flex1 u-minw60" />
+                            <span id="contourIntervalVal" class="u-fs9 u-minw36">10.0 m</span>
+                            <button class="btn u-minw40" id="btnApplyContourInterval" data-action="applyContourInterval">应用</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw24">层数</label>
+                            <span id="contourLevelCount" class="u-fs9 u-green2 u-minw40">0 层</span>
+                            <label class="u-minw24 u-ml8">海拔范围</label>
+                            <span id="contourElevRange" class="u-fs9 u-muted u-minw60">-</span>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw24" title="等高线整体上下（Z轴）移动，水系统海平面/水体同步">整体偏移</label>
+                            <input type="range" id="contourElevShift" min="-100" max="100" step="1" value="0" class="u-flex1 u-minw60" />
+                            <span id="contourElevShiftVal" class="u-fs9 u-minw36">0</span>
+                        </div>
+                        <div class="row">
+                            <button class="btn u-flex1" id="btnGenerateContours" data-action="generateContours">🔄 生成等高线</button>
+                            <button class="btn u-flex1" id="btnClearContours" data-action="clearContours">✖ 清除等高线</button>
+                        </div>
+                    </div>
+                    <div class="row u-mt2">
+                        <label class="u-minw28">平面色</label>
+                        <input type="color" id="contourPlaneColor" value="#ffaa00" class="color-picker" />
+                        <label class="u-minw16">透明度</label>
+                        <input type="range" id="contourPlaneOpacity" min="0.02" max="0.6" step="0.01" value="0.15" class="u-flex1 u-minw40" />
+                        <span id="contourPlaneOpacityVal" class="u-fs9 u-minw20">0.15</span>
+                    </div>
+                    <div class="row">
+                        <label class="u-minw28">交线色</label>
+                        <input type="color" id="contourLineColor" value="#000000" class="color-picker" />
+                        <label class="u-minw16">粗细</label>
+                        <input type="range" id="contourLineWidth" min="1" max="6" step="0.5" value="3" class="u-flex1 u-minw40" />
+                        <span id="contourLineWidthVal" class="u-fs9 u-minw18">3.0</span>
+                    </div>
+                    <div class="status-bar u-mt2">
+                        <span id="contourSystemInfo">等高线: 0 层 · 交线: 0 条</span>
+                        <span id="contourPerfInfo" class="u-green2">⏱ 就绪</span>
+                    </div>
+                    <div class="contour-debug" id="contourDebugInfo">🔍 等高线: 等待生成...</div>
+                </div>
+
+                <!-- 海拔标注系统 -->
+                <div class="section u-border-violet">
+                    <div class="section-title">🏷️ 海拔标注系统</div>
+                    <div class="row">
+                        <button class="btn active u-flex00auto" id="btnToggleLabels" data-action="toggleLabels">🏷️ 禁用海拔标注</button>
+                        <span class="u-fs8 u-muted2 u-ml4" id="labelStatusText">状态: 启用</span>
+                        <span class="u-fs8 u-muted u-ml-auto" id="labelCountInfo">标注: 0</span>
+                    </div>
+                    <div class="label-control-group u-border-left-violet">
+                        <div class="row">
+                            <label class="u-minw20">字体</label>
+                            <input type="range" id="labelFontSize" min="8" max="100" step="1" value="28" class="u-flex1 u-minw40 u-accent-violet" />
+                            <span id="labelFontSizeVal" class="u-fs9 u-minw18">12</span>
+                            <label class="u-minw20 u-ml8">颜色</label>
+                            <input type="color" id="labelTextColor" value="#000000" class="color-picker u-w24 u-h22" />
+                        </div>
+                        <div class="row">
+                            <label class="u-minw20">背景</label>
+                            <select id="labelBgSelect" class="u-flex1 u-fs9 u-p2-4 u-bg-dark u-border-dark u-r3 u-white">
+                                <option value="rgba(0,0,0,0.75)">黑色 (75%)</option>
+                                <option value="rgba(0,0,0,0.50)">黑色 (50%)</option>
+                                <option value="rgba(0,0,0,0.25)">黑色 (25%)</option>
+                                <option value="rgba(255,255,255,0.75)">白色 (75%)</option>
+                                <option value="rgba(255,255,255,0.50)">白色 (50%)</option>
+                                <option value="rgba(255,255,255,0.25)">白色 (25%)</option>
+                                <option value="rgba(40,0,80,0.75)">紫色 (75%)</option>
+                                <option value="rgba(40,0,80,0.50)">紫色 (50%)</option>
+                                <option value="transparent" selected>透明</option>
+                            </select>
+                        </div>
+                        <div class="row u-mt2 u-bt-d2 u-pt2">
+                            <label class="u-minw20">最大标注</label>
+                            <input type="range" id="maxLabels" min="5" max="120" step="5" value="40" class="u-flex1 u-minw40 u-accent-violet" />
+                            <span id="maxLabelsVal" class="u-fs9 u-minw30">40</span>
+                            <label class="u-minw20 u-ml4">每海拔</label>
+                            <input type="range" id="maxPerElevation" min="1" max="20" step="1" value="1" class="u-flex06 u-minw30 u-accent-violet" />
+                            <span id="maxPerElevationVal" class="u-fs9 u-minw14">1</span>
+                        </div>
+                        <div class="row u-mt2 u-bt-d2 u-pt2">
+                            <label class="u-minw20">标注间隔</label>
+                            <button class="btn active u-flex1" data-label-interval="1" data-action="setLabelInterval">1条/标</button>
+                            <button class="btn u-flex1" data-label-interval="2" data-action="setLabelInterval">2条/标</button>
+                            <button class="btn u-flex1" data-label-interval="3" data-action="setLabelInterval">3条/标</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw20">最小间隔</label>
+                            <input type="range" id="minLabelDistance" min="5" max="80" step="2" value="30" class="u-flex1 u-minw40 u-accent-violet" />
+                            <span id="minLabelDistanceVal" class="u-fs9 u-minw30">30</span>
+                            <span class="u-fs8 u-muted">像素</span>
+                        </div>
+                        <div class="row u-mt2 u-bt-d2 u-pt2">
+                            <button class="btn u-flex00auto" id="btnTogglePeaks" data-action="togglePeaks">⛰️ 山峰标注: 关</button>
+                            <label class="u-minw20">数量</label>
+                            <input type="range" id="peakMaxCount" min="1" max="20" step="1" value="1" class="u-flex1 u-minw30 u-accent-violet" />
+                            <span id="peakMaxCountVal" class="u-fs9 u-minw14">1</span>
+                            <label class="u-minw20 u-ml4">显著</label>
+                            <input type="range" id="peakProminence" min="2" max="30" step="1" value="4" class="u-flex07 u-minw28 u-accent-violet" />
+                            <span id="peakProminenceVal" class="u-fs9 u-minw14">4</span>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw20">最低%</label>
+                            <input type="range" id="peakMinHeight" min="0" max="50" step="1" value="5" class="u-flex1 u-minw30 u-accent-violet" />
+                            <span id="peakMinHeightVal" class="u-fs9 u-minw14">5</span>
+                            <label class="u-minw20 u-ml4">间距</label>
+                            <input type="range" id="peakMinDist" min="0" max="40" step="1" value="8" class="u-flex1 u-minw30 u-accent-violet" />
+                            <span id="peakMinDistVal" class="u-fs9 u-minw14">8</span>
+                        </div>
+                        <div class="row">
+                            <button class="btn u-flex1" id="btnManualPeak" data-action="manualPeak">🖱️ 手动选峰: 关</button>
+                            <button class="btn u-flex1" id="btnClearManualPeaks" data-action="clearManualPeaks">🗑 清手动峰</button>
+                        </div>
+                        <div class="row u-mt2">
+                            <button class="btn u-flex1" id="btnClearLabels" data-action="clearLabels">🗑 清除</button>
+                            <button class="btn u-flex1" id="btnRefreshLabels" data-action="refreshLabels">🔄 刷新</button>
+                            <button class="btn u-flex1" id="btnShuffleLabels" data-action="shuffleLabels">🎲 打乱</button>
+                        </div>
+                        <div class="row u-mt2 u-bt-d2 u-pt2">
+                            <button class="btn u-flex1" id="btnLabelOcclusion">🛡️ 不透视: 关</button>
+                            <button class="btn active u-flex1" id="btnLabelPenMode">🧲 稳定模式: 开</button>
+                            <button class="btn u-flex1" id="btnLabelAlign">📏 智能对齐: 关</button>
+                        </div>
+                    </div>
+                    <div class="status-bar u-mt2 u-fs8 u-muted2">
+                        <span id="labelSystemInfo">标注系统: 启用 · 智能避让 · 动态跟随</span>
+                        <span id="labelPerfInfo" class="u-green2">⏱ 就绪</span>
+                    </div>
+                    <div class="contour-debug u-border-purple-dark u-violet" id="labelDebugInfo">🔍 海拔标注: 等待启用...</div>
+                </div>
+
+            </div>
+
+            <!-- Tab 4: 专注模式 -->
+            <div class="tab-content" id="tab-visual">
+                <!-- 配色材质（从地形tab移入） -->
+                <div class="section u-border-green">
+                    <div class="section-title">🎨 配色材质</div>
+                    <div class="row u-bb-g1 u-pb3 u-mb3">
+                        <label class="u-minw32 u-fs8">配色</label>
+                        <button class="material-preset-btn active" data-preset="standard" data-action="materialPreset">标准分层</button>
+                        <button class="material-preset-btn" data-preset="gistearth" data-action="materialPreset">Gist Earth</button>
+                        <button class="material-preset-btn" data-preset="atlas2" data-action="materialPreset">Atlas II</button>
+                    </div>
+                    <div class="row">
+                        <label class="u-minw20 u-fs8">低</label><input type="color" id="matLow" value="#6b8e5a" class="color-picker" />
+                        <label class="u-minw20 u-fs8">中</label><input type="color" id="matMid" value="#8b7a5a" class="color-picker" />
+                        <label class="u-minw20 u-fs8">高</label><input type="color" id="matHigh" value="#d4c8a8" class="color-picker" />
+                        <label class="u-minw20 u-fs8">雪</label><input type="color" id="matSnow" value="#f0f0f0" class="color-picker" />
+                        <label class="u-minw16 u-fs8">混合</label>
+                        <input type="range" id="matBlend" min="0.1" max="1.0" step="0.05" value="0.35" class="u-flex06 u-minw30" />
+                        <span id="matBlendVal" class="u-fs9 u-minw18">0.35</span>
+                    </div>
+                    <div class="row">
+                        <button class="btn " id="btnApplyMat" data-action="applyMat">应用材质</button>
+                        <button class="btn " id="btnResetMat" data-action="resetMat">重置颜色</button>
+                        <button class="btn " id="btnToggleMaterial" data-action="toggleMaterial">👁️ 隐藏材质</button>
+                    </div>
+                    <div class="row">
+                        <label class="u-minw32 u-fs8">透明度</label>
+                        <input type="range" id="materialOpacity" min="0.0" max="1.0" step="0.01" value="1.0" class="u-flex1 u-minw35" />
+                        <span id="materialOpacityVal" class="u-fs9 u-minw18">1.00</span>
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2"><span id="currentPresetLabel">当前: 标准分层设色</span></div>
+                </div>
+                <div class="section">
+                    <div class="section-title">🎨 表面质感</div>
+                    <div class="row" style="justify-content: space-around; align-items: center;">
+                        <button class="btn u-flex00auto" id="btnNFlat" onclick="setNormalMode('flat')">◻ 方块</button>
+                        <button class="btn active btn-active u-flex00auto" id="btnNSmooth" onclick="setNormalMode('smooth')">✨ 光滑 ●</button>
+                        <button class="btn u-flex00auto" id="btnNCurv" onclick="setNormalMode('curvature')">⛰️ 曲率</button>
+                        <button class="btn u-flex00auto" id="btnNBilat" onclick="setNormalMode('bilateral')">🪜 双边</button>
+                    </div>
+                    <div style="border-top:1px solid #000;margin:6px 0;"></div>
+                    <div class="row" style="justify-content: space-around; align-items: center;">
+                        <button class="btn active btn-active u-flex00auto" id="btnModeStandard" onclick="setShaderMode('standard')">🎨 标准</button>
+                        <button class="btn u-flex00auto" id="btnModeNoise" onclick="setShaderMode('noise')">🌫️ 噪声</button>
+                        <button class="btn u-flex00auto" id="btnModeBlend" onclick="setShaderMode('blend')">🗺️ 混合</button>
+                        <button class="btn u-flex00auto" id="btnModeToon" onclick="setShaderMode('toon')">✏️ 卡通</button>
+                    </div>
+                    <div style="border-top:1px solid #000;margin:6px 0;"></div>
+                    <div class="row" style="justify-content: space-around; align-items: center;">
+                        <button class="btn active u-flex00auto" id="btnToggleTex" data-action="toggleTexture">🖥️ 程序化</button>
+                        <button class="btn active btn-active u-flex00auto" id="btnWalls" onclick="toggleTerrainWalls()">🧱 围墙</button>
+                        <button class="btn active u-flex00auto" id="btnToggleTrees" data-action="toggleTrees">🌲 树木</button>
+                        <button class="btn u-flex00auto" id="btnRebuildScenery" data-action="rebuildScenery">🔄 重建</button>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-title">📷 相机控制</div>
+                    <div class="row" style="justify-content: space-between; align-items: center;">
+                        <button class="btn camera-btn u-flex00auto" id="btnResetCamera" data-action="resetCamera">🎯 重置</button>
+                        <button class="btn active u-flex00auto" id="btnPerfMode" data-action="togglePerfMode">⚡ 性能</button>
+                        <button class="btn u-flex00auto" id="btnAutoRotate" data-action="autoRotate">🔄 旋转</button>
+                    </div>
+                    <div class="row u-mt3">
+                        <label class="u-minw28 u-fs8 u-muted">速度</label>
+                        <input type="range" id="rotateSpeed" min="0.1" max="2.0" step="0.1" value="0.5" class="u-flex1 u-minw60" />
+                        <span id="rotateSpeedVal" class="u-fs9 u-minw24">0.5</span>
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2">
+                        <span id="cameraStatus">相机状态: 默认</span>
+                        <span id="cameraDist">距离: 0.0 m</span>
+                        <span id="rotateStatus" class="rotate-status-inactive">停止</span>
+                    </div>
+                </div>
+                <div class="section u-border-violet">
+                    <div class="section-title">🌍 环境</div>
+                    <div class="row">
+                        <button class="btn active" id="btnToggleFog" data-action="toggleFog">🌫️ 禁用雾效</button>
+                        <button class="btn active" id="btnToggleEnv" data-action="toggleEnv">💡 环境光照: 开</button>
+                    </div>
+                    <div class="row">
+                        <button class="btn active" id="btnToggleSky" data-action="toggleSky">🌤 程序化天空: 开</button>
+                        <button class="btn active" id="btnToggleRefGrid" data-action="toggleRefGrid">📏 隐藏参考网格</button>
+                    </div>
+                    <div class="row env-sun-row">
+                        <button class="btn" id="btnToggleSun" data-action="toggleSun">☀️ 开启太阳</button>
+                    </div>
+                    <div class="row">
+                        <span class="u-fs9 u-muted3">太阳仰角</span>
+                        <input type="range" id="skySunElev" min="5" max="85" step="1" value="35" class="u-flex1" />
+                        <span class="u-fs9 u-minw34" id="skySunElevVal">35°</span>
+                    </div>
+                    <div class="row u-dn" id="sunHeightRow">
+                        <label class="u-minw20">高度Y</label>
+                        <input type="range" id="sunHeight" min="2" max="80" step="1" value="25" class="u-flex1 u-minw35" />
+                        <span id="sunHeightVal" class="u-fs9 u-minw18">25</span>
+                    </div>
+                    <div class="row u-dn" id="sunXRow">
+                        <label class="u-minw20">水平X</label>
+                        <input type="range" id="sunX" min="0" max="60" step="1" value="18" class="u-flex1 u-minw35" />
+                        <span id="sunXVal" class="u-fs9 u-minw18">18</span>
+                    </div>
+                    <div class="row u-dn" id="sunAngleRow">
+                        <label class="u-minw20">角度</label>
+                        <input type="range" id="sunAngle" min="0" max="360" step="1" value="45" class="u-flex1 u-minw35" />
+                        <span id="sunAngleVal" class="u-fs9 u-minw18">45°</span>
+                    </div>
+                    <div class="row u-dn" id="sunIntensityRow">
+                        <label class="u-minw20">亮度</label>
+                        <input type="range" id="sunIntensity" min="0" max="5" step="0.1" value="2.5" class="u-flex1 u-minw35" />
+                        <span id="sunIntensityVal" class="u-fs9 u-minw18">2.5</span>
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2"><span id="lightingInfo">环境光照: 开 · 天空: 开</span></div>
+                </div>
+                <div class="section u-border-blue2">
+
+                </div>
+            </div>
+
+            <!-- Tab 8: 水系统 -->
+            <div class="tab-content" id="tab-water">
+                <!-- 海水 -->
+                <div class="section u-border-blue3">
+                    <div class="section-title">🌊 海水 / 海平面</div>
+                    <div class="water-group sea-group">
+                        <div class="row">
+                            <button class="btn active u-flex1" id="btnWaterSea" data-action="toggleWater">🌊 启用海水</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw34">高度</label>
+                            <input type="range" id="waterSeaLevel" min="-0.4" max="0.6" step="0.01" value="0.25" class="u-flex1" />
+                            <span class="water-val" id="waterSeaLevelVal">0.25</span>
+                        </div>
+                        <div class="row u-mt2">
+                            <button class="btn u-flex1" id="btnResetSeaDatum" title="以当前水面高度为新0m基准，以下等高线显示为负海拔（等深线）" data-action="resetSeaDatum">🧭 重置0m基准</button>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw34">波高</label>
+                            <input type="range" id="waterWaveHeight" min="0.0" max="0.3" step="0.01" value="0.15" class="u-flex1" />
+                            <span class="water-val" id="waterWaveHeightVal">0.15</span>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw34">风速</label>
+                            <input type="range" id="waterWaveSpeed" min="0.0" max="3.0" step="0.05" value="1.5" class="u-flex1" />
+                            <span class="water-val" id="waterWaveSpeedVal">1.50</span>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw34">清澈</label>
+                            <input type="range" id="waterClarity" min="0.1" max="3.0" step="0.05" value="0.5" class="u-flex1" />
+                            <span class="water-val" id="waterClarityVal">0.50</span>
+                        </div>
+                        <div class="row">
+                            <label class="u-minw34">实心</label>
+                            <input type="range" id="waterSolid" min="0.0" max="1.0" step="0.05" value="0.1" class="u-flex1" />
+                            <span class="water-val" id="waterSolidVal">0.10</span>
+                        </div>
+                        <div class="row u-bt-b1 u-pt3 u-mt2">
+                            <label class="u-minw34">淹没</label>
+                            <input type="range" id="waterSubmerge" min="0.0" max="1.0" step="0.05" value="0.8" class="u-flex1" />
+                            <span class="water-val" id="waterSubmergeVal">0.80</span>
+                        </div>
+                        <div class="row u-mt2">
+                            <label class="u-minw34">折射</label>
+                            <input type="range" id="waterRefraction" min="0.0" max="0.05" step="0.002" value="0.020" class="u-flex1" />
+                            <span class="water-val" id="waterRefractionVal">0.020</span>
+                        </div>
+                        <div class="row u-mt2">
+                            <label class="u-minw34">反射</label>
+                            <input type="range" id="waterReflection" min="0.0" max="1.5" step="0.05" value="0.2" class="u-flex1" />
+                            <span class="water-val" id="waterReflectionVal">0.20</span>
+                        </div>
+                        <div class="row u-mt2">
+                            <span class="u-fs8 u-steel u-minw34">岸线</span>
+                            <button class="btn active u-flex1" id="btnWaterShoreline" data-action="toggleShoreline">🏖️ 显示水岸线</button>
+                        </div>
+                        <div class="row u-mt3 u-bt-b1 u-pt3">
+                            <span class="u-fs8 u-steel">显示:</span>
+                            <button class="btn active u-flex1" id="btnWaterSolid" data-action="waterSolid">🧊 实心水体</button>
+                            <button class="btn u-flex1" id="btnWaterTransparent" data-action="waterTransparent">🌊 透明水</button>
+                        </div>
+                        <div class="row u-mt3">
+                            <span class="u-fs8 u-steel">预设:</span>
+                            <button class="btn sea-preset-btn" data-preset="calm" data-action="applySeaPreset">平静湖</button>
+                            <button class="btn sea-preset-btn" data-preset="ocean" data-action="applySeaPreset">大洋</button>
+                            <button class="btn sea-preset-btn" data-preset="storm" data-action="applySeaPreset">风暴</button>
+                            <button class="btn sea-preset-btn" data-preset="shallow" data-action="applySeaPreset">浅海</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 河流（UI 骨架，后续实现） -->
+                <div class="section u-border-green2">
+                    <div class="section-title">🏞️ 河流</div>
+                    <div class="water-group river-group">
+                        
+                        <div class="water-placeholder">· 按地形重力流向追踪河道<br/>· FlowMap-UV 滚动着色</div>
+                    </div>
+                </div>
+                <!-- 降水 / 云层（UI 骨架，后续实现） -->
+                <div class="section u-border-violet2">
+                    <div class="section-title">🌧️ 降水/云层</div>
+                    <div class="water-group rain-group">
+                        
+                        <div class="water-placeholder">· 体积云: 3D fBm/Worley raymarching<br/>· 降水: InstancedMesh 雨幕 / 屏幕空间雨</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 5: 地形剖面图 -->
+            <div class="tab-content" id="tab-section">
+                <div class="section u-border-teal">
+                    <div class="section-title">
+                        <button class="btn u-flex00auto" id="btnToggleRectCrop" data-action="toggleRectCrop">📐 矩形画面: 关</button>
+                        <span class="u-fs9 u-muted2">🖼️ 矩形画面 (视觉遮罩 · 不改地形数据)</span>
+                    </div>
+                    <div class="row" id="rectCropControls" style="display:none;">
+                        <label class="u-minw16 u-fs8">前</label>
+                        <input type="range" id="rectCropFront" min="0" max="49" step="1" value="0" class="u-flex1 u-minw40" />
+                        <span class="u-fs9 u-minw24" id="rectCropFrontVal">0%</span>
+                        <label class="u-minw16 u-fs8">后</label>
+                        <input type="range" id="rectCropBack" min="0" max="49" step="1" value="0" class="u-flex1 u-minw40" />
+                        <span class="u-fs9 u-minw24" id="rectCropBackVal">0%</span>
+                    </div>
+                    <div class="row u-mt2" id="rectCropControls2" style="display:none;">
+                        <label class="u-minw16 u-fs8">左</label>
+                        <input type="range" id="rectCropLeft" min="0" max="49" step="1" value="0" class="u-flex1 u-minw40" />
+                        <span class="u-fs9 u-minw24" id="rectCropLeftVal">0%</span>
+                        <label class="u-minw16 u-fs8">右</label>
+                        <input type="range" id="rectCropRight" min="0" max="49" step="1" value="0" class="u-flex1 u-minw40" />
+                        <span class="u-fs9 u-minw24" id="rectCropRightVal">0%</span>
+                    </div>
+                    <div class="row u-mt2" id="rectCropApplyRow" style="display:none;">
+                        <button class="btn primary u-flex1" id="btnApplyRectCrop">✅ 重建围墙并应用裁剪</button>
+                    </div>
+                    <div class="status-bar u-mt2 u-fs8 u-muted2">
+                        <span id="rectCropInfo">矩形画面: 关（俯视矩形等高线图 · 不改地形数据）</span>
+                    </div>
+                </div>
+                <div class="section u-border-orange2">
+                    <div class="section-title">🥥 剖面图系统 <span class="u-fs9 u-muted2">垂直切面</span></div>
+                    <div class="section-control-group u-border-left-orange">
+                        <div class="row">
+                            <button class="btn primary " id="btnToggleSection" data-action="toggleSection">🥥 开启剖面图</button>
+                            <span class="status" id="sectionStatus">状态: 关闭</span>
+                        </div>
+                        <div id="sectionControls" class="u-dn">
+                            <div class="row" style="justify-content: space-around; align-items: center;">
+                                <button class="btn active" id="btnHideSideA" data-action="hideSideA">🙈 A区</button>
+                                <button class="btn active" id="btnHideSideB" data-action="hideSideB">🙈 B区</button>
+                                <button class="btn " id="btnShowBoth" data-action="showBoth">👁️ 全部</button>
+                                <button class="btn " id="btnClearSection" data-action="clearSection">✖ 清除</button>
+                                <button class="btn active" id="btnToggleSectionPoint" data-action="toggleSectionPoint">🔴 点</button>
+                                <button class="btn active" id="btnToggleSectionVertical" data-action="toggleSectionVertical">📏 线</button>
+                                <button class="btn active" id="btnToggleSectionPlane" data-action="toggleSectionPlane">🔲 面</button>
+                            </div>
+                            <div style="border-top:1px solid #000;margin:6px 0;"></div>
+                            <div class="row">
+                                <label class="u-minw18">X</label>
+                                <input type="range" id="sectionX" min="-30" max="30" step="0.1" value="0" class="u-flex2 u-minw60" />
+                                <span id="sectionXVal" class="u-fs9 u-minw30">0.0</span>
+                                <label class="u-minw18">Z</label>
+                                <input type="range" id="sectionY" min="-30" max="30" step="0.1" value="0" class="u-flex2 u-minw60" />
+                                <span id="sectionYVal" class="u-fs9 u-minw30">0.0</span>
+                            </div>
+                            <div class="row">
+                                <label class="u-minw18">角度</label>
+                                <input type="range" id="sectionAngle" min="0" max="360" step="1" value="45" class="u-flex2 u-minw60" />
+                                <span id="sectionAngleVal" class="u-fs9 u-minw36">45°</span>
+                                <button class="btn " id="btnApplySection" data-action="applySection">✅ 应用</button>
+                            </div>
+                            <div class="row u-mt2">
+                                <label class="u-minw18">交线色</label>
+                                <input type="color" id="sectionLineColor" value="#ff0000" class="color-picker u-w24 u-h22" />
+                                <label class="u-minw16">粗细</label>
+                                <input type="range" id="sectionLineWidth" min="1" max="5" step="0.5" value="2" class="u-flex1 u-minw40" />
+                                <span id="sectionLineWidthVal" class="u-fs9 u-minw18">2.0</span>
+                            </div>
+                            <div class="row u-mt2">
+                                <label class="u-minw18">垂面色</label>
+                                <input type="color" id="sectionPlaneColor" value="#4488ff" class="color-picker u-w24 u-h22" />
+                                <label class="u-minw16">透明度</label>
+                                <input type="range" id="sectionPlaneOpacity" min="0.0" max="0.8" step="0.01" value="0.25" class="u-flex1 u-minw40" />
+                                <span id="sectionPlaneOpacityVal" class="u-fs9 u-minw28">0.25</span>
+                                <button class="btn " id="btnApplySectionVisual" data-action="applySectionVisual">✅ 应用</button>
+                            </div>
+                            <div class="row u-mt2">
+                                <button class="btn " id="btnToggleSection2D">📈 2D剖面图: 展开</button>
+                                <span class="status" id="section2DStatus">2D曲线: 收起</span>
+                            </div>
+                        </div>
+                        <div class="status-bar u-mt2">
+                            <span id="sectionInfo" class="u-fs8 u-muted">剖面: 未生成</span>
+                            <span id="sectionPerfInfo" class="u-fs8 u-green2">⏱ 就绪</span>
+                        </div>
+                        <div class="contour-debug u-border-red-dark u-orange2" id="sectionDebugInfo">🔍 剖面: 等待启用...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 6: 视觉 -->
+            <div class="tab-content" id="tab-focus">
+                <div class="section u-border-gold">
+                    <div class="section-title">🎯 专注模式 <span class="u-fs9 u-muted2">海拔聚焦 · 讲解</span></div>
+                    <div class="focus-control-group u-border-left-gold">
+                        <div class="row">
+                            <button class="btn primary " id="btnToggleFocus" data-action="toggleFocus">🔦 开启专注模式</button>
+                            <span id="focusStatus" class="u-fs9 u-muted">状态: 关闭</span>
+                            <span id="focusElevationCount" class="u-fs8 u-muted2 u-ml-auto">海拔层: 0</span>
+                        </div>
+                        <div id="focusControls" class="u-dn u-mt4 u-bt-g1 u-pt4">
+                            <div class="row">
+                                <label class="u-minw32 u-fs8">投影面</label>
+                                <input type="range" id="focusProjectionY" min="-10" max="30" step="0.1" value="0" class="u-flex1 u-minw60 u-accent-gold" />
+                                <span id="focusProjectionYVal" class="u-fs9 u-minw40">0.0 m</span>
+                                <button class="btn " id="btnSetProjectionToMin" data-action="setProjectionToMin">↘最低</button>
+                            </div>
+                            <div class="row u-mt2">
+                                <label class="u-minw32 u-fs8">非选中线</label>
+                                <input type="range" id="focusFadeOpacity" min="0.02" max="0.6" step="0.01" value="0.12" class="u-flex1 u-minw60 u-accent-gray" />
+                                <span id="focusFadeOpacityVal" class="u-fs9 u-minw32">0.12</span>
+                                <span class="u-fs7 u-muted2">透明度</span>
+                            </div>
+                            <div class="row u-mt2 u-bt-g1 u-pt3">
+                                <span class="u-fs8 u-muted">💡 右侧拖动条选择海拔层</span>
+                                <span id="focusSelectedInfo" class="u-fs9 u-gold u-fw600 u-ml-auto">未选择</span>
+                            </div>
+                            <div class="row u-mt1">
+                                <button class="btn u-flex1" id="btnFocusClear" data-action="focusClear">✖ 清除选择</button>
+                                <button class="btn u-flex1" id="btnFocusFit" data-action="focusFit">📐 适配视角</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="status-bar u-fs8 u-muted2 u-mt2">
+                        <span id="focusDebugInfo">专注模式: 关闭</span>
+                    </div>
+                
+                <div class="section u-border-violet">
+                    <div class="section-title">🎮 游戏模式 <span class="u-fs9 u-muted2">Minecraft 风格 · 小人冒险</span></div>
+                    <div class="row">
+                        <button class="btn primary " id="btnGameToggle" data-action="toggleGame">🕹️ 开启游戏模式</button>
+                        <span id="gameStatus" class="u-fs9 u-muted">状态: 关闭</span>
+                    </div>
+                    <div id="gameControls" class="u-dn u-mt4 u-bt-g1 u-pt4">
+                        <div class="row">
+                            <label class="u-minw32 u-fs8">风格</label>
+                            <button class="btn " id="gameStyleBtn" data-action="gameStyle">D仔</button>
+                        </div>
+                        <div class="row u-mt2">
+                            <label class="u-minw32 u-fs8">颜色</label>
+                            <div id="gameSkinPalette" class="u-flex u-gap4" style="flex-wrap:wrap;">
+                                <button class="skin-swatch active" data-color="#ffd93d" style="background:#ffd93d" title="黄色"></button>
+                                <button class="skin-swatch" data-color="#2a2a2e" style="background:#2a2a2e" title="黑色"></button>
+                                <button class="skin-swatch" data-color="#e04a4a" style="background:#e04a4a" title="红色"></button>
+                                <button class="skin-swatch" data-color="#f5a9c9" style="background:#f5a9c9" title="粉色"></button>
+                                <button class="skin-swatch" data-color="#58c24a" style="background:#58c24a" title="绿色"></button>
+                                <button class="skin-swatch" data-color="#9a6ae0" style="background:#9a6ae0" title="紫色"></button>
+                                <button class="skin-swatch" data-color="#4a9ae0" style="background:#4a9ae0" title="蓝色"></button>
+                                <button class="skin-swatch" data-color="#f07a2a" style="background:#f07a2a" title="橙色"></button>
+                            </div>
+                            <label class="u-minw32 u-fs8">服饰</label>
+                            <button class="btn " id="gameOutfitBtn" data-action="gameOutfit">经典</button>
+                        </div>
+                        <div class="row u-mt2">
+                            <label class="u-minw32 u-fs8">大小</label>
+                            <input type="range" id="gameScale" min="0.3" max="2" step="0.05" value="0.8" class="u-flex1 u-minw40" />
+                            <span id="gameScaleVal" class="u-fs9 u-minw30">0.8</span>
+                            <label class="u-minw32 u-fs8">视角</label>
+                            <button class="btn " id="btnGameFollow" data-action="gameFollowView">视角跟随: 开</button>
+                            <button class="btn " id="gameCamBtn" data-action="gameCamMode">第三人称</button>
+                        </div>
+                        <div class="row u-mt2">
+                            <span class="u-fs8 u-muted">💡 摇杆/方向键移动 · 空格跳跃 · 双击圆盘切换飞行(空格上升)</span>
+                        </div>
+                        <div class="status-bar u-fs8 u-muted2 u-mt2">
+                            <span id="gameDebugInfo">游戏模式: 关闭</span>
+                        </div>
+                    </div>
+                </div>
+</div>
+            </div>
+
+            <!-- Tab 7: 配置 -->
+            <div class="tab-content" id="tab-config">
+                <div class="section u-border-red">
+                    <div class="section-title">📏 单位映射</div>
+                    <div class="row">
+                        <label class="u-minw20">1格</label>
+                        <select id="unitPreset" class="u-flex1">
+                            <option value="0.5m">0.5 m</option><option value="1m">1 m</option><option value="2m">2 m</option>
+                            <option value="5m" selected>5 m</option><option value="10m">10 m</option><option value="20m">20 m</option>
+                            <option value="50m">50 m</option><option value="100m">100 m</option>
+                            <option value="150m">150 m</option><option value="200m">200 m</option><option value="400m">400 m</option>
+                            <option value="custom">自定义...</option>
+                        </select>
+                        <button class="btn u-minw30" id="btnApplyUnit" data-action="applyUnit">应用</button>
+                    </div>
+                    <div class="row u-dn" id="customUnitRow">
+                        <label class="u-minw20">值</label><input type="text" id="customUnitScale" value="3" inputmode="decimal" autocomplete="off" spellcheck="false" class="u-w76" />
+                        <label class="u-minw20">单位</label><input type="text" id="customUnitSuffix" value="m" class="u-w30" />
+                    </div>
+                    <div class="status-bar u-fs8 u-blue">
+                        <span id="unitInfo">当前: 1格 = 5 m</span>
+                        <span id="unitScaleInfo">缩放: 5×</span>
+                    </div>
+                    <div class="row u-mt2">
+                        <label class="u-minw20" title="等高线显示海拔整体偏移，正负不限">海拔偏移</label>
+                        <input type="number" id="contourElevOffset" step="1" value="0" inputmode="decimal" autocomplete="off" spellcheck="false" class="u-flex1 u-minw40" />
+                        <span class="u-fs9 u-minw18 u-muted" id="contourOffsetUnit">m</span>
+                    </div>
+                    <div class="u-fs9 u-muted u-mt1">等高线显示海拔整体偏移（单位映射后 ± 值，不限大小）</div>
+                    <div class="status-bar u-fs8 u-blue">
+                        <span id="contourOffsetInfo">显示海拔 = 映射海拔</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📐 地形面积</div>
+                    <div class="row">
+                        <span class="u-fs9 u-muted3">缩放:</span>
+                        <button class="tile-btn active" data-scale="1" data-action="selectTileScale">1×</button>
+                        <button class="tile-btn" data-scale="2" data-action="selectTileScale">2×</button>
+                        <button class="tile-btn" data-scale="3" data-action="selectTileScale">3×</button>
+                        <button class="tile-btn" data-scale="4" data-action="selectTileScale">4×</button>
+                        <button class="tile-btn" data-scale="5" data-action="selectTileScale">5×</button>
+                        <span class="u-fs9 u-muted u-ml4">(面积 × N²)</span>
+                    </div>
+                    <div class="row u-mt2">
+                        <span class="u-fs9 u-muted3">分辨率:</span>
+                        <button class="btn res-btn" data-res="128" data-action="selectResolution">128</button>
+                        <button class="btn res-btn btn-active" data-res="256" data-action="selectResolution">256</button>
+                        <button class="btn res-btn" data-res="512" data-action="selectResolution">512</button>
+                        <span class="u-fs9 u-muted u-ml4" id="resInfo"></span>
+                    </div>
+                    <div class="area-info" id="areaInfo">地形: 60.0 × 60.0 m | 网格: 16 × 16 格</div>
+                </div>
+                <div class="section">
+                    <div class="section-title">📦 导出/导入</div>
+                    <div class="row">
+                        <button class="btn " id="btnImportJSON" data-action="importJSON">📂 导入JSON</button>
+                        <button class="btn " id="btnExportJSON" data-action="exportJSON">💾 导出JSON</button>
+                        <button class="btn btn-success " id="btnExportPNG" data-action="exportPNG">📷 PNG</button>
+                        <button class="btn btn-warning " id="btnExportGeoJSON" data-action="exportGeoJSON">🌐 GeoJSON</button>
+                    </div>
+                    <div class="row u-mt2"><input type="file" id="fileInput" accept=".json" class="u-dn" multiple /></div>
+                    <div class="status-bar"><span id="statusInfo">就绪</span><span id="vertInfo">顶点: 0</span></div>
+                </div>
+            </div>
+        </div>
+        <div id="resizeHandle"></div>
+    </div>
+    <div id="canvas-container">
+        <!-- 浮动编辑工具栏 -->
+        <div id="floatingEditBar" class="floating-edit-bar u-dn">
+            <div id="ftbLayout" class="ftb-layout">
+                <div id="ftbTools" class="ftb-panel ftb-tools"></div>
+                <div id="ftbShapes" class="ftb-panel ftb-shapes"></div>
+                <div id="ftbParams" class="ftb-panel ftb-params"></div>
+                <div id="ftbActions" class="ftb-panel ftb-actions"></div>
+            </div>
+            <div id="floatingTopBar" class="floating-top-bar">
+                <button class="floating-top-btn" id="ftbSwitchMode" title="切换模式">🔄</button>
+                <button class="floating-top-btn" id="ftbUndo" title="撤销">↩</button>
+                <button class="floating-top-btn" id="ftbExit" title="退出编辑">✕</button>
+            </div>
+        </div>
+        <!-- 专注模式迷你视窗（可拖动/折叠/缩放） -->
+        <div id="focusMiniViewport" class="focus-mini-viewport">
+            <div class="fmv-header" id="fmvHeader">
+                <span class="fmv-title">🗺 等高线视窗</span>
+                <div class="fmv-header-btns">
+                    <button class="fmv-btn" id="fmvCollapseBtn" title="折叠/展开">—</button>
+                    <button class="fmv-btn" id="fmvCloseBtn" title="关闭">✕</button>
+                </div>
+            </div>
+            <div class="fmv-body">
+                <canvas id="fmvCanvas"></canvas>
+                <div id="fmvLabelLayer"></div>
+                <!-- V10.81：画笔标点 + 游戏角色位置叠加层 -->
+                <div id="fmvOverlayLayer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2;"></div>
+                <div class="fmv-zoom-btns">
+                    <button class="fmv-zoom-btn" id="fmvZoomIn" title="放大窗口">＋</button>
+                    <button class="fmv-zoom-btn" id="fmvZoomOut" title="缩小窗口">－</button>
+                </div>
+            </div>
+            <div class="fmv-resize-handle" id="fmvResizeHandle"></div>
+        </div>
+
+        <!-- 右上方：当前等高距信息框 -->
+        <div id="contourIntervalInfo" class="hud-info-box">
+            <span class="hud-label">等高距</span>
+            <span class="hud-value" id="contourIntervalInfoVal">2.0 m</span>
+        </div>
+
+        <!-- 剖面图浮动控制 UI（开启剖面图时显示，应用切面后隐藏编辑控件） -->
+        <div id="sectionFloatControls" class="section-float-controls u-dn">
+            <!-- Y 轴竖向拖动条（控制切面点 Z 移动） -->
+            <div class="section-y-slider-wrap">
+                <span class="section-slider-tag">Z</span>
+                <input type="range" id="sectionYFloatSlider" min="-10" max="10" step="0.1" value="0" />
+            </div>
+
+            <!-- 左下方 2×3 按钮组：关闭/应用/A区/B区/逆旋/顺旋 -->
+            <div class="section-btn-grid">
+                <button id="btnSectionCloseFloat" class="s-grid-btn s-grid-close" title="关闭剖面图">
+                    <span class="s-grid-icon">✕</span>
+                    <span class="s-grid-label">关闭</span>
+                </button>
+                <button id="btnSectionApplyFloat" class="s-grid-btn s-grid-apply" title="应用切面">
+                    <span class="s-grid-icon">✅</span>
+                    <span class="s-grid-label">应用</span>
+                </button>
+                <button id="btnSectionHideA" class="s-grid-btn s-grid-side" title="隐藏A区（左侧）">
+                    <span class="s-grid-icon">◀️</span>
+                    <span class="s-grid-label">A区</span>
+                </button>
+                <button id="btnSectionHideB" class="s-grid-btn s-grid-side" title="隐藏B区（右侧）">
+                    <span class="s-grid-icon">▶️</span>
+                    <span class="s-grid-label">B区</span>
+                </button>
+                <button id="btnSectionRotateCCW" class="s-grid-btn s-grid-rot" title="逆时针旋转">
+                    <span class="s-grid-icon">↺</span>
+                    <span class="s-grid-label">逆旋</span>
+                </button>
+                <button id="btnSectionRotateCW" class="s-grid-btn s-grid-rot" title="顺时针旋转">
+                    <span class="s-grid-icon">↻</span>
+                    <span class="s-grid-label">顺旋</span>
+                </button>
+                <!-- 旋转角度显示（跨第3行） -->
+                <div class="s-grid-angle" id="sectionRotateAngleVal">45°</div>
+            </div>
+
+            <!-- X 轴横向拖动条（控制切面点 X 移动） -->
+            <div class="section-x-slider-wrap">
+                <span class="section-slider-tag">X</span>
+                <input type="range" id="sectionXFloatSlider" min="-10" max="10" step="0.1" value="0" />
+            </div>
+        </div>
+
+        <!-- 2D 高程剖面曲线面板（V11.31：距离-高程折线 + 缩放/平移 + 统计） -->
+        <div id="section2DPanel" class="section-2d-panel u-dn">
+            <div class="s2d-header">
+                <span class="s2d-title">📈 2D高程剖面曲线</span>
+                <button class="s2d-close-btn" id="btnSection2DClose" title="关闭面板">✕</button>
+            </div>
+            <canvas id="section2DCanvas" class="s2d-canvas"></canvas>
+            <div class="s2d-stats" id="section2DStats">剖面: 无数据（请先应用剖面）</div>
+            <div class="s2d-zoom-btns">
+                <!-- V12.0：＋/－改为缩放弹窗窗口大小（原缩放窗口内曲线内容的功能已移除） -->
+                <button class="s2d-zoom-btn" id="btnSection2DZoomIn" title="放大窗口">＋</button>
+                <button class="s2d-zoom-btn" id="btnSection2DZoomOut" title="缩小窗口">－</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 多 CDN 加载器 + 加载提示页（白色调 · 转圈 + 沙漏倒计时 + 跳动图标） -->
+
+<div id="cdn-loader">
+  <div id="loader-spinner"></div>
+  <div id="loader-title">3D 超级地形编辑器</div>
+  <div id="loader-sub">在线版 V12.0</div>
+  <div id="loader-progress-wrap"><div id="cdn-progress"></div></div>
+  <div id="loader-stage">进度 0% · 初始化加载器...</div>
+  <div id="cdn-status">正在从 CDN 加载引擎...</div>
+  <div id="cdn-now"><span id="cdn-dot"></span><span id="cdn-name">正在检测 CDN...</span><span id="cdn-state"></span></div>
+  <button id="loaderEnterBtn" disabled>加载中...</button>
+</div>
+<script src="js/loader.js"></script>
+
+    
+
+    <!-- ===== 等高线导入弹窗（可调整大小） ===== -->
+    <!-- V10.13: 多模型批量导入面板 -->
+    <div id="modelImportModal">
+        <div class="contour-modal-header" id="modelImportHeader">
+            <div class="contour-modal-title">📥 批量导入地形模型 <span style="font-size:10px;color:var(--ui-status,#888);font-weight:400;">多选 / 拖拽 JSON</span></div>
+            <button class="contour-modal-close" id="modelImportClose">✕</button>
+        </div>
+        <div class="contour-modal-body" style="padding:12px;overflow-y:auto;">
+            <div id="modelDropZone">📂 点击选择 或 拖拽 JSON 文件到此处<br /><span style="font-size:11px;opacity:0.75;">已导入 <b id="modelCount">0</b> 个模型</span></div>
+            <div id="modelImportList"></div>
+        </div>
+    </div>
+    <!-- V10.13: 底部模型切换按钮条 -->
+    <div id="cameraTrackBar">
+        <button id="camTrackSpeed" title="巡天速度倍速">2x</button>
+        <div id="camTrackNodes"></div>
+        <button id="camTrackPlay" title="播放/暂停">▶</button>
+    </div>
+    <div id="preloadBar"></div>
+    <div id="modelBar"></div>
+
+    <div id="contourImportModal">
+        <div class="contour-modal-header" id="contourModalHeader">
+            <div class="contour-modal-title">📥 等高线图片导入 <span style="font-size:10px;color:var(--ui-status,#888);font-weight:400;">黑白等高线图 → 3D地形</span></div>
+            <button class="contour-modal-close" id="contourModalClose">✕</button>
+        </div>
+        <div class="contour-modal-body" style="flex-direction:row;gap:0;padding:0;overflow:hidden;">
+            <!-- 左侧主区域 -->
+            <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;">
+                <!-- 顶部：图片展示区（65%） -->
+                <div style="flex:0 0 65%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--ui-control-bg);border-bottom:1px solid var(--ui-input-border);padding:12px;min-height:0;overflow:hidden;position:relative;">
+                    <input type="file" id="contourImageInput" accept="image/png,image/jpeg,image/jpg" style="display:none;" />
+                    <div class="contour-modal-preview" id="contourImportPreview" style="display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+                        <canvas id="contourImportCanvas" width="256" height="256" style="max-width:100%;max-height:100%;border:1px solid var(--ui-input-border);border-radius:4px;background:var(--ui-input-bg);object-fit:contain;image-rendering:auto;"></canvas>
+                        <div style="font-size:10px;color:var(--ui-status,#888);" id="contourImportInfo">未加载</div>
+                    </div>
+                    <div id="contourImportPlaceholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ui-status,#666);gap:8px;">
+                        <div style="font-size:48px;opacity:0.3;">🖼️</div>
+                        <div style="font-size:12px;">请在下方选择等高线图片</div>
+                    </div>
+                    <!-- 等高线数量提示 -->
+                    <div id="contourCountBadge" style="display:none;position:absolute;top:8px;left:8px;background:rgba(6,182,212,0.9);color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;">已识别 <span id="contourCountNum">0</span> 条等高线</div>
+                </div>
+
+                <!-- 底部：按钮区（35%，分两列可滚动） -->
+                <div style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+                    <div style="flex:1;overflow-y:auto;padding:10px 12px;">
+                        <!-- 选择图片按钮（通栏） -->
+                        <button class="contour-modal-btn primary" id="btnImportContourImage" style="width:100%;padding:10px;font-size:12px;margin-bottom:10px;">📷 选择等高线图片</button>
+
+                        <!-- 参数设置（2列） -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);white-space:nowrap;">阈值</span>
+                                <input type="range" id="contourImportThreshold" min="30" max="220" step="5" value="128" class="contour-modal-range" style="flex:1;" />
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);min-width:24px;" id="contourImportThresholdVal">128</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);white-space:nowrap;">分辨率</span>
+                                <select id="contourImportSize" class="contour-modal-select" style="flex:1;font-size:10px;padding:4px 6px;">
+                                    <option value="128">128</option>
+                                    <option value="256" selected>256</option>
+                                    <option value="384">384</option>
+                                    <option value="512">512</option>
+                                    <option value="768">768</option>
+                                    <option value="1024">1024</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 图片适配模式（非正方形图片处理） -->
+                        <div style="padding:8px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:6px;margin-bottom:10px;">
+                            <div style="font-size:10px;color:#a855f7;margin-bottom:6px;font-weight:600;">📐 非正方形图片适配（长方形→正方形）</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+                                <button class="contour-modal-btn fit-mode-btn active" data-fitmode="contain" style="padding:6px 4px;font-size:10px;">⬜ 保持比例</button>
+                                <button class="contour-modal-btn fit-mode-btn" data-fitmode="stretch" style="padding:6px 4px;font-size:10px;">🔄 伸缩变形</button>
+                            </div>
+                            <div style="font-size:9px;color:var(--ui-status,#666);line-height:1.4;">
+                                <span id="fitModeHint">保持比例：居中放置，周围留白（推荐，识别准确）</span>
+                            </div>
+                        </div>
+
+                        <!-- 海拔设置（2列） -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);white-space:nowrap;">基准海拔</span>
+                                <input type="number" id="contourImportBaseElev" value="0" step="10" class="contour-modal-input" style="flex:1;padding:5px 8px;font-size:10px;min-width:0;" />
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);white-space:nowrap;">等高距</span>
+                                <input type="number" id="contourImportInterval" value="10" step="5" class="contour-modal-input" style="flex:1;padding:5px 8px;font-size:10px;min-width:0;" />
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮（2列） -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                            <button class="contour-modal-btn" id="btnDetectText" data-action="detectTextRegions" style="padding:8px 6px;font-size:11px;min-width:0;">🔤 识别文字</button>
+                            <button class="contour-modal-btn primary" id="btnExtractContours" data-action="extractContoursFromImage" style="padding:8px 6px;font-size:11px;min-width:0;">🔍 提取等高线</button>
+                            <button class="contour-modal-btn" id="btnConnectEndpoints" style="display:none;padding:8px 6px;font-size:11px;min-width:0;">🔗 连接断点</button>
+                            <button class="contour-modal-btn" id="btnAutoAssignElev" data-action="autoAssignContourElev" style="padding:8px 6px;font-size:11px;min-width:0;">📝 自动海拔</button>
+                            <button class="contour-modal-btn" id="btnMirrorContours" style="display:none;padding:8px 6px;font-size:11px;min-width:0;background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.4);">🪞 对称复制等高线</button>
+                            <button class="contour-modal-btn" id="btnUndoMirror" style="display:none;padding:8px 6px;font-size:11px;min-width:0;">↩️ 撤销复制</button>
+                        </div>
+
+                        <!-- 文字处理面板 -->
+                        <div id="contourImportTextPanel" style="display:none;padding:8px;background:var(--ui-control-bg);border-radius:6px;margin-bottom:10px;">
+                            <div style="font-size:10px;color:var(--ui-status,#888);margin-bottom:6px;">文字区域（红色=已选去除）：</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+                                <button class="contour-modal-btn" id="btnSelectAllText" style="padding:6px 4px;font-size:10px;">全选</button>
+                                <button class="contour-modal-btn" id="btnDeselectAllText" style="padding:6px 4px;font-size:10px;">全不选</button>
+                                <button class="contour-modal-btn primary" id="btnRemoveText" style="padding:6px 4px;font-size:10px;">🗑️ 去除</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--ui-status,#888);"><span id="textRegionCount">0</span> 个区域，已选 <span id="textRegionSelected">0</span></div>
+                        </div>
+
+                        <!-- 连接模式面板 -->
+                        <div id="contourConnectPanel" style="display:none;padding:8px;background:rgba(6,182,212,0.1);border-radius:6px;margin-bottom:10px;">
+                            <div style="font-size:10px;color:#06b6d4;margin-bottom:6px;">🔗 连接模式：点击两端点</div>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="font-size:10px;color:var(--ui-status,#888);flex:1;" id="connectHint">请点击第一个端点</span>
+                                <button class="contour-modal-btn" id="btnCancelConnect" style="padding:6px 12px;font-size:10px;flex:0 0 auto;">✖ 退出</button>
+                            </div>
+                        </div>
+
+                        <!-- 地形生成参数设置 -->
+                        <div id="contourGenParamsPanel" style="display:none;padding:10px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);border-radius:8px;margin-bottom:10px;">
+                            <div style="font-size:11px;font-weight:600;color:#06b6d4;margin-bottom:8px;">⚙️ 地形生成参数</div>
+                            
+                            <!-- 生成模式 -->
+                            <div style="margin-bottom:8px;">
+                                <div style="font-size:10px;color:var(--ui-label,#aaa);margin-bottom:4px;">生成模式</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+                                    <button class="contour-modal-btn gen-mode-btn active" data-genmode="natural" style="padding:6px 4px;font-size:10px;">🌿 自然</button>
+                                    <button class="contour-modal-btn gen-mode-btn" data-genmode="smooth" style="padding:6px 4px;font-size:10px;">🌊 平滑</button>
+                                    <button class="contour-modal-btn gen-mode-btn" data-genmode="sharp" style="padding:6px 4px;font-size:10px;">⚡ 锐利</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 过渡平滑度（0-500%） -->
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);white-space:nowrap;min-width:60px;">过渡平滑</span>
+                                <input type="range" id="contourGenSmooth" min="0" max="500" step="10" value="50" class="contour-modal-range" style="flex:1;" />
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);min-width:36px;" id="contourGenSmoothVal">50%</span>
+                            </div>
+                            
+                            <!-- 虚拟点密度 -->
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);white-space:nowrap;min-width:60px;">虚拟点</span>
+                                <input type="range" id="contourGenVirtual" min="0" max="100" step="10" value="70" class="contour-modal-range" style="flex:1;" />
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);min-width:28px;" id="contourGenVirtualVal">70%</span>
+                            </div>
+                            
+                            <!-- 高度缩放 -->
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);white-space:nowrap;min-width:60px;">高度缩放</span>
+                                <input type="range" id="contourGenHeight" min="30" max="200" step="10" value="100" class="contour-modal-range" style="flex:1;" />
+                                <span style="font-size:10px;color:var(--ui-label,#aaa);min-width:28px;" id="contourGenHeightVal">100%</span>
+                            </div>
+
+                            <!-- 智能山峰/谷底约束 -->
+                            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:6px 8px;background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.18);border-radius:6px;">
+                                <input type="checkbox" id="contourGenSmartMono" checked style="accent-color:#06b6d4;width:13px;height:13px;margin:0;flex:0 0 auto;" />
+                                <label for="contourGenSmartMono" style="font-size:10px;color:var(--ui-label,#aaa);cursor:pointer;line-height:1.4;">智能山峰/谷底约束<br><span style="font-size:9px;color:var(--ui-status,#888);">自动识别海拔增减方向 · 空白区不高于/不低于最近等高线 · 防伪峰谷</span></label>
+                            </div>
+                        </div>
+
+                        <!-- 生成地形按钮 -->
+                        <button class="contour-modal-btn primary" id="btnGenerateFromContours" data-action="generateTerrainFromContours" style="width:100%;padding:12px;font-size:13px;">🏔️ 生成3D地形</button>
+                    </div>
+
+                    <!-- 状态栏 -->
+                    <div class="contour-modal-status" id="contourImportStatus" style="font-size:10px;padding:6px 12px;border-top:1px solid var(--ui-input-border);flex:0 0 auto;">就绪</div>
+                </div>
+            </div>
+
+            <!-- 右侧：等高线列表面板 -->
+            <div id="contourListPanel" style="display:none;width:220px;flex:0 0 220px;border-left:1px solid var(--ui-input-border);background:var(--ui-control-bg);flex-direction:column;overflow:hidden;">
+                <div style="padding:10px 12px;border-bottom:1px solid var(--ui-input-border);display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;">
+                    <span style="font-size:12px;font-weight:600;color:#06b6d4;">📊 等高线列表</span>
+                    <button id="btnCloseContourList" style="background:none;border:none;color:var(--ui-status,#888);cursor:pointer;font-size:14px;padding:2px 6px;">✕</button>
+                </div>
+                <div style="padding:8px 12px;font-size:10px;color:var(--ui-status,#888);border-bottom:1px solid var(--ui-input-border);flex:0 0 auto;">
+                    共 <span id="contourListTotal" style="color:#06b6d4;font-weight:600;">0</span> 条 | 已设海拔 <span id="contourListWithElev" style="color:#52c41a;font-weight:600;">0</span> 条
+                </div>
+                <div id="contourImportItems" style="flex:1;overflow-y:auto;padding:8px 12px;"></div>
+                <div style="padding:8px 12px;border-top:1px solid var(--ui-input-border);flex:0 0 auto;">
+                    <button class="contour-modal-btn" id="btnToggleContourList" style="width:100%;padding:6px;font-size:10px;">📋 展开/收起列表</button>
+                </div>
+            </div>
+        </div>
+        <div class="contour-modal-resize-handle" id="contourModalResizeHandle"></div>
+    </div>
+    <!-- 浮动文字编辑输入框 -->
+    <div id="markerFloatingInput">
+        <input type="text" id="markerFloatingText" maxlength="6" placeholder="A" value="" />
+        <button id="markerFloatingOk" title="确认">✓</button>
+        <button id="markerFloatingCancel" class="cancel" title="取消">✕</button>
+    </div>
+  <script src="../../assets/js/boot.js" data-rg-mode="overlay" defer></script>
+</body>
+</html>
+<!-- （注：内容由AI生成） -->

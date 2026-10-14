@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>爱拼才会赢 · 中国行政区划挑战 V3.0 · 在线试用版 | RainbowGeo（文波地理）</title>
+<meta name="description" content="中国行政区划拼图互动游戏：识图挑战（竞速/冲刺/对战）、记忆挑战、拼图大师、探索地图，34 个省级行政区。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2323425c'/%3E%3Cpath d='M20 18h10v10H20zM34 18h10v10H34zM20 32h10v10H20z' fill='%23eef4fa'/%3E%3Cpath d='M34 32h10v10H34z' fill='%23c24a3f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body data-theme="spring">
+<div id="app">
+
+  <button id="btnBrand" class="brand-mini" title="关于本作品" aria-label="关于本作品">RainbowGeo</button>
+    <div class="top-actions">
+      <button id="btnSound" class="icon-btn" title="音效开关" aria-label="音效开关">
+        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a9 9 0 0 1 0 12"/></svg>
+      </button>
+      <button id="btnTheme" class="icon-btn" title="切换主题" aria-label="切换主题">
+        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 2.5 2.5 0 0 0 0-5h-1a2.5 2.5 0 0 1 0-5H13a3.6 3.6 0 0 0 3.5-2.6A9 9 0 0 0 12 3z"/><circle cx="7.5" cy="11.5" r=".6"/><circle cx="10" cy="7.5" r=".6"/><circle cx="15.5" cy="7.8" r=".6"/></svg>
+      </button>
+      <button id="btnSettings" class="icon-btn" title="参数设置" aria-label="参数设置">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.09a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+      </button>
+      <button id="btnFull" class="icon-btn" title="全屏" aria-label="全屏">
+        <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+    </div>
+
+  <main>
+    <!-- ===== 首页 ===== -->
+    <section id="homeView" class="view">
+      <div class="home-scroll">
+        <div class="hero">
+          <h1>爱拼才会赢<span class="dot">。</span></h1>
+          <p class="sub">把 34 个省级行政区装进心里——点一点、拖一拖、比一比，多种模式任你挑战。</p>
+          <div class="deco"></div>
+        </div>
+        <div id="modeGrid" class="mode-grid"></div>
+        <div class="home-extras">
+          <button id="btnHelp" class="ghost-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5 .8c0 1.7-2.5 2-2.5 3.7"/><path d="M12 16.6v.1"/></svg>玩法说明</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== 游戏视图 ===== -->
+    <section id="gameView" class="view hidden">
+      <div id="hudFloat" class="hud-float">
+        <button id="btnBack" class="icon-btn" title="返回首页" aria-label="返回首页">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button id="btnRestart" class="icon-btn" title="重新开始（打乱题目）" aria-label="重新开始">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.34 5.66"/><path d="M4 12V6"/><path d="M4 12h6"/></svg>
+        </button>
+      </div>
+      <div id="readyDock" class="ready-dock hidden"></div>
+      <div id="questionBar" class="question-bar hidden">
+        <span id="qbMode" class="qb-mode">识图挑战</span>
+        <div id="qbPlayers" class="qb-players hidden">
+          <div id="qbP1" class="qb-player">
+            <span class="qb-cell"><b id="qbP1N"></b></span>
+            <span class="qb-cell qb-time"><i id="qbP1T"></i></span>
+            <span class="qb-cell qb-score"><i id="qbP1S"></i></span>
+          </div>
+          <div id="qbP2" class="qb-player">
+            <span class="qb-cell qb-score"><i id="qbP2S"></i></span>
+            <span class="qb-cell qb-time"><i id="qbP2T"></i></span>
+            <span class="qb-cell"><b id="qbP2N"></b></span>
+          </div>
+        </div>
+        <div class="q-main"><span class="q-tag" id="qTag">请点击</span><span id="qText">—</span></div>
+        <div class="q-side">
+          <div id="hudTimer" class="hud-timer hidden">
+            <svg viewBox="0 0 40 40"><circle class="ring-bg" cx="20" cy="20" r="15.5"/><circle class="ring" id="timerRing" cx="20" cy="20" r="15.5"/></svg>
+            <b id="timerNum" class="num">60</b>
+          </div>
+          <div id="hudCombo" class="hud-combo hidden">×2</div>
+          <div id="hudScore" class="hud-score num">0</div>
+          <div id="qHints" class="q-hints"></div>
+          <div class="q-actions">
+            <button id="btnHint" class="q-btn">提示</button>
+            <span id="qProgress" class="q-progress num">0/0</span>
+          </div>
+        </div>
+      </div>
+      <div id="outlineStage" class="outline-stage hidden">
+        <div class="ol-qbig" id="olQ">第 1 / 15 题</div>
+        <div class="outline-body">
+          <div class="opt-group" id="olGroupSolo"></div>
+          <div class="outline-frame"><svg id="outlineSvg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg></div>
+          <div class="opt-group side" id="olGroupL"></div>
+          <div class="opt-group side" id="olGroupR"></div>
+        </div>
+      </div>
+      <div id="livesRow" class="lives hidden"></div>
+      <div id="puzzleStage" class="puzzle-stage">
+      <div id="sideL" class="side-panel side-left hidden"></div>
+      <div id="mapWrap" class="map-wrap">
+        <svg id="mapSvg" viewBox="0 0 1000 918.3" preserveAspectRatio="xMidYMid meet" aria-label="中国地图">
+          <g id="layerMap"></g>
+          <g id="labelSvg"></g>
+          <g id="puzzleLayer"></g>
+        </svg>
+        <div class="map-vignette"></div>
+        <div id="legend" class="hidden"></div>
+        <div class="zoom-ctl">
+          <button id="zoomIn" aria-label="放大">＋</button>
+          <button id="zoomOut" aria-label="缩小">－</button>
+          <button id="zoomReset" class="zc-reset" aria-label="复位">◎</button>
+        </div>
+        <div id="mapToast" class="map-toast"></div>
+        <div id="infoCard" class="info-card hidden"></div>
+      </div>
+      <div id="sideR" class="side-panel side-right hidden"></div>
+      <div id="miniL" class="mini-col hidden"></div>
+      <div id="miniR" class="mini-col hidden"></div>
+      </div>
+      <div id="duelBar" class="duel hidden">
+        <div class="duel-p" id="duelP1"><span class="d-name">玩家一</span><span class="d-score num" id="duelS1">0</span></div>
+        <div class="duel-vs">VS</div>
+        <div class="duel-p" id="duelP2"><span class="d-name">玩家二</span><span class="d-score num" id="duelS2">0</span></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="sheetHost"></div>
+  <div id="modalHost"></div>
+  <div id="toast"></div>
+</div>
+<script src="js/app.js"></script>
+  <script src="../../assets/js/boot.js" data-rg-mode="overlay" defer></script>
+</body>
+</html>
+<!-- （注：内容由AI生成） -->

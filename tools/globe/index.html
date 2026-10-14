@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>🌏3D超级地球仪 V11.0A · 在线试用版 | RainbowGeo（文波地理）</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23255'/%3E%3Cpath d='M50 8c-24 0-40 18-40 42 20 4 34-4 40-14 6 10 20 18 40 14 0-24-16-42-40-42z' fill='%234c9'/%3E%3Cpath d='M50 8v84M12 34c20 6 34 2 38-6M88 34c-20 6-34 2-38-6' stroke='%23255' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<!-- ===== [V8.0 模块化] 本文件为构建模板：构建产物为 dist/index.html（单文件离线内联）===== -->
+<!-- ===== 加载页 ===== -->
+  <div class="loading-page" id="loadingPage">
+    <div class="loading-bg-glow"></div>
+    <div class="loading-logo">
+      <div class="loading-globe" id="loadingGlobe">🌍</div>
+      <div class="loading-ring"></div>
+    </div>
+    <!-- [v5.9] 加载页左右两侧本地图标位：同级目录 icon.png（左）/ icon.jpg（右），存在则旋转显示，不存在不加载 -->
+    <div class="side-icon-slot" id="sideIconLeft"></div>
+    <div class="side-icon-slot" id="sideIconRight"></div>
+    <h1 class="loading-title">3D超级地球仪<br><span class="title-ver">V11.0A 在线版</span></h1>
+    <div class="loading-bottom" id="loadingBottom"><div class="network-indicator" id="networkIndicator">
+      <div class="dot checking" id="loadDot"></div>
+      <span class="label checking" id="loadLabel">检测中...</span>
+    </div>
+
+    <div class="progress-bar">
+      <div class="fill" id="progressFill"></div>
+    </div>
+
+    <div class="source-selector" id="sourceSelector"></div>
+
+    <div class="status-text" id="loadingStatus">准备加载...</div>
+
+    <div class="source-tag" id="sourceTag">⏳ 选择加载源...</div></div>
+
+    <!-- [v5.8] 加载完成进入按钮（不阻塞后台加载，可停留加载页） -->
+    <button class="enter-btn" id="enterAppBtn" style="display:none;">🚀进入</button>
+    <!-- [V8.0] 状态保持：加载页导入按钮（点击选择 / 拖拽 .json 状态文件到页面均可） -->
+    <button class="load-import-btn" id="loadImportBtn" style="display:none;">📂 导入状态</button>
+    <div class="load-import-hint" id="loadImportHint" style="display:none;">可拖拽 .json 状态文件到本页，进入后自动恢复</div>
+
+    <div class="error-box" id="errorBox">
+      <p class="msg">⚠️ Three.js 加载失败</p>
+      <p class="hint">请检查网络连接</p>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="retryBtn">🔄 重试</button>
+        <button class="btn" id="forceCdnBtn">🌐 强制 CDN</button>
+        
+      </div>
+    </div>
+
+    <div class="loading-version">
+      <span class="ver">V11.0A 在线版</span>
+      <span class="dot-sep">·</span>
+      <span class="date">2026.10.13</span>
+    </div>
+  </div>
+
+  <!-- ===== 主应用容器 ===== -->
+  <div id="app">
+    <div class="watermark" id="watermark">RainbowGeo<span class="sub">版权所有</span></div>
+    <!-- [V8.6] 纹理加载监控小窗（左上角版权信息右侧） -->
+    <div class="tex-monitor" id="texMonitor">
+      <div class="tex-monitor-head"><span>纹理加载</span><span class="tm-count" id="tmCount"></span><span class="tm-nav"><button class="tex-monitor-nav" id="texMonitorPrev" title="上一个任务">⬅</button><button class="tex-monitor-nav" id="texMonitorNext" title="下一个任务">➡</button></span><button class="tex-monitor-close" id="texMonitorClose" title="关闭">✕</button></div>
+      <div class="tex-monitor-row"><span class="tm-label">对象</span><span class="tm-val" id="tmObject">—</span></div>
+      <div class="tex-monitor-row"><span class="tm-label">文件</span><span class="tm-val" id="tmFile">—</span></div>
+      <div class="tex-monitor-row"><span class="tm-label">图层</span><span class="tm-val" id="tmLayer">—</span></div>
+      <div class="tex-monitor-row"><span class="tm-label">方式</span><span class="tm-val" id="tmMode">—</span></div>
+      <div class="tex-monitor-row"><span class="tm-label">状态</span><span class="tm-val" id="tmStatus">—</span></div>
+      <button class="tex-monitor-manual" id="texMonitorManualBtn">📂 手动加载（选择图片）</button>
+    </div>
+    <!-- [V8.0] 状态保持：右上角按钮组（与网络状态独立、并列） -->
+    <div class="top-right-bar">
+      <div class="state-float-group" id="stateFloatGroup">
+        <button class="state-mini-btn" id="topMoonBtn" title="月球三态: 隐藏 / 显示并绕地转动 / 显示静止">🌙</button>
+        <button class="state-mini-btn" id="floatExportBtn" title="导出当前状态为 JSON 快照文件">📤</button>
+        <button class="state-mini-btn" id="floatImportBtn" title="导入 JSON 状态文件并恢复参数">📥</button>
+      </div>
+      <div class="network-status" id="networkStatus" style="display:inline-flex;">
+        <div class="dot checking" id="networkDot"></div>
+        <span class="label" id="networkLabel">检测中...</span>
+      </div>
+    </div>
+    <!-- [v6.0] 右上角三态画笔工具切换 + 展开地图按钮（画笔关闭时地图按钮消失） -->
+    <div class="brush-tool-float" id="brushToolFloat">
+      <!-- [V8.0] 状态保持：浮动导出/导入已移至右上角网络状态胶囊左侧 -->
+      <button class="brush-tool-float-btn mode-0" id="brushToolFloatBtn" title="点击切换：关闭 / 画笔标点 / 测距">🖌</button>
+      <button class="brush-tool-float-btn clear hidden" id="brushToolClearBtn" title="清除所有标注与测距">🗑</button>
+      <!-- [V8.1] 画笔工具开启后往下弹出：圆柱显示/关闭 -->
+      <button class="brush-tool-float-btn clear hidden" id="brushCylinderBtn" title="撤回最近一个画笔/测距点（画笔或测距开启时可用）">↪</button>
+      <!-- [V9.5] 公转开启时显示：回归线三态（显示 / 加粗300% / 隐藏） -->
+      <button class="brush-tool-float-btn btp-0" id="brushTropicsBtn" title="回归线三态：显示 / 加粗200% / 隐藏">回</button> <!-- [V9.5h2] 固定常驻右上角，图标改文字"回" -->
+      <!-- [V9.6.4] 标注跟手性三态：自动 / 增强 / 完全（放在"回"按钮下方） -->
+      <button class="brush-tool-float-btn btp-1" id="labelFollowBtn" title="标注跟手性三态：自动(受性能档位) / 增强(不受性能档位) / 完全跟随">🧲</button>
+      <!-- [V10.0.9] 南北极浮动标注 N/S 显示开关 -->
+      <button class="brush-tool-float-btn btp-2" id="poleLabelBtn" title="南北极浮动标注 N/S 显示开关">N/S</button>
+    </div>
+    <div class="copyright-dialog-overlay" id="copyrightDialog">
+      <div class="copyright-dialog">
+        <button class="close-btn" id="copyrightDialogClose">✕</button>
+        <div class="title">版权信息</div>
+        <div class="body">
+          <span class="highlight">RainbowGeo 文波地理</span><br>
+          <span class="cr-copy">原创版权所有 · 仅供学习与教学使用</span><br>
+          <span class="cr-warn">⚠️ 警告：禁止盗版、转售、二次分发及任何形式的商业用途，违者将追究相关法律责任。</span><br><br>
+          <span class="email">rainbowgeo@qq.com</span><br>
+          <span class="cr-src">中国国界/省界数据基于自然资源部标准地图服务整理 · 仅供教学示意</span>
+          <span class="cr-src">本版不含世界国界线 · 中国疆域以中国国界标准数据为准 · 仅供教学示意</span>
+        </div>
+        <div class="footer">
+          <div class="version-line">V11.0A 在线版 · 2026.10.14</div>
+          <div class="cr-reserved">© 2026 All Rights Reserved</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 时间轴 v3.9 ===== -->
+    <div class="timeline-wrapper" id="timelineWrapper">
+      <div class="timeline style-neon" id="timeline">
+        <div class="t-row-top">
+          <span class="t-icon" id="timelineIcon">⏰️</span>
+          <span class="t-date" id="timelineDate">2026-08-30</span>
+          <span class="t-time" id="timelineTime">14:30:25</span>
+          <span class="t-solar-term" id="timelineSolarTerm" style="display:none;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 公转面板 ===== -->
+    <div class="orbit-float-wrapper" id="orbitFloatWrapper">
+      <div class="orbit-float-btn" id="orbitFloatBtn" title="公转控制">🌞</div>
+      <div class="orbit-panel" id="orbitPanel">
+        <div class="op-header">
+          <span class="op-title">公转控制</span>
+          <button class="op-close" id="orbitPanelClose">✕<span class="reset-hint">长按重置</span></button>
+        </div>
+
+        <div class="op-tab-bar">
+          <button class="op-tab-btn active" data-tab="motion"><span class="tab-icon">🌀</span><span class="tab-text"> 运动</span></button>
+          <button class="op-tab-btn" data-tab="labels"><span class="tab-icon">🏷️</span><span class="tab-text"> 标签</span></button>
+          <button class="op-tab-btn" data-tab="view"><span class="tab-icon">👁️</span><span class="tab-text"> 观察</span></button>
+          <button class="op-tab-btn" data-tab="demo"><span class="tab-icon">📽️</span><span class="tab-text"> 演示</span></button>
+        </div>
+
+        <div class="op-tab-content">
+          <div class="op-tab-panel active" id="op-tab-motion">
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 控制</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn" id="orbitResetBtn">复位</button>
+                </div>
+                <div class="row" style="margin-top:4px;">
+                  <button class="op-btn op-success op-switch" id="orbitAutoBtn">自动</button>
+                  <button class="op-btn op-switch" id="orbitToggleBtn">开关</button>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 速度</div>
+              <div class="cat-btns">
+                <div class="op-slider-row">
+                  <input type="range" class="op-slider" id="orbitSpeedSlider" min="0.5" max="20" step="2" value="1">
+                  <span class="op-val" id="orbitSpeedVal">1×</span>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 角度</div>
+              <div class="cat-btns">
+                <div class="op-slider-row">
+                  <input type="range" class="op-slider" id="orbitAngleSlider" min="0" max="360" step="1" value="0">
+                  <span class="op-val" id="orbitAngleVal">0°</span>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 轨道</div>
+              <div class="cat-btns">
+                <div class="op-slider-row">
+                  <input type="range" class="op-slider" id="orbitRadiusSlider" min="10" max="90" step="1" value="22" title="日地距离（公转轨道半径）：同步更新轨道环/二分二至/月份标注/黄道面">
+                  <span class="op-val" id="orbitRadiusVal">22</span>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 跳转</div>
+              <div class="cat-btns">
+                <div class="op-jump-group">
+                  <button class="op-btn op-jump" id="jumpWinter" style="color:#4488ff;">冬至</button>
+                  <button class="op-btn op-jump" id="jumpSpring" style="color:#66ff88;">春分</button>
+                  <button class="op-btn op-jump" id="jumpSummer" style="color:#ff4444;">夏至</button>
+                  <button class="op-btn op-jump" id="jumpAutumn" style="color:#ff8844;">秋分</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="op-tab-panel" id="op-tab-labels">
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 二分二至</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn op-success op-switch active" id="equinoxToggleBtn">显示</button>
+                </div>
+                <div class="op-slider-row">
+                  <span class="op-label">大小</span>
+                  <input type="range" class="op-slider" id="equinoxLabelSizeSlider" min="20" max="48" step="1" value="30">
+                  <span class="op-val" id="equinoxLabelSizeVal">30</span>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 月份标注</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn op-success op-switch active" id="monthLabelsToggleBtn">显示</button>
+                </div>
+                <div class="orbit-month-control">
+                  <div class="om-row">
+                    <span class="om-label">大小</span>
+                    <input type="range" class="om-slider" id="monthLabelSizeSlider" min="6" max="36" step="1" value="20">
+                    <span class="om-val" id="monthLabelSizeVal">20</span>
+                  </div>
+                  <div class="om-row">
+                    <span class="om-label">颜色</span>
+                    <button class="om-color-btn active" data-color="#88ddff" style="background:#88ddff;" title="青"><span class="check">✓</span></button>
+                    <button class="om-color-btn" data-color="#ffdd44" style="background:#ffdd44;" title="黄"><span class="check">✓</span></button>
+                    <button class="om-color-btn" data-color="#ff6b6b" style="background:#ff6b6b;" title="红"><span class="check">✓</span></button>
+                    <button class="om-color-btn" data-color="#66ff88" style="background:#66ff88;" title="绿"><span class="check">✓</span></button>
+                    <button class="om-color-btn" data-color="#cc88ff" style="background:#cc88ff;" title="紫"><span class="check">✓</span></button>
+                    <button class="om-color-btn" data-color="#ffffff" style="background:#ffffff;" title="白"><span class="check">✓</span></button>
+                    <button class="om-color-btn" data-color="#ff8844" style="background:#ff8844;" title="橙"><span class="check">✓</span></button>
+                  </div>
+                  <div class="om-row">
+                    <span class="om-label">摆位</span>
+                    <button class="om-mode-btn active" id="monthLabelExactBtn" title="每月1日（精确）">精确</button>
+                    <button class="om-mode-btn" id="monthLabelMidBtn" title="月中15日左右（大致）">大致</button>
+                  </div>
+                </div>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 直射点</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn op-success op-switch" id="directRayToggleBtn">关闭</button>
+                </div>
+                <div class="op-slider-row">
+                  <input type="range" class="op-slider" id="directRayWidthSlider" min="0.5" max="8" step="0.5" value="2">
+                  <span class="op-val" id="directRayWidthVal">2</span>
+                </div>
+                <div class="op-color-row" id="directRayColorRow">
+                  <button class="oc-btn active" data-color="#ffdd44" style="background:#ffdd44;" title="黄"><span class="check">✓</span></button>
+                  <button class="oc-btn" data-color="#ff8800" style="background:#ff8800;" title="橙"><span class="check">✓</span></button>
+                  <button class="oc-btn" data-color="#ff4444" style="background:#ff4444;" title="红"><span class="check">✓</span></button>
+                  <button class="oc-btn" data-color="#66ddff" style="background:#66ddff;" title="青"><span class="check">✓</span></button>
+                  <button class="oc-btn" data-color="#66ff88" style="background:#66ff88;" title="绿"><span class="check">✓</span></button>
+                  <button class="oc-btn" data-color="#cc88ff" style="background:#cc88ff;" title="紫"><span class="check">✓</span></button>
+                  <button class="oc-btn" data-color="#ffffff" style="background:#ffffff;" title="白"><span class="check">✓</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="op-tab-panel" id="op-tab-view">
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 黄道面</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn op-success" id="eclipticToggleBtn">显示</button>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 光线</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn op-success" id="beamMethodBtn" title="切换光柱渲染方法：桌面GLSL / 移动Canvas">光柱：GLSL</button>
+                </div>
+                <div class="op-slider-row" style="margin-top:6px;">
+                  <span class="op-val" style="font-size:12px;min-width:30px;">光强</span>
+                  <input type="range" class="op-slider" id="sunBeamOpacitySlider" min="0.05" max="1" step="0.05" value="0.3">
+                  <span class="op-val" id="sunBeamOpacityVal" style="min-width:26px;">0.3</span>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 相机</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn op-success" id="cameraFollowBtn" title="三态：默认(太阳)/以地球为中心·锁定/以地球为中心·自由">默认</button>
+                  <button class="op-btn" id="cameraFreeBtn">自由</button>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 距离 Z轴</div>
+              <div class="cat-btns">
+                <div class="op-slider-row">
+                  <input type="range" class="op-slider" id="cameraDistanceSlider" min="-10" max="60" step="0.5" value="20">
+                  <span class="op-val" id="cameraDistanceVal">20</span>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 高度 Y轴</div>
+              <div class="cat-btns">
+                <div class="op-slider-row">
+                  <input type="range" class="op-slider" id="cameraHeightSlider" min="-20" max="40" step="0.5" value="3">
+                  <span class="op-val" id="cameraHeightVal">3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="op-tab-panel" id="op-tab-demo">
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 演示</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="op-btn" id="demoOrbitTrackBtn" title="打开/关闭直射点移动轨迹视窗（与右下角📈按钮同步）">📈 直射点轨迹图</button>
+                  <button class="op-btn" id="demoOrbitTopViewBtn" title="公转轨道俯视视窗（与右下角📺按钮同步）">📺 轨道俯视</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 相机跟随视角控制条（仅跟随模式显示） -->
+    <div class="cam-page-ctrl cam-vertical" id="camZControl">
+      <span class="cam-ctrl-label">Z轴</span>
+      <input type="range" class="cam-page-slider" id="camZPageSlider" min="-20" max="60" step="0.5" value="20">
+      <span class="cam-ctrl-val" id="camZPageVal">20</span>
+    </div>
+    <div class="cam-page-ctrl cam-horizontal" id="camYControl">
+      <span class="cam-ctrl-label">Y轴</span>
+      <input type="range" class="cam-page-slider" id="camYPageSlider" min="-20" max="40" step="0.5" value="3">
+      <span class="cam-ctrl-val" id="camYPageVal">3</span>
+    </div>
+    <!-- [V8.12] 公转浮动按钮组容器（右下角，开启公转轨道后显示；row-reverse 视觉从左到右：📷 🌐 ◯ ☯ ✕） -->
+    <div class="orbit-float-group" id="orbitFloatGroup">
+      <button class="orbit-close-float" id="orbitCloseFloatBtn" title="关闭公转轨道">✕</button>
+      <button class="orbit-close-float sb-off" id="solsticeBarBtn" title="二分二至拖动条：隐藏（点击切换）">📏</button>
+      <button class="orbit-close-float" id="equinoxModeFloatBtn" title="二分二至标注三态：显示" style="background:radial-gradient(circle at 35% 35%, #88ffbb, #22aa55 70%);">☯</button>
+      <button class="orbit-close-float cm-def" id="orbitLockEarthBtn" title="视角三态：默认(太阳) / 以地球为中心·锁定 / 以地球为中心·自由">📷</button>
+      <button class="orbit-track-btn" id="orbitTrackBtn" style="position:absolute; right:84px; bottom:0; /* [V9.5] 与🖥️互换 */ width:38px; height:38px; border-radius:50%; background:rgba(16,24,36,0.74); border:1px solid rgba(100,200,255,0.42); color:#ffd76a; font-size:20px; line-height:1; padding:0; pointer-events:auto;" title="打开/关闭直射点移动轨迹视窗（模拟一年太阳直射点纬度变化）">📈
+
+      </button>
+      <div class="orbit-play-float-wrap" id="orbitPlayFloatWrap">
+        <button class="orbit-play-float" id="orbitPlayFloatBtn" title="公转开关"><span class="orbit-play-icon">▶</span></button>
+        <button class="speed-step-btn" id="orbitSpeedStepBtn" title="公转速度多态切换：x1 / x6 / x10 / x20">x1</button>
+      </div>
+      <button class="orbit-close-float view-off visible npf-left" id="northPoleViewBtn" title="视窗四态：关闭 / 北极俯视 / 南极俯视 / 直射点正视图">🖥️</button>
+      <button class="orbit-close-float" id="orbitTopViewFloatBtn" title="公转轨道俯视视窗开关">📺</button>
+    </div>
+    <!-- 北极俯视视窗（公转开启后可用，默认隐藏，可拖动/关闭） -->
+    <div class="north-pole-view" id="northPoleView" style="display:none; width:300px; height:300px;">
+      <div class="npv-header" id="northPoleViewHeader"><span>北极俯视</span><span class="npv-close" id="northPoleViewClose">✕</span></div>
+      <div class="npv-canvas" id="northPoleViewCanvas"></div>
+      <div class="npv-zoom">
+        <button class="npv-zoom-btn" data-zoom-target="northPoleView" data-zoom-dir="1" title="放大 10%">+</button>
+        <button class="npv-zoom-btn" data-zoom-target="northPoleView" data-zoom-dir="-1" title="缩小 10%">−</button>
+      </div>
+      <div class="npv-resize" id="northPoleViewResize" title="拖动调整视窗大小"></div>
+    </div>
+    <!-- [V9.4d] 南极俯视视窗（从地轴负方向俯视，可拖动/关闭） -->
+    <div class="north-pole-view" id="southPoleView" style="display:none; right:150px; top:120px; width:300px; height:300px;">
+      <div class="npv-header" id="southPoleViewHeader"><span>南极俯视</span><span class="npv-close" id="southPoleViewClose">✕</span></div>
+      <div class="npv-canvas" id="southPoleViewCanvas"></div>
+      <div class="npv-zoom">
+        <button class="npv-zoom-btn" data-zoom-target="southPoleView" data-zoom-dir="1" title="放大 10%">+</button>
+        <button class="npv-zoom-btn" data-zoom-target="southPoleView" data-zoom-dir="-1" title="缩小 10%">−</button>
+      </div>
+      <div class="npv-resize" id="southPoleViewResize" title="拖动调整视窗大小"></div>
+    </div>
+    <!-- [V8.9] 公转轨道俯视视窗（WebGL 实时渲染主场景，可拖动/关闭） -->
+    <div class="north-pole-view" id="orbitTopView" style="display:none; right:110px; top:60px; width:300px; height:300px;">
+      <div class="npv-header" id="orbitTopViewHeader"><span>轨道俯视</span><span class="npv-close" id="orbitTopViewClose">✕</span></div>
+      <div class="npv-canvas" id="orbitTopViewCanvas"></div>
+      <div class="npv-zoom">
+        <button class="npv-zoom-btn" data-zoom-target="orbitTopView" data-zoom-dir="1" title="放大 10%">+</button>
+        <button class="npv-zoom-btn" data-zoom-target="orbitTopView" data-zoom-dir="-1" title="缩小 10%">−</button>
+      </div>
+      <div class="npv-resize" id="orbitTopViewResize" title="拖动调整视窗大小"></div>
+    </div>
+    <!-- [V8.9] 直射点正视图视窗（从太阳方向实时渲染当前地球，可拖动/关闭） -->
+    <div class="north-pole-view" id="subsolarView" style="display:none; right:110px; top:60px; width:300px; height:300px;">
+      <div class="npv-header" id="subsolarViewHeader"><span>直射点正视图</span><span class="npv-close" id="subsolarViewClose">✕</span></div>
+      <div class="npv-canvas" id="subsolarViewCanvas"></div>
+      <div class="npv-zoom">
+        <button class="npv-zoom-btn" data-zoom-target="subsolarView" data-zoom-dir="1" title="放大 10%">+</button>
+        <button class="npv-zoom-btn" data-zoom-target="subsolarView" data-zoom-dir="-1" title="缩小 10%">−</button>
+      </div>
+      <div class="npv-resize" id="subsolarViewResize" title="拖动调整视窗大小"></div>
+    </div>
+    <!-- 北极俯视开关按钮（视角📷按钮上方） -->
+    <!-- 专注模式开关（右下角，公转开启时隐藏） -->
+    <button class="focus-mode-float" id="focusModeBtn" title="专注模式：点击经纬度标注，高亮对应经纬线">🔍</button>
+    <!-- 专注模式扩展控件（z/y轴拖动条已删除；扇形按钮抽屉向左上方展开） -->
+    <div class="focus-ext-controls" id="focusExtControls">
+      <!-- [V8.0] 专注模式标注位置拖动条：竖直=经度标注显示位置（沿经线，颜色选择器上方） / 横向=纬度标注显示位置（沿纬线，颜色选择器左侧） -->
+      <div class="focus-lonpos-v" id="focusLonPosV" title="经度标注显示位置（沿经线）">
+        <span class="fpos-tick">北</span>
+        <input type="range" id="focusLonLabelLatSlider" min="-90" max="90" step="1" value="0" aria-label="经度标注显示位置">
+        <span class="fpos-tick">南</span>
+      </div>
+      <div class="focus-latpos-h" id="focusLatPosH" title="纬度标注显示位置（沿纬线）">
+        <span class="fpos-tick">西</span>
+        <input type="range" id="focusLatLabelOffsetSlider" min="-180" max="180" step="1" value="0" aria-label="纬度标注显示位置">
+        <span class="fpos-tick">东</span>
+      </div>
+      <div class="focus-color-picker-wrap">
+        <input type="color" id="focusColorPicker" value="#66ff88">
+      </div>
+      <div class="focus-fan" id="focusFan">
+        <!-- 横向组（向左）：经度跳动 / 东西半球区分 / 经度区分 -->
+        <button class="focus-fan-btn" id="focusPulseLonBtn" title="经度跳动：经线/经度标注从0°依次闪光">0°</button>
+        <button class="focus-fan-btn" id="focusHemisphereBtn" title="东西半球区分：东西半球两种颜色">⊕</button>
+        <button class="focus-fan-btn" id="focusLonEWBtn" title="经度区分：东西经E/W两种颜色">E/W</button>
+        <!-- 垂直组（向上）：纬度跳动 / 拖动条显示 / 纬度区分 -->
+        <button class="focus-fan-btn" id="focusPulseLatBtn" title="纬度跳动：纬线/纬度标注从赤道向南北依次闪光">⤢</button>
+        <button class="focus-fan-btn" id="focusSlidersBtn" title="拖动条：显示/隐藏经纬拖动条（显示时标注不可点击激活）">≡</button>
+        <button class="focus-fan-btn" id="focusLatNSBtn" title="纬度区分：赤道白色，南北纬度/纬线两种颜色">N/S</button>
+      </div>
+    </div>
+    <!-- 公转开启确认弹窗 -->
+    <div class="orbit-confirm-overlay" id="orbitConfirmOverlay">
+      <div class="orbit-confirm-dialog">
+        <div class="orbit-confirm-title">开启公转轨道</div>
+        <div class="orbit-confirm-desc">开启后将自动调整视角、隐藏地理标注、显示回归线。<br><span id="orbitConfirmCountdown">3</span>s 后自动取消</div>
+        <div class="orbit-confirm-btns">
+          <button class="orbit-confirm-btn cancel" id="orbitConfirmCancel">取消</button>
+          <button class="orbit-confirm-btn confirm" id="orbitConfirmOk">确定开启</button>
+        </div>
+      </div>
+    </div>
+    <div class="orbit-angle-float" id="orbitAngleFloat">
+      <span class="orbit-angle-current-val" id="orbitAngleCurrentVal">350°</span>
+      <div class="orbit-angle-track-wrap">
+        <input type="range" class="orbit-angle-float-slider" id="orbitAngleFloatSlider" min="0" max="360" step="1" value="0">
+        <div class="orbit-angle-nodes">
+          <span class="angle-node" data-term="spring"><span class="angle-dot"></span><span class="angle-text">春分</span></span>
+          <span class="angle-node" data-term="summer"><span class="angle-dot"></span><span class="angle-text">夏至</span></span>
+          <span class="angle-node" data-term="autumn"><span class="angle-dot"></span><span class="angle-text">秋分</span></span>
+          <span class="angle-node" data-term="winter"><span class="angle-dot"></span><span class="angle-text">冬至</span></span>
+          <span class="angle-day-indicator" id="angleDayIndicator"><span class="day-text">第1天</span></span>
+        </div>
+      </div>
+    </div>
+        <!-- [v7.8] 左上角按钮组（版本号下方）：圆柱投影地图 / 月球轨道 / 光路三态 -->
+    <div class="top-left-btns" id="topLeftBtns">
+      <!-- [V9.6.2] 左上角时间轴开关按钮 -->
+      <button class="top-left-btn" id="timelineFloatBtn" title="时间轴显示/隐藏">⏰</button>
+      <!-- [V8.1] 左上角整时标注按钮：点击开/关，悬浮/点击弹出纬度拖动条（左=南 右=北） -->
+      <div class="beam-pop-wrap" id="timeLatWrap">
+        <button class="top-left-btn" id="timeLabelsFloatBtn" title="24小时整时标注：点击开/关，悬浮或点击右侧弹出纬度拖动条">🕒</button>
+<div class="beam-pop" id="timeLatPop">
+          <span class="beam-pop-label">纬度</span>
+          <input type="range" class="beam-pop-slider" id="timeLatFloatSlider" min="-90" max="90" step="1" value="0">
+          <span class="beam-pop-val" id="timeLatFloatVal">0°</span>
+        </div>
+      </div>
+      <button class="top-left-btn" id="topMapBtn" title="展开圆柱投影地图">🗺</button>
+      <div class="beam-pop-wrap" id="beamPopWrap">
+        <button class="top-left-btn beam" id="topBeamBtn" data-mode="0" title="光路三态：关闭 / GLSL光柱 / Canvas光柱">☀</button>
+        <!-- [V8.1] 光路扇形抽屉：直射点 + 亮度拖动条 + 光箭头（统一弹出/隐藏） -->
+        <div class="beam-fan" id="beamFan">
+          <button class="fan-item beam-fan-item" id="fanDirectPointBtn" title="太阳直射点显示开关"><span class="bl-icon">🟠</span><span class="label">点</span></button>
+          <button class="fan-item beam-fan-item lt-0" id="lightTiltBtn" title="光照角度：正右（直射赤道 0°）">➡</button>
+          <button class="fan-item beam-fan-item" id="fanDirectRayBtn" title="直射光线箭头显示开关"><span class="bl-icon">🔺</span><span class="label">光线</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-left-group">
+      <div class="bl-row">
+        <button id="bgFloatBtn" class="white" title="切换环境背景 (深空 / 白色)"><span class="bg-icon"><span class="bg-emoji">🌞</span><span class="bg-text">白</span></span></button>
+        <button class="quick-view-float" id="quickViewToggle" title="点击复位正视图并展开/收起六视按钮组"><span class="icon" id="quickViewIcon">⟳</span><span class="label" id="quickViewLabel">复位</span></button>
+      </div>
+      <div class="bl-btn-wrap">
+        <button class="bl-quick-btn" id="earthOpacityBtn" title="地球三态：完整 / 半透明 / 隐藏 · 悬浮或点击弹出显示开关抽屉">
+          <span class="bl-icon">🌏</span><span class="bl-label" id="earthOpacityLabel">完整</span>
+        </button>
+        <div class="preset-fan" id="earthDisplayFan">
+          <button class="fan-item" id="fanCoreBtn" title="地心显示开关"><span class="bl-icon">⚫</span><span class="label">地心</span></button>
+          <button class="fan-item" id="fanPolesBtn" title="极点显示开关"><span class="bl-icon">🧭</span><span class="label">极点</span></button>
+          <button class="fan-item" id="fanTermBtn" title="晨昏线显示开关"><span class="bl-icon">🌗</span><span class="label">晨昏线</span></button>
+        </div>
+      </div>
+      <div class="bl-btn-wrap">
+        <button class="bl-quick-btn" id="fanTiltBtn" title="地轴倾斜显示开关（三态：不倾斜/倾斜/反方向倾斜）"><span class="bl-icon">📐</span><span class="bl-label">倾斜</span></button>
+      </div>
+      <div class="bl-btn-wrap">
+        <div class="speed-row">
+          <button class="bl-quick-btn" id="quickRotationToggle" title="自转开关"><span class="bl-icon">🔄</span><span class="bl-label" id="quickRotationLabel">自转</span></button>
+          <button class="speed-step-btn" id="rotSpeedStepBtn" title="自转速度多态切换：x0.5 / x1 / x2 / x3">x1</button>
+        </div>
+      </div>
+      <div class="bl-btn-wrap">
+        <button class="bl-quick-btn active" id="quickGridToggle" title="四态切换：经线/纬线/经纬网/都不显示"><span class="bl-icon" id="quickGridIcon">🌐</span><span class="bl-label" id="quickGridLabel">经纬网</span></button>
+        <div class="bl-slider-popup" id="gridThicknessPopup">
+          <div class="bl-slider-label">经纬线粗细</div>
+          <input type="range" class="bl-slider" id="gridThicknessSlider" min="1" max="16" step="0.5" value="8">
+          <div class="bl-slider-val" id="gridThicknessVal">8.0</div>
+        </div>
+      </div>
+      <div class="bl-btn-wrap">
+        <button class="bl-quick-btn active" id="quickLabelToggle" title="显示/隐藏经纬度标注"><span class="bl-icon">🏷️</span><span class="bl-label" id="quickLabelLabel">标注</span></button>
+        <div class="bl-slider-popup" id="labelSizePopup">
+          <div class="bl-slider-label">标注字号</div>
+          <input type="range" class="bl-slider" id="labelSizeSlider" min="20" max="48" step="1" value="30">
+          <div class="bl-slider-val" id="labelSizeVal">30px</div>
+        </div>
+      </div>
+      <div class="bl-btn-wrap">
+        <button class="bl-quick-btn active" id="quickGridIntervalBtn" title="经纬网间隔 5态切换：5°/10°/15°/20°/30°（经线纬线同时切换）"><span class="bl-icon">▦</span><span class="bl-label" id="quickGridIntervalLabel">30°</span></button>
+      </div>
+    </div>
+    <!-- [v5.8] 专注模式拖动条：左-纬线 / 下-经线（专注模式开启时显示） -->
+    <div class="focus-slider-v-wrap" id="focusLatSliderWrap">
+      <input type="range" id="focusLatSlider" min="0" max="0" step="1" value="0">
+      <div class="focus-slider-nodes-v" id="focusLatNodes"></div>
+    </div>
+    <div class="focus-slider-h-wrap" id="focusLonSliderWrap">
+      <button class="focus-lon-mode-btn" id="focusLonModeBtn" title="切换经线节点显示模式：经线圈(1/2节点) / 经线">⚡ 经线圈</button>
+      <input type="range" id="focusLonSlider" min="0" max="0" step="1" value="0">
+      <div class="focus-slider-nodes-h" id="focusLonNodes"></div>
+    </div>
+    <!-- [v5.9] 直射点轨迹视窗：公转模式下按钮在左下角列内，面板可自由拖动/缩放 -->
+    <div class="orbit-track-panel" id="orbitTrackPanel">
+      <div class="otp-view" id="orbitTrackView">
+        <span class="otp-close" id="orbitTrackClose">✕</span>
+        <svg class="otp-track-curve" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path id="otpTrackPath" d="M 0 50" fill="none" vector-effect="non-scaling-stroke"></path>
+        </svg>
+        <div class="otp-year-line spring" id="otpYearLineSpring"></div>
+        <div class="otp-year-line next" id="otpYearLineNext"></div>
+        <div class="otp-lat-line top"></div>
+        <div class="otp-lat-label" id="otpLabelArctic" style="top:0%">66.5°N 北极圈</div>
+        <div class="otp-tropic-line north"></div>
+        <div class="otp-lat-label tropic-n" id="otpLabelTropicN">23.5°N</div>
+        <div class="otp-equator-line"></div>
+        <div class="otp-lat-label equator">0° 赤道</div>
+        <div class="otp-tropic-line south"></div>
+        <div class="otp-lat-label tropic-s" id="otpLabelTropicS">23.5°S</div>
+        <div class="otp-lat-line bottom"></div>
+        <div class="otp-lat-label" id="otpLabelAntarctic" style="bottom:0%">66.5°S 南极圈</div>
+        <div class="otp-dot" id="orbitTrackDot"></div>
+        <div class="otp-vline summer" id="otpVlineSummer"></div>
+        <div class="otp-vline winter" id="otpVlineWinter"></div>
+        <div class="otp-seasons" id="orbitTrackSeasons"></div>
+        <div class="otp-info" id="orbitTrackInfo">直射纬度：0.0°</div>
+      </div>
+      <div class="otp-axis"><span>春分</span><span>次年春分</span></div>
+      <div class="npv-zoom">
+          <button class="npv-zoom-btn" data-zoom-target="orbitTrackPanel" data-zoom-dir="1" title="放大 10%">+</button>
+          <button class="npv-zoom-btn" data-zoom-target="orbitTrackPanel" data-zoom-dir="-1" title="缩小 10%">−</button>
+        </div>
+        <div class="otp-resize" id="otpResizeHandle" title="拖动右下角等比缩放面板"></div>
+    </div>
+    <!-- [v6.0] 圆柱投影展开地图面板（自动适配深浅主题） -->
+    <div class="map-project-panel" id="mapProjectPanel">
+      <div class="mpp-head">
+        <span class="mpp-title">🗺 圆柱投影展开地图</span>
+        <span class="mpp-close" id="mapProjectClose">✕</span>
+      </div>
+      <input type="file" id="mapBaseFile" accept="image/*" style="display:none;">
+      <div class="mpp-body">
+        <canvas id="mapProjectCanvas" width="1440" height="720"></canvas>
+        <canvas id="mapDayNightCanvas" width="1440" height="720"></canvas>
+        <div class="npv-zoom mpp-zoom">
+          <button class="npv-zoom-btn" data-zoom-target="mapProjectPanel" data-zoom-dir="1" title="放大 10%">+</button>
+          <button class="npv-zoom-btn" data-zoom-target="mapProjectPanel" data-zoom-dir="-1" title="缩小 10%">−</button>
+        </div>
+        <span class="mpp-mask-group mpp-mask-corner" id="mapMaskGroup">
+          <button class="mpp-mask-btn" id="mapMaskWhiteBtn" title="夜半球蒙版：亮黄色 70%" style="background:#ffd83d;color:#7a5c00;border-color:#b8960b">亮黄</button>
+          <button class="mpp-mask-btn" id="mapMaskRedBtn" title="夜半球蒙版：浅灰（实际黑色 40%）" style="background:#8a9096;color:#fff;border-color:#5f666d">浅灰</button>
+          <button class="mpp-mask-btn active" id="mapMaskBlackBtn" title="夜半球蒙版：黑色 70%">黑</button>
+        </span>
+        <span class="mpp-tz-group mpp-tz-corner" id="mapTzGroup">
+          <button class="mpp-mask-btn" id="mapTzBtn" title="展开地图显示/隐藏时区带（同步地球模型时区状态）">时区</button>
+          <button class="mpp-mask-btn active" id="mapDayNightToggleBtn" title="展开地图昼夜蒙版 显示/隐藏（默认显示）">昼夜</button>
+        </span>
+      </div>
+      <div class="mpp-info" id="mapProjectInfo"></div>
+    </div>
+    <div class="toast" id="toast"></div>
+    
+<!-- [V9.6.3] 底部中间六视十字按钮组 -->
+<div class="view-cross-group" id="viewCrossGroup">
+  <button class="view-cross-btn view-preset-btn" data-view="top" title="俯视图" style="grid-area:1/2">▲</button>
+  <button class="view-cross-btn view-preset-btn" data-view="left" title="左视图" style="grid-area:2/1">◀</button>
+  <button class="view-cross-btn view-cross-mid" id="viewCrossMid" title="正视图 / 后视图 切换" style="grid-area:2/2">⦿</button>
+  <button class="view-cross-btn view-preset-btn" data-view="right" title="右视图" style="grid-area:2/3">▶</button>
+  <button class="view-cross-btn view-preset-btn" data-view="bottom" title="仰视图" style="grid-area:3/2">▼</button>
+</div>
+
+      <div class="quick-actions">
+      <button class="quick-btn preset-btn" id="presetToggleBtn" title="预设方案 A/B/C/D/E 循环切换 · 悬停/点击展开快捷扇形"><span class="preset-letter" id="presetLetter">A</span><span class="label">预设</span></button>
+      <!-- [v6.0] 预设扇形快捷抽屉：增强/流畅/展开地图（悬停或点击预设弹出，3秒自动收起） -->
+      <div class="preset-fan" id="presetFan">
+        <button class="fan-item" id="performanceModeBtn" title="流畅模式：开启标注分级 + 背景透明 + 边框关 + 发光透明"><span class="icon">⚡</span><span class="label">流畅</span></button>
+        <button class="fan-item" id="enhanceBtn" title="一键增强：蓝宝石材质 + 灯光亮度4 + 自发白光亮度2（不加载云层）；再次点击还原清除材质"><span class="bl-icon">✨</span><span class="bl-label" id="enhanceLabel">增强</span></button>
+        <button class="fan-item" id="dayNightBtn" title="昼夜模式：加载地球纹理+云层+全球夜景灯光图+显示晨昏线+打开光路光柱"><span class="bl-icon">🌗</span><span class="label">昼夜</span></button>
+        <button class="fan-item" id="basicBtn" title="基础模式：清除地球全部纹理（表层/云层/夜景灯光图），纯动作不记忆状态"><span class="bl-icon">🧱</span><span class="label">基础</span></button>
+      </div>
+    </div>
+    <!-- [V9.6.2] 全屏切换按钮：位于预设按钮与环境切换按钮中间 -->
+    <button class="quick-btn fullscreen-btn" id="fullscreenBtn" title="进入/退出浏览器全屏">⛶</button>
+    <div class="keyboard-hint">
+
+    <!-- ===== 控制面板 ===== -->
+    <div class="panel-wrapper" id="panelWrapper">
+      <div class="panel-toggle-btn" id="panelToggleBtn">⚙</div>
+      <div class="panel-expanded" id="panelExpanded">
+        <div class="panel-header">
+          <span class="panel-title">控制面板</span>
+          <button class="panel-close-btn" id="panelCloseBtn">✕<span class="reset-hint">长按重置</span></button>
+        </div>
+
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="display">🌐 模型</button>
+          <button class="tab-btn" data-tab="material">🎨 材质</button>
+          <button class="tab-btn" data-tab="env">🌍 环境</button>
+          <button class="tab-btn" data-tab="geography">🏷️ 标注</button>
+          <button class="tab-btn" data-tab="grid">📐 经纬</button>
+          <button class="tab-btn" data-tab="advanced">📚 教学</button>
+        </div>
+
+        <div class="tab-content">
+          <div class="tab-panel active" id="tab-display">
+<div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 视图</div>
+              <div class="cat-btns">
+                <div class="row" style="justify-content:space-evenly;">
+                  <button class="btn btn-lighting" id="flipBtn">倒转</button>
+                  <button class="btn btn-earth" id="layFlatBtn"><span class="icon">🔄</span><span class="label">横置</span></button>
+                  <button class="btn btn-earth btn-inactive" id="tiltBtn">倾斜</button>
+                </div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 地球本体</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="toggle-btn active btn-earth" id="earthVisibilityBtn" style="flex:1.5;">
+                    <span class="track"><span class="thumb"></span></span>
+                    <span class="t-label">显示地球</span>
+                  </button>
+                  <button class="btn btn-earth" id="earthWireframeBtn" style="flex:1;">
+                    <span class="icon">🔲</span>
+                    <span class="label">线框</span>
+                  </button>
+                </div>
+                <div class="row" style="margin-top:2px;">
+                  <button class="btn btn-earth" id="earthPanelOpacityBtn" style="flex:1;">
+                    <span class="icon">👻</span>
+                    <span class="label">半透明</span>
+                  </button>
+                  <button class="btn btn-earth" id="earthResetViewBtn" style="flex:1;">
+                    <span class="icon">🌐</span>
+                    <span class="label">仅经纬网</span>
+                  </button>
+                </div>
+                <div class="slider-row hidden" id="earthOpacitySliderRow">
+                  <span class="s-label">透明度</span>
+                  <input type="range" id="earthOpacitySlider" min="0.05" max="0.8" step="0.05" value="0.3">
+                  <span class="s-val" id="earthOpacityValue">0.30</span>
+                </div>
+                              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 地球元素</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-earth" id="axisBtn" style="flex:1;">
+                    <span class="icon">📐</span>
+                    <span class="label">地轴</span>
+                  </button>
+                  <button class="toggle-btn btn-earth" id="terminatorBtn" style="flex:1;">
+                    <span class="track"><span class="thumb"></span></span>
+                    <span class="t-label">晨昏线</span>
+                  </button>
+                </div>
+                <div class="row" style="margin-top:2px;">
+                  <button class="toggle-btn btn-earth" id="earthCoreBtn" style="flex:1;" title="显示/隐藏地心（球心，黑色发红光）">
+                    <span class="track"><span class="thumb"></span></span>
+                    <span class="t-label">地心</span>
+                  </button>
+                  <button class="toggle-btn btn-earth" id="earthCoreLinkBtn" style="flex:1;" title="地心与模型表面所有画笔标注点连线（线色随点色）">
+                    <span class="track"><span class="thumb"></span></span>
+                    <span class="t-label">地心连线</span>
+                  </button>
+                  <button class="toggle-btn btn-earth" id="polesBtn" style="flex:1;" title="显示/隐藏北极点与南极点（90°纬线，颜色随纬线）">
+                    <span class="track"><span class="thumb"></span></span>
+                    <span class="t-label">极点</span>
+                  </button>
+                </div>
+              </div>
+            </div>            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 自转</div>
+              <div class="cat-btns">
+<div class="row" style="margin-top:3px; border-top:1px solid rgba(255,255,255,0.05); padding-top:3px;">
+                  <button class="btn btn-earth btn-inactive" id="rotationBtn">自转</button>
+                  <div class="adjust-row" style="flex:1.2;">
+                    <button class="adjust-btn" id="speedDown">−</button>
+                    <span class="adjust-display" id="speedDisplay">1.0</span>
+                    <button class="adjust-btn" id="speedUp">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            </div>
+            <div class="tab-panel" id="tab-material">
+<div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 纹理</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-texture" id="loadNetworkBtn">网络</button>
+                  <button class="btn btn-texture btn-upload" id="loadLocalBtn">本地导入</button>
+                  <button class="btn btn-texture" id="clearTextureBtn">清除</button>
+                </div>
+                <div class="texture-status" id="textureStatus">纯色浅蓝</div>
+              </div>
+              <input type="file" id="fileInput" accept="image/*">
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 夜景灯光</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-texture" id="nightNetworkBtn">网络加载</button>
+                  <button class="btn btn-texture btn-upload" id="nightUploadBtn">本地导入</button>
+                  <button class="btn btn-texture" id="clearNightBtn">清除</button>
+                </div>
+                <div class="texture-status" id="nightStatus">未加载夜景灯光</div>
+                <div class="slider-row">
+                  <span class="s-label">亮度</span>
+                  <input type="range" id="nightBrightnessSlider" min="0.1" max="3" step="0.05" value="1">
+                  <span class="s-value" id="nightBrightnessValue">1.00</span>
+                </div>
+              <input type="file" id="nightFileInput" accept="image/*">
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 云层</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-texture" id="cloudNetworkBtn">网络加载</button>
+                  <button class="btn btn-texture btn-upload" id="cloudUploadBtn">本地导入</button>
+                  <button class="btn btn-texture" id="clearCloudBtn">清除</button>
+                </div>
+                <div class="texture-status" id="cloudStatus">未加载云层</div>
+                <div class="slider-row">
+                  <span class="s-label">透明度</span>
+                  <input type="range" id="cloudOpacitySlider" min="0" max="1" step="0.05" value="0.6">
+                  <span class="s-value" id="cloudOpacityValue">0.60</span>
+                </div>
+                <div class="slider-row">
+                  <span class="s-label">反向转速</span>
+                  <input type="range" id="cloudSpeedSlider" min="0" max="2" step="0.05" value="0.3">
+                  <span class="s-value" id="cloudSpeedValue">0.30</span>
+                </div>
+              </div>
+              <input type="file" id="cloudFileInput" accept="image/*">
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 太阳纹理</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-texture" id="sunTexBtn" title="网络加载太阳纹理（Solar System Scope → 本地 sun.png/jpg）">☀ 网络加载</button>
+                  <button class="btn btn-texture btn-upload" id="sunImportBtn" title="选择本地图片导入为太阳纹理">本地导入</button>
+                  <button class="btn btn-texture" id="clearSunTexBtn" title="清除太阳纹理，恢复默认橙色">清除</button>
+                </div>
+                <div class="texture-status" id="sunTexStatus">未加载太阳纹理</div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 月球纹理</div>
+              <div class="cat-btns">
+                <div class="row" style="justify-content:space-evenly;">
+                  <button class="btn btn-texture" id="moonTexBtn" title="网络加载月球纹理（Solar System Scope → 本地 moon.png/jpg）">🌕 网络加载</button>
+                  <button class="btn btn-texture btn-upload" id="moonImportBtn" title="选择本地图片导入为月球纹理">本地导入</button>
+                  <button class="btn btn-earth" id="moonOrbitToggleBtn"><span class="icon">🌙</span><span class="label">月球公转</span></button>
+                </div>
+                <div class="texture-status" id="moonTexStatus">未加载月球纹理</div>
+              </div>
+            </div>
+            </div>
+            <div class="tab-panel" id="tab-env">
+            
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 背景</div>
+              <div class="cat-btns">
+                <div class="row" style="justify-content:space-evenly;">
+                  <button class="btn btn-earth btn-active" id="envLightBtn" title="白色背景 + 浅色UI">白色</button>
+                  <button class="btn btn-earth" id="envDarkBtn" title="深色背景 + 深色UI">深色</button>
+                  <button class="btn btn-earth" id="envDarkGrayBtn" title="深灰色背景 + 深色UI">深灰</button>
+                </div>
+                <div class="row" style="justify-content:center; margin-top:4px;">
+                  <button class="btn btn-earth" id="envSpaceBtn" title="模拟宇宙环境：网络加载宇宙空间图片作为背景，失败自动回退内置星空">模拟宇宙</button>
+                </div>
+              </div>
+            </div>
+<div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 灯光</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-lighting btn-active" id="lightToggleBtn">灯光</button>
+                  <button class="btn btn-lighting btn-inactive" id="gridBtn">网格</button>
+                </div>
+                <div class="slider-row">
+                  <span class="s-label">光亮度</span>
+                  <input type="range" id="lightIntensitySlider" min="0" max="10" step="0.1" value="2.0">
+                  <span class="s-value" id="lightIntensityValue">2.0</span>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 自发光</div>
+              <div class="cat-btns">
+                <div class="color-label">自发光颜色</div>
+                <div class="color-row" id="emissiveColorRow">
+                  <button class="c-btn active" data-color="#4a9eff" style="background:#4a9eff;"></button>
+                  <button class="c-btn" data-color="#39ff14" style="background:#39ff14;"></button>
+                  <button class="c-btn" data-color="#ff4444" style="background:#ff4444;"></button>
+                  <button class="c-btn" data-color="#ffdd44" style="background:#ffdd44;"></button>
+                  <button class="c-btn" data-color="#cc88ff" style="background:#cc88ff;"></button>
+                  <button class="c-btn" data-color="#ffffff" style="background:#ffffff;"></button>
+                  <button class="c-btn" data-color="#00ffff" style="background:#00ffff;"></button>
+                  <button class="c-btn" data-color="#66ccff" style="background:#66ccff;"></button>
+                  <button class="c-btn" data-color="#ff8800" style="background:#ff8800;"></button>
+                  <button class="c-btn" data-color="#ff66b2" style="background:#ff66b2;"></button>
+                  <input type="color" class="c-btn custom-color" id="emissiveCustomColor" value="#4a9eff" title="自定义自发光颜色">
+                </div>
+                <div class="slider-row">
+                  <span class="s-label">自发光</span>
+                  <input type="range" id="emissiveIntensitySlider" min="0" max="4" step="0.05" value="0">
+                  <span class="s-val" id="emissiveIntensityValue">0.00</span>
+                  <button class="emissive-toggle-btn" id="emissiveToggleBtn" title="自发光开关：开启后按当前颜色与亮度自发光">开</button>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 光柱</div>
+              <div class="cat-btns">
+                <div class="row"><button class="btn btn-earth" id="sunBeamToggleBtn"><span class="icon">📡</span><span class="label">光路</span></button><button class="btn btn-earth lt-0" id="envLightTiltBtn" title="光照角度：正右（直射赤道 0°）"><span class="icon">➡</span><span class="label">角度</span></button></div>
+                <div class="row"><button class="btn btn-earth" id="directPointBtn"><span class="icon">🔴</span><span class="label">直射点</span></button><button class="btn btn-earth" id="directRayArrowBtn"><span class="icon">🔺</span><span class="label">光箭头</span></button></div>
+                <div class="slider-row" id="sunBeamOpacityRow2"><span class="s-label">光柱亮度</span><input type="range" id="sunBeamOpacitySlider2" min="0.05" max="1" step="0.05" value="0.3"><span class="s-val" id="sunBeamOpacityVal2">0.30</span></div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 时间轴</div>
+              <div class="cat-btns">
+                <div class="row" style="justify-content:space-evenly;">
+                  
+                  <button class="btn btn-advanced" id="timelineToggle"><span class="icon">🕐</span><span class="label">时间轴</span></button>
+                </div>
+                <div class="timeline-control-group">
+                  <div class="tl-row">
+                    <span class="tl-label">颜色</span>
+                    <button class="tl-style-btn active" data-style="neon" style="background:#ffdd44;"></button>
+                    <button class="tl-style-btn" data-style="crystal" style="background:#66ddff;"></button>
+                    <button class="tl-style-btn" data-style="flame" style="background:#ff6633;"></button>
+                    <button class="tl-style-btn" data-style="jade" style="background:#44ff88;"></button>
+                    <button class="tl-style-btn" data-style="cyber" style="background:#ff44ff;"></button>
+                    <button class="tl-style-btn" data-style="azure" style="background:#4488ff;"></button>
+                    <button class="tl-style-btn" data-style="pink" style="background:#ff66b2;"></button>
+                    <button class="tl-style-btn" data-style="purple" style="background:#aa66ff;"></button>
+                    <button class="tl-style-btn" data-style="snow" style="background:#ffffff;"></button>
+                    <button class="tl-style-btn" data-style="ink" style="background:#333333;"></button>
+                    <input type="color" class="tl-style-btn custom-color" id="tlCustomColor" value="#ffdd44" title="自定义时间轴颜色">
+                  </div>
+                  <div class="tl-row">
+                    <span class="tl-label">大小</span>
+                    <input type="range" class="tl-scale-slider" id="panelTimelineScaleSlider" min="0.7" max="1.8" step="0.05" value="1.2">
+                    <span class="tl-scale-value" id="panelTimelineScaleValue">120%</span>
+                  </div>
+                </div>
+              </div>
+            
+</div>
+
+          </div>
+            <div class="tab-panel" id="tab-geography">
+<div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 字体大小</div>
+              <div class="cat-btns">
+                <div class="slider-row"><span class="s-label">字体</span><input type="range" id="fontSizeSlider" min="12" max="48" step="1" value="30"><span class="s-val" id="fontSizeValue">30</span></div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 世界</div>
+              <div class="cat-btns">
+                <!-- [V9.5h2] 世界类：3列每行3个 -->
+                <div class="row"><button class="btn btn-label" id="mainCountriesBtn">主要国家</button><button class="btn btn-label" id="allCountriesBtn">所有国家</button><button class="btn btn-label" id="allCapitalsBtn">所有首都</button></div>
+                <div class="row"><button class="btn btn-label" id="continentBtn">大洲</button><button class="btn btn-label" id="labelLevelBtn" style="flex:0.6;font-size:10px;padding:4px;">分级</button></div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 中国</div>
+              <div class="cat-btns">
+                <!-- [V9.5h2] 中国类：2列每行2个，简称+国界一行 -->
+                <div class="row"><button class="btn btn-label" id="chinaAbbrBtn">简称</button><button class="btn btn-label" id="chinaBorderToggleBtn">国界</button></div>
+                <div class="row"><button class="btn btn-label" id="chinaProvincesBtn">省区</button><button class="btn btn-label" id="chinaCapitalsBtn">省会</button></div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 标注样式</div>
+              <div class="cat-btns">
+                <div class="slider-row" style="margin-bottom:4px;">
+                  <span class="s-label">背景</span>
+                </div>
+                <div class="row" style="flex-wrap:wrap;gap:4px;">
+                  <button class="btn btn-label label-bg-btn active" data-bg="default" style="flex:1;min-width:52px;padding:4px 6px;font-size:10px;">默认</button>
+                  <button class="btn btn-label label-bg-btn" data-bg="white" style="flex:1;min-width:52px;padding:4px 6px;font-size:10px;background:#fff;color:#333;">纯白</button>
+                  <button class="btn btn-label label-bg-btn" data-bg="glass" style="flex:1;min-width:52px;padding:4px 6px;font-size:10px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);">毛玻璃</button>
+                  <button class="btn btn-label label-bg-btn" data-bg="black" style="flex:1;min-width:52px;padding:4px 6px;font-size:10px;background:#000;color:#fff;">纯黑</button>
+                  <button class="btn btn-label label-bg-btn" data-bg="none" style="flex:1;min-width:52px;padding:4px 6px;font-size:10px;background:transparent;border:1px dashed rgba(255,255,255,0.3);">无</button>
+                </div>
+                <div class="row" style="margin-top:6px;">
+                  <button class="toggle-btn btn-label" id="labelBorderToggle" style="flex:1;">
+                    <span class="track"><span class="thumb"></span></span>
+                    <span class="t-label">标注边框</span>
+                  </button>
+                </div>
+                <div class="slider-row" style="margin-top:6px;margin-bottom:2px;">
+                  <span class="s-label">发光</span>
+                </div>
+                <div class="row" style="flex-wrap:wrap;gap:4px;">
+                  <button class="btn btn-label label-glow-btn active" data-glow="black" style="flex:1;min-width:48px;padding:4px 6px;font-size:10px;background:rgba(0,0,0,0.6);">黑色</button>
+                  <button class="btn btn-label label-glow-btn" data-glow="white" style="flex:1;min-width:48px;padding:4px 6px;font-size:10px;background:rgba(255,255,255,0.2);color:#fff;">白色</button>
+                  <button class="btn btn-label label-glow-btn" data-glow="color" style="flex:1;min-width:48px;padding:4px 6px;font-size:10px;background:linear-gradient(90deg,#ff6b6b,#ffdd44,#66ff88,#66ddff,#cc88ff);color:#fff;">彩色</button>
+                  <button class="btn btn-label label-glow-btn" data-glow="none" style="flex:1;min-width:48px;padding:4px 6px;font-size:10px;background:transparent;border:1px dashed rgba(255,255,255,0.3);">无</button>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div class="tab-panel" id="tab-grid">
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 线条粗细</div>
+              <div class="cat-btns">
+                <div class="slider-row"><span class="s-label">粗细</span><input type="range" id="lineWidthSlider" min="1" max="16" step="0.5" value="8"><span class="s-val" id="lineWidthValue">8</span></div>
+                <div class="slider-row"><span class="s-label">回归线/极圈粗细</span><input type="range" id="tropicWidthSlider" min="1" max="16" step="0.5" value="4"><span class="s-val" id="tropicWidthValue">4</span></div>
+              </div>
+            </div>
+
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 经纬网</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-grid btn-active" id="longitudeLinesBtn">经线</button>
+                  <button class="btn btn-grid btn-active" id="latitudeLinesBtn">纬线</button>
+                </div>
+                <div class="row">
+                  <button class="btn btn-grid" id="lonIntervalBtn" style="flex:1;"><span class="icon">↔</span><span class="label">经线 30°</span></button>
+                  <button class="btn btn-grid" id="latIntervalBtn" style="flex:1;"><span class="icon">↔</span><span class="label">纬线 30°</span></button>
+                </div>
+                <div class="row">
+                  <button class="btn btn-grid btn-active" id="lonLabelModeBtn" style="flex:1;"><span class="icon">🌐</span><span class="label">经度标 显示</span></button>
+                  <button class="btn btn-grid btn-active" id="latLabelModeBtn" style="flex:1;"><span class="icon">🌐</span><span class="label">纬度标 显示</span></button>
+                </div>
+                <div class="color-label">经线颜色</div>
+                <div class="color-row" id="lonColorRow">
+                  <button class="c-btn" data-color="#000000" style="background:#000000;" title="黑"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#dd8833" style="background:#dd8833;" title="橙"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ff6666" style="background:#ff6666;" title="红"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ddff" style="background:#66ddff;" title="青"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ff88" style="background:#66ff88;" title="绿"><span class="check">✓</span></button>
+                  <button class="c-btn active" data-color="#ffdd44" style="background:#ffdd44;" title="黄"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#cc88ff" style="background:#cc88ff;" title="紫"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ffffff" style="background:#ffffff;" title="白"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#3399cc" style="background:#3399cc;" title="蓝"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ff66b2" style="background:#ff66b2;" title="粉"><span class="check">✓</span></button>
+                  <input type="color" class="c-btn custom-color" id="lonCustomColor" value="#ffdd44" title="自定义经线颜色">
+                </div>
+                <div class="color-label">纬线颜色</div>
+                <div class="color-row" id="latColorRow">
+                  <button class="c-btn active" data-color="#ff0000" style="background:#ff0000;" title="红"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#000000" style="background:#000000;" title="黑"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#3399cc" style="background:#3399cc;" title="蓝"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ddff" style="background:#66ddff;" title="青"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ff88" style="background:#66ff88;" title="绿"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ffdd44" style="background:#ffdd44;" title="黄"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#cc88ff" style="background:#cc88ff;" title="紫"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ffffff" style="background:#ffffff;" title="白"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#dd8833" style="background:#dd8833;" title="橙"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ff66b2" style="background:#ff66b2;" title="粉"><span class="check">✓</span></button>
+                  <input type="color" class="c-btn custom-color" id="latCustomColor" value="#ff0000" title="自定义纬线颜色">
+                </div>
+                <div class="color-label">经度标注颜色</div>
+                <div class="color-row" id="lonLabelColorRow">
+                  <button class="c-btn" data-color="#000000" style="background:#000000;" title="黑"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#dd8833" style="background:#dd8833;" title="橙"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ff6666" style="background:#ff6666;" title="红"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ddff" style="background:#66ddff;" title="青"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ff88" style="background:#66ff88;" title="绿"><span class="check">✓</span></button>
+                  <button class="c-btn active" data-color="#ffdd44" style="background:#ffdd44;" title="黄"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#cc88ff" style="background:#cc88ff;" title="紫"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ffffff" style="background:#ffffff;" title="白"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#3399cc" style="background:#3399cc;" title="蓝"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ff66b2" style="background:#ff66b2;" title="粉"><span class="check">✓</span></button>
+                  <input type="color" class="c-btn custom-color" id="lonLabelCustomColor" value="#ffdd44" title="自定义经度标注颜色">
+                </div>
+                <div class="color-label">纬度标注颜色</div>
+                <div class="color-row" id="latLabelColorRow">
+                  <button class="c-btn active" data-color="#ff0000" style="background:#ff0000;" title="红"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#000000" style="background:#000000;" title="黑"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#3399cc" style="background:#3399cc;" title="蓝"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ddff" style="background:#66ddff;" title="青"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#66ff88" style="background:#66ff88;" title="绿"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ffdd44" style="background:#ffdd44;" title="黄"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#cc88ff" style="background:#cc88ff;" title="紫"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ffffff" style="background:#ffffff;" title="白"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#dd8833" style="background:#dd8833;" title="橙"><span class="check">✓</span></button>
+                  <button class="c-btn" data-color="#ff66b2" style="background:#ff66b2;" title="粉"><span class="check">✓</span></button>
+                  <input type="color" class="c-btn custom-color" id="latLabelCustomColor" value="#ff0000" title="自定义纬度标注颜色">
+                </div>
+                <div class="row" style="margin-top:2px;"><button class="btn btn-grid" id="tropicsBtn">回归线</button><button class="btn btn-grid" id="tropicsLabelsBtn">标注</button></div>
+              </div>
+            </div>
+
+            <!-- ===== 经纬度标注位置控制 (合并) ===== -->
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 标注位置</div>
+              <div class="cat-btns">
+                <div class="slider-row">
+                  <span class="s-label" style="min-width:24px;">南极</span>
+                  <input type="range" id="lonLabelLatSlider" min="-90" max="90" step="1" value="0">
+                  <span class="s-label" style="min-width:24px;">北极</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:0 4px;">
+                  <span style="color:rgba(255,255,255,0.15); font-size:6px;">▼ 90°</span>
+                  <span style="color:rgba(255,255,255,0.15); font-size:6px;" id="lonLabelLatDisplay">赤道 0°</span>
+                  <span style="color:rgba(255,255,255,0.15); font-size:6px;">▲ 90°</span>
+                </div>
+                <div class="slider-row" style="margin-top:4px;">
+                  <span class="s-label" style="min-width:20px;">西</span>
+                  <input type="range" id="latLabelOffsetSlider" min="-180" max="180" step="1" value="0">
+                  <span class="s-label" style="min-width:20px;">东</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:0 4px;">
+                  <span style="color:rgba(255,255,255,0.15); font-size:6px;">◀ 180°</span>
+                  <span style="color:rgba(255,255,255,0.35); font-size:9px;" id="latLabelOffsetDisplay">经度 0°</span>
+                  <span style="color:rgba(255,255,255,0.15); font-size:6px;">180° ▶</span>
+                </div>
+                <div class="row" style="margin-top:3px;">
+                  <button class="btn btn-grid" id="latLonResetBtn" style="flex:1;">↺ 复位</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+            <div class="tab-panel" id="tab-advanced">
+<div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 视图</div>
+              <div class="cat-btns">
+                <div class="row"><button class="btn btn-earth" id="mapProjectBtn"><span class="icon">🗺</span><span class="label">展开地图</span></button><button class="btn btn-earth" id="earthViewPanelBtn" title="地球俯视/正视图视窗（💻三态：关闭→北极俯视→正视图→关闭）"><span class="icon">💻</span><span class="label">俯视/正视</span></button></div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 六视图</div>
+              <div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-texture view-preset-btn" data-view="front">正视图</button>
+                  <button class="btn btn-texture view-preset-btn" data-view="back">后视图</button>
+                </div>
+                <div class="row">
+                  <button class="btn btn-texture view-preset-btn" data-view="left">左视图</button>
+                  <button class="btn btn-texture view-preset-btn" data-view="right">右视图</button>
+                </div>
+                <div class="row">
+                  <button class="btn btn-texture view-preset-btn" data-view="top">俯视图</button>
+                  <button class="btn btn-texture view-preset-btn" data-view="bottom">仰视图</button>
+                </div>
+              </div>
+            </div>            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 时区</div>
+              <div class="cat-btns">
+                <div class="row" style="justify-content:space-evenly;">
+<button class="btn btn-earth" id="timezoneBtn" title="按经度每15°显示全球时区带（两种颜色间隔）"><span class="icon">🕐</span><span class="label">时区带</span></button>
+                  <button class="btn btn-earth" id="timeLabelsBtn" title="按光照/直射点/晨昏线显示24小时整时标注（直射点=12时，赤道上空）"><span class="icon">🕒</span><span class="label">整时标注</span></button>
+                </div>
+              </div>
+            </div><div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 工具</div>
+              <div class="cat-btns">
+                <div class="row"><button class="btn btn-tool" id="markerBrushBtn">画笔</button><button class="btn btn-tool" id="measureBtn">测距</button><button class="btn btn-tool" id="clearMarkersBtn">清空</button></div>
+                <div class="marker-count">标注: <span class="count" id="markerCount">0</span> · 测距: <span id="measureStatus">待定</span></div>
+                <div class="row" style="margin-top:3px; border-top:1px solid rgba(255,255,255,0.05); padding-top:3px;">
+                  <button class="toggle-btn btn-tool" id="coordToggleBtn" style="flex:1.2;">
+                    <span class="track"><span class="thumb"></span></span>
+                    <span class="t-label">显示坐标</span>
+                  </button>
+                  <button class="btn btn-tool" id="coordFormatBtn" style="flex:0.8;">
+                    <span class="icon">📐</span>
+                    <span class="label">十进制</span>
+                  </button>
+                </div>
+                <div class="row" style="margin-top:3px; border-top:1px solid rgba(255,255,255,0.05); padding-top:3px;">
+                  <button class="btn btn-earth" id="cylinderBtn"><span class="icon">📌</span><span class="label">圆柱</span></button>
+                  <button class="btn btn-earth btn-active" id="shadowToggleBtn"><span class="icon">🌓</span><span class="label">阴影</span></button>
+                </div>
+                <div class="slider-row"><span class="s-label">阴影强度</span><input type="range" id="shadowIntensitySlider" min="0.1" max="1.0" step="0.05" value="0.8"><span class="s-val" id="shadowIntensityValue">0.8</span></div>
+              </div>
+            </div>
+                        <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 教学模式</div>
+<div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-grid btn-active" id="eduModeMiddleBtn" style="flex:1;" title="初中版：倾斜角 23.5° / 极圈 66.5° / 经纬度小数显示">初中版</button>
+                  <button class="btn btn-grid" id="eduModeHighBtn" style="flex:1;" title="高中版：精确 23.44° / 极圈 66.56° / 经纬度度分秒显示">高中版</button>
+                </div>
+              </div>
+            </div>
+            <div class="category">
+              <div class="category-title"><span class="collapse-icon">▼</span> 状态</div>
+<div class="cat-btns">
+                <div class="row">
+                  <button class="btn btn-texture" id="stateExportBtn" title="将当前所有开关/相机视角/颜色/参数导出为 JSON 快照文件">📤 导出状态</button>
+                  <button class="btn btn-texture" id="stateImportBtn" title="从 JSON 快照文件恢复各项参数">📥 导入状态</button>
+                </div>
+                <div class="texture-status" id="stateStatus">未保存状态</div>
+              </div>
+              <input type="file" id="stateFileInput" accept=".json,application/json" style="display:none;">
+            </div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="url-dialog-overlay" id="urlDialog">
+      <div class="url-dialog">
+        <div class="dialog-header"><span class="dialog-title">网络纹理</span><button class="dialog-close" id="urlDialogClose">✕</button></div>
+        <div class="url-grid" id="urlGrid">
+          <div class="url-item" data-url="https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg" data-fallback="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/textures/planets/earth_atmos_2048.jpg"><span class="idx">1.</span><span class="name">官方示例</span></div>
+          <div class="url-item" data-url="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg" data-fallback="https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg"><span class="idx">2.</span><span class="name">蓝宝石</span></div>
+          <div class="url-item" data-url="https://threejs.org/examples/textures/planets/earth_clouds_1024.png" data-fallback="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/textures/planets/earth_clouds_1024.png"><span class="idx">3.</span><span class="name">云层</span></div>
+          <div class="url-item" data-url="https://threejs.org/examples/textures/planets/earth_lights_2048.png" data-fallback="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/textures/planets/earth_lights_2048.png"><span class="idx">4.</span><span class="name">夜间灯光</span></div>
+          <div class="url-item" data-url="https://threejs.org/examples/textures/planets/earth_normal_2048.jpg" data-fallback="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/textures/planets/earth_normal_2048.jpg"><span class="idx">5.</span><span class="name">法线贴图</span></div>
+          <div class="url-item" data-url="https://threejs.org/examples/textures/planets/earth_specular_2048.jpg" data-fallback="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/textures/planets/earth_specular_2048.jpg"><span class="idx">6.</span><span class="name">高光贴图</span></div>
+          <div class="url-item" data-url="https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg" data-fallback="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/textures/planets/earth_atmos_2048.jpg"><span class="idx">7.</span><span class="name">大气纹理</span></div>
+          <div class="url-item" data-url="https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Blue_Marble_2002.png/1280px-Blue_Marble_2002.png" data-fallback=""><span class="idx">8.</span><span class="name">蓝色星球</span></div>
+          <div class="url-item" data-url="https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg" data-fallback="https://cdn.jsdelivr.net/npm/three-globe@2.31.1/example/img/earth-blue-marble.jpg"><span class="idx">9.</span><span class="name">2K 高清</span></div>
+          <div class="url-item" data-url="https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/world.topo.bathy.200412.3x5400x2700.jpg" data-fallback="https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg"><span class="idx">10.</span><span class="name">5K NASA</span></div>
+          <div class="url-item" data-url="https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg" data-fallback="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"><span class="idx">11.</span><span class="name">8K 超清</span></div>
+        </div>
+        <div class="url-custom-row"><input type="text" id="urlCustomInput" placeholder="输入自定义 URL..."><button class="btn-load" id="urlCustomLoad">加载</button></div>
+      </div>
+    </div>
+  </div>
+
+  
+<script src="js/china-borders.js"></script>
+<script src="js/loader.js"></script>
+  <script src="../../assets/js/boot.js" data-rg-mode="overlay" defer></script>
+</html>
+<!-- （注：内容由AI生成） -->

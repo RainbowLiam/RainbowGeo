@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>共享层 Demo · overlay 模式（模拟全屏 3D 工具）</title>
+<link rel="stylesheet" href="../../assets/css/app.css">
+<style>
+  /* 模拟工具页自身样式（独立命名空间，与 rg- 互不干扰） */
+  html, body { margin: 0; height: 100%; }
+  .demo-stage { position: fixed; inset: 0; background: #0a1a2c; }
+  .demo-stage .hint {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #a8c4e4; font: 15px/1.8 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif; text-align: center;
+  }
+  .demo-corner {
+    position: absolute; width: 44px; height: 44px; border-radius: 10px;
+    background: rgba(79,195,247,.14); border: 1px solid rgba(148,197,255,.3);
+    color: #a8c4e4; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    user-select: none;
+  }
+  .tl { top: 12px; left: 12px; } .tr { top: 12px; right: 12px; }
+  .bl { bottom: 12px; left: 12px; } .br { bottom: 12px; right: 12px; }
+</style>
+</head>
+<body>
+<div class="demo-stage">
+  <div class="demo-corner tl">①</div>
+  <div class="demo-corner tr">②</div>
+  <div class="demo-corner bl">③</div>
+  <div class="demo-corner br">④</div>
+  <div class="hint">模拟全屏 3D 工具画布<br>四角按钮不被共享层遮挡<br>顶部居中 = 品牌栏 · 底部居中 = 版权栏</div>
+</div>
+<script src="../../assets/js/boot.js" data-rg-mode="overlay" defer></script>
+</body>
+</html>
